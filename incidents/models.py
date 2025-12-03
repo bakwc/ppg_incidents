@@ -31,6 +31,10 @@ class Incident(models.Model):
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    # Title and summary
+    title = models.CharField(max_length=300, null=True, blank=True)
+    summary = models.TextField(null=True, blank=True)
+
     # Date and time
     date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=True, blank=True)
