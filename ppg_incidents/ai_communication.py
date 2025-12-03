@@ -2,6 +2,7 @@ import json
 import os
 from logging import getLogger
 
+import anthropic
 from openai import OpenAI
 
 logger = getLogger(__name__)
@@ -60,54 +61,65 @@ class AiCommunicator:
     def __init__(self):
         api_key = os.getenv('OPENAI_API_KEY')
         api_key_deepseek = os.getenv('DEEPSEEK_API_KEY')
+        api_key_anthropic = os.getenv('ANTHROPIC_API_KEY')
         self.client = None
         self.client_deepseek = None
-        if not api_key and not api_key_deepseek:
-            raise Exception('OPENAI_API_KEY or DEEPSEEK_API_KEY not defined')
+        self.client_anthropic = None
+        if not api_key and not api_key_deepseek and not api_key_anthropic:
+            raise Exception('OPENAI_API_KEY or DEEPSEEK_API_KEY or ANTHROPIC_API_KEY not defined')
         if api_key:
             self.client = OpenAI(api_key=api_key)
         if api_key_deepseek:
             self.client_deepseek = OpenAI(api_key=api_key_deepseek, base_url="https://api.deepseek.com")
+        if api_key_anthropic:
+            self.client_anthropic = anthropic.Anthropic(api_key=api_key_anthropic)
 
     def send_request(self, prompt, model):
+        if 'claude' in model:
+            response = self.client_anthropic.messages.create(
+                model=model,
+                max_tokens=4096,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text.strip()
+
         client = self.client
         if 'deepseek' in model:
             client = self.client_deepseek
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": prompt
-                            }
-                        ]
-                    },
-                ]
-            )
-            # Extract and print the generated text
-            generated_text = response.choices[0].message.content.strip()
-            return generated_text
-        except Exception as e:
-            logger.error(f'error requesting openai: {e}', exc_info=True)
-            raise
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [{"type": "text", "text": prompt}],
+                },
+            ],
+        )
+        return response.choices[0].message.content.strip()
 
     def incident_chat(self, messages, incident_data, model="gpt-4o-mini"):
+        system_prompt = INCIDENT_CHAT_SYSTEM_PROMPT
+        if incident_data:
+            system_prompt += f"\n\nCurrent incident data: {json.dumps(incident_data)}"
+
+        if 'claude' in model:
+            chat_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
+            response = self.client_anthropic.messages.create(
+                model=model,
+                max_tokens=4096,
+                system=system_prompt,
+                messages=chat_messages,
+            )
+            result_text = response.content[0].text.strip()
+            result = json.loads(result_text)
+            return result
+
         client = self.client
         if 'deepseek' in model:
             client = self.client_deepseek
 
-        chat_messages = [{"role": "system", "content": INCIDENT_CHAT_SYSTEM_PROMPT}]
-
-        if incident_data:
-            chat_messages.append({
-                "role": "system",
-                "content": f"Current incident data: {json.dumps(incident_data)}"
-            })
-
+        chat_messages = [{"role": "system", "content": system_prompt}]
         for msg in messages:
             chat_messages.append({"role": msg["role"], "content": msg["content"]})
 

@@ -18,7 +18,10 @@ poetry run python manage.py runserver
 ## Environment Variables
 
 - `OPENAI_API_KEY` - OpenAI API key
-- `DEEPSEEK_API_KEY` - DeepSeek API key (optional, alternative to OpenAI)
+- `DEEPSEEK_API_KEY` - DeepSeek API key (optional)
+- `ANTHROPIC_API_KEY` - Anthropic API key (optional)
+
+At least one API key must be set.
 
 ## Run Tests
 

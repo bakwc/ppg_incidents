@@ -29,7 +29,7 @@ class IncidentChatView(APIView):
         messages = request.data.get("messages", [])
         incident_data = request.data.get("incident_data")
 
-        result = ai_communicator.incident_chat(messages, incident_data)
+        result = ai_communicator.incident_chat(messages, incident_data, model="claude-sonnet-4-5-20250929")
 
         return Response({
             "response": result.get("response"),
