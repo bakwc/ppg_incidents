@@ -50,3 +50,18 @@ class IncidentSaveView(APIView):
             "incident": IncidentSerializer(incident).data,
             "saved": True,
         })
+
+
+class IncidentUpdateView(APIView):
+    def put(self, request, uuid):
+        incident = Incident.objects.get(uuid=uuid)
+        incident_data = request.data.get("incident_data", {})
+
+        serializer = IncidentSerializer(incident, data=incident_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        incident = serializer.save()
+
+        return Response({
+            "incident": IncidentSerializer(incident).data,
+            "saved": True,
+        })
