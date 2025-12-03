@@ -28,24 +28,24 @@ poetry run pytest
 
 ## API Endpoints
 
-### GET /incidents
+### GET /api/incidents
 
 List all incidents.
 
 Query params:
 - `order_by` - field name to order by (e.g. `-date`, `country`)
 
-### GET /incident/{uuid}
+### GET /api/incident/{uuid}
 
 Get single incident by UUID.
 
-### PATCH /incident/{uuid}/update
+### PATCH /api/incident/{uuid}/update
 
 Update incident fields.
 
 Request body: JSON with fields to update.
 
-### POST /incident/chat
+### POST /api/incident/chat
 
 AI-assisted incident creation. Send conversation messages, receive AI response with extracted incident data.
 
@@ -66,7 +66,7 @@ Response:
 }
 ```
 
-### POST /incident/save
+### POST /api/incident/save
 
 Save incident data to database.
 

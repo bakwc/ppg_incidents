@@ -26,11 +26,11 @@ def test_incidents_endpoints():
         severity="fatal",
     )
 
-    response = client.get("/incidents")
+    response = client.get("/api/incidents")
     assert response.status_code == 200
     assert len(response.json()) == 3
 
-    response = client.get(f"/incident/{incident2.uuid}")
+    response = client.get(f"/api/incident/{incident2.uuid}")
     assert response.status_code == 200
     data = response.json()
     assert data["title"] == "Engine failure"
@@ -55,7 +55,7 @@ def test_incident_chat_flow():
 
     with patch("incidents.views.ai_communicator.incident_chat", return_value=mock_response):
         response = client.post(
-            "/incident/chat",
+            "/api/incident/chat",
             data={
                 "messages": [{"role": "user", "content": "A pilot had a wing collapse in Valencia, Spain. Serious injuries."}],
                 "incident_data": None,
@@ -70,7 +70,7 @@ def test_incident_chat_flow():
     assert data["saved"] is False
 
     response = client.post(
-        "/incident/save",
+        "/api/incident/save",
         data={"incident_data": data["incident_data"]},
         format="json",
     )
