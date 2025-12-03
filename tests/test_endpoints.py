@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from rest_framework.test import APIClient
 
@@ -35,3 +37,47 @@ def test_incidents_endpoints():
     assert data["country"] == "France"
     assert data["severity"] == "minor"
 
+
+@pytest.mark.django_db
+def test_incident_chat_flow():
+    client = APIClient()
+
+    mock_response = {
+        "response": "I've recorded the incident. The wing collapse happened in Spain with serious injuries.",
+        "incident_data": {
+            "title": "Wing collapse near Valencia",
+            "country": "Spain",
+            "city_or_site": "Valencia",
+            "severity": "serious",
+            "description": "Pilot experienced a wing collapse during flight",
+        }
+    }
+
+    with patch("incidents.views.ai_communicator.incident_chat", return_value=mock_response):
+        response = client.post(
+            "/incident/chat",
+            data={
+                "messages": [{"role": "user", "content": "A pilot had a wing collapse in Valencia, Spain. Serious injuries."}],
+                "incident_data": None,
+            },
+            format="json",
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["response"] == mock_response["response"]
+    assert data["incident_data"]["title"] == "Wing collapse near Valencia"
+    assert data["saved"] is False
+
+    response = client.post(
+        "/incident/save",
+        data={"incident_data": data["incident_data"]},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.json()["saved"] is True
+
+    incident = Incident.objects.get(title="Wing collapse near Valencia")
+    assert incident.country == "Spain"
+    assert incident.severity == "serious"
