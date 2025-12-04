@@ -124,6 +124,7 @@ function IncidentForm() {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [highlightedFields, setHighlightedFields] = useState(new Set());
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -171,6 +172,7 @@ function IncidentForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setHighlightedFields(new Set());
 
     const dataToSave = { ...formData };
     if (dataToSave.flight_altitude === '') {
@@ -195,6 +197,8 @@ function IncidentForm() {
     e.preventDefault();
     if (!inputMessage.trim() || chatLoading) return;
 
+    setHighlightedFields(new Set());
+    
     const userMessage = { role: 'user', content: inputMessage };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
@@ -207,15 +211,32 @@ function IncidentForm() {
     setMessages([...newMessages, assistantMessage]);
 
     if (result.incident_data) {
-      setFormData(prev => {
-        const updated = { ...prev };
-        for (const [key, value] of Object.entries(result.incident_data)) {
-          if (value !== null && value !== undefined) {
-            updated[key] = value;
+      const changedFields = new Set();
+      
+      for (const [key, value] of Object.entries(result.incident_data)) {
+        if (value !== null && value !== undefined) {
+          const oldValue = formData[key];
+          const valuesEqual = Array.isArray(value) && Array.isArray(oldValue)
+            ? JSON.stringify(value) === JSON.stringify(oldValue)
+            : value === oldValue;
+          
+          if (!valuesEqual) {
+            changedFields.add(key);
           }
         }
-        return updated;
-      });
+      }
+
+      if (changedFields.size > 0) {
+        setFormData(prev => {
+          const updated = { ...prev };
+          for (const key of changedFields) {
+            updated[key] = result.incident_data[key];
+          }
+          return updated;
+        });
+        
+        setHighlightedFields(changedFields);
+      }
     }
 
     setChatLoading(false);
@@ -333,71 +354,71 @@ function IncidentForm() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Info */}
               <Section title="Basic Information">
-                <Input label="Title" name="title" value={formData.title} onChange={handleChange} />
-                <Textarea label="Summary" name="summary" value={formData.summary} onChange={handleChange} rows={2} />
+                <Input label="Title" name="title" value={formData.title} onChange={handleChange} highlighted={highlightedFields.has('title')} />
+                <Textarea label="Summary" name="summary" value={formData.summary} onChange={handleChange} rows={2} highlighted={highlightedFields.has('summary')} />
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Date" name="date" type="date" value={formData.date} onChange={handleChange} />
-                  <Input label="Time" name="time" type="time" value={formData.time} onChange={handleChange} />
+                  <Input label="Date" name="date" type="date" value={formData.date} onChange={handleChange} highlighted={highlightedFields.has('date')} />
+                  <Input label="Time" name="time" type="time" value={formData.time} onChange={handleChange} highlighted={highlightedFields.has('time')} />
                 </div>
               </Section>
 
               {/* Location */}
               <Section title="Location">
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Country" name="country" value={formData.country} onChange={handleChange} />
-                  <Input label="City / Site" name="city_or_site" value={formData.city_or_site} onChange={handleChange} />
+                  <Input label="Country" name="country" value={formData.country} onChange={handleChange} highlighted={highlightedFields.has('country')} />
+                  <Input label="City / Site" name="city_or_site" value={formData.city_or_site} onChange={handleChange} highlighted={highlightedFields.has('city_or_site')} />
                 </div>
               </Section>
 
               {/* Equipment */}
               <Section title="Equipment">
                 <div className="grid grid-cols-3 gap-4">
-                  <Select label="Paramotor Type" name="paramotor_type" value={formData.paramotor_type} onChange={handleChange} options={PARAMOTOR_TYPES} />
-                  <Input label="Paramotor Frame" name="paramotor_frame" value={formData.paramotor_frame} onChange={handleChange} />
-                  <Input label="Paramotor Engine" name="paramotor_engine" value={formData.paramotor_engine} onChange={handleChange} />
+                  <Select label="Paramotor Type" name="paramotor_type" value={formData.paramotor_type} onChange={handleChange} options={PARAMOTOR_TYPES} highlighted={highlightedFields.has('paramotor_type')} />
+                  <Input label="Paramotor Frame" name="paramotor_frame" value={formData.paramotor_frame} onChange={handleChange} highlighted={highlightedFields.has('paramotor_frame')} />
+                  <Input label="Paramotor Engine" name="paramotor_engine" value={formData.paramotor_engine} onChange={handleChange} highlighted={highlightedFields.has('paramotor_engine')} />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
-                  <Input label="Wing Manufacturer" name="wing_manufacturer" value={formData.wing_manufacturer} onChange={handleChange} />
-                  <Input label="Wing Model" name="wing_model" value={formData.wing_model} onChange={handleChange} />
-                  <Input label="Wing Size" name="wing_size" value={formData.wing_size} onChange={handleChange} />
+                  <Input label="Wing Manufacturer" name="wing_manufacturer" value={formData.wing_manufacturer} onChange={handleChange} highlighted={highlightedFields.has('wing_manufacturer')} />
+                  <Input label="Wing Model" name="wing_model" value={formData.wing_model} onChange={handleChange} highlighted={highlightedFields.has('wing_model')} />
+                  <Input label="Wing Size" name="wing_size" value={formData.wing_size} onChange={handleChange} highlighted={highlightedFields.has('wing_size')} />
                 </div>
               </Section>
 
               {/* Pilot & Flight */}
               <Section title="Pilot & Flight">
-                <Input label="Pilot" name="pilot" value={formData.pilot} onChange={handleChange} />
+                <Input label="Pilot" name="pilot" value={formData.pilot} onChange={handleChange} highlighted={highlightedFields.has('pilot')} />
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Flight Altitude (m)" name="flight_altitude" type="number" value={formData.flight_altitude} onChange={handleChange} />
-                  <Select label="Flight Phase" name="flight_phase" value={formData.flight_phase} onChange={handleChange} options={FLIGHT_PHASES} />
+                  <Input label="Flight Altitude (m)" name="flight_altitude" type="number" value={formData.flight_altitude} onChange={handleChange} highlighted={highlightedFields.has('flight_altitude')} />
+                  <Select label="Flight Phase" name="flight_phase" value={formData.flight_phase} onChange={handleChange} options={FLIGHT_PHASES} highlighted={highlightedFields.has('flight_phase')} />
                 </div>
               </Section>
 
               {/* Incident Details */}
               <Section title="Incident Details">
                 <div className="grid grid-cols-2 gap-4">
-                  <Select label="Severity" name="severity" value={formData.severity} onChange={handleChange} options={SEVERITIES} />
-                  <Select label="Reserve Use" name="reserve_use" value={formData.reserve_use} onChange={handleChange} options={RESERVE_USE} />
+                  <Select label="Severity" name="severity" value={formData.severity} onChange={handleChange} options={SEVERITIES} highlighted={highlightedFields.has('severity')} />
+                  <Select label="Reserve Use" name="reserve_use" value={formData.reserve_use} onChange={handleChange} options={RESERVE_USE} highlighted={highlightedFields.has('reserve_use')} />
                 </div>
-                <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} />
-                <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} />
-                <Textarea label="Causes Description" name="causes_description" value={formData.causes_description} onChange={handleChange} rows={3} />
+                <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} highlighted={highlightedFields.has('potentially_fatal')} />
+                <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} highlighted={highlightedFields.has('description')} />
+                <Textarea label="Causes Description" name="causes_description" value={formData.causes_description} onChange={handleChange} rows={3} highlighted={highlightedFields.has('causes_description')} />
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." />
-                  <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} />
+                  <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." highlighted={highlightedFields.has('surface_type')} />
+                  <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} highlighted={highlightedFields.has('cause_confidence')} />
                 </div>
-                <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} />
+                <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} highlighted={highlightedFields.has('pilot_actions')} />
               </Section>
 
               {/* Collapse Sequence */}
-              <Section title="Collapse Sequence">
+              <Section title="Collapse Sequence" highlighted={highlightedFields.has('collapse_types')}>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-2">Add collapse type to sequence</label>
+                  <label className={`block text-xs font-medium mb-2 ${highlightedFields.has('collapse_types') ? 'text-emerald-400' : 'text-slate-400'}`}>Add collapse type to sequence</label>
                   <select
                     onChange={(e) => {
                       addCollapseType(e.target.value);
                       e.target.value = '';
                     }}
-                    className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer"
+                    className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlightedFields.has('collapse_types') ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
                   >
                     <option value="" className="bg-slate-900">Select to add...</option>
                     {COLLAPSE_TYPES.map(opt => (
@@ -409,14 +430,14 @@ function IncidentForm() {
                 </div>
                 {formData.collapse_types && formData.collapse_types.length > 0 && (
                   <div className="space-y-2">
-                    <label className="block text-xs font-medium text-slate-400">Sequence (in order)</label>
+                    <label className={`block text-xs font-medium ${highlightedFields.has('collapse_types') ? 'text-emerald-400' : 'text-slate-400'}`}>Sequence (in order)</label>
                     <div className="flex flex-wrap gap-2">
                       {formData.collapse_types.map((type, idx) => {
                         const label = COLLAPSE_TYPES.find(t => t.value === type)?.label || type;
                         return (
                           <div
                             key={idx}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg"
+                            className={`flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 border rounded-lg ${highlightedFields.has('collapse_types') ? 'border-emerald-500' : 'border-slate-600/50'}`}
                           >
                             <span className="text-xs text-orange-400 font-medium">{idx + 1}.</span>
                             <span className="text-sm text-slate-200">{label}</span>
@@ -440,32 +461,32 @@ function IncidentForm() {
               {/* Contributing Factors */}
               <Section title="Contributing Factors">
                 <div className="grid grid-cols-2 gap-4">
-                  <Select label="Trimmer Position" name="factor_trimmer_position" value={formData.factor_trimmer_position} onChange={handleChange} options={TRIMMER_POSITIONS} />
-                  <Select label="Accelerator Position" name="factor_accelerator" value={formData.factor_accelerator} onChange={handleChange} options={ACCELERATOR_POSITIONS} />
+                  <Select label="Trimmer Position" name="factor_trimmer_position" value={formData.factor_trimmer_position} onChange={handleChange} options={TRIMMER_POSITIONS} highlighted={highlightedFields.has('factor_trimmer_position')} />
+                  <Select label="Accelerator Position" name="factor_accelerator" value={formData.factor_accelerator} onChange={handleChange} options={ACCELERATOR_POSITIONS} highlighted={highlightedFields.has('factor_accelerator')} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} />
-                  <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} />
-                  <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} />
-                  <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} />
-                  <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} />
-                  <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} />
-                  <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} />
-                  <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} />
+                  <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} highlighted={highlightedFields.has('factor_low_altitude')} />
+                  <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} highlighted={highlightedFields.has('factor_maneuvers')} />
+                  <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} highlighted={highlightedFields.has('factor_thermal_weather')} />
+                  <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_rotor_turbulence')} />
+                  <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} highlighted={highlightedFields.has('factor_reflex_profile')} />
+                  <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} highlighted={highlightedFields.has('factor_helmet_missing')} />
+                  <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_tree_collision')} />
+                  <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} highlighted={highlightedFields.has('factor_water_landing')} />
                 </div>
               </Section>
 
               {/* Weather */}
               <Section title="Weather Conditions">
-                <Input label="Wind Speed" name="wind_speed" value={formData.wind_speed} onChange={handleChange} placeholder="e.g., 10-15 km/h, gusts to 25" />
-                <Textarea label="Meteorological Conditions" name="meteorological_conditions" value={formData.meteorological_conditions} onChange={handleChange} rows={2} />
-                <Textarea label="Thermal Conditions" name="thermal_conditions" value={formData.thermal_conditions} onChange={handleChange} rows={2} />
+                <Input label="Wind Speed" name="wind_speed" value={formData.wind_speed} onChange={handleChange} placeholder="e.g., 10-15 km/h, gusts to 25" highlighted={highlightedFields.has('wind_speed')} />
+                <Textarea label="Meteorological Conditions" name="meteorological_conditions" value={formData.meteorological_conditions} onChange={handleChange} rows={2} highlighted={highlightedFields.has('meteorological_conditions')} />
+                <Textarea label="Thermal Conditions" name="thermal_conditions" value={formData.thermal_conditions} onChange={handleChange} rows={2} highlighted={highlightedFields.has('thermal_conditions')} />
               </Section>
 
               {/* Links */}
               <Section title="Links & Media">
-                <Textarea label="Source Links (one per line)" name="source_links" value={formData.source_links} onChange={handleChange} rows={3} />
-                <Textarea label="Media Links (one per line)" name="media_links" value={formData.media_links} onChange={handleChange} rows={3} />
+                <Textarea label="Source Links (one per line)" name="source_links" value={formData.source_links} onChange={handleChange} rows={3} highlighted={highlightedFields.has('source_links')} />
+                <Textarea label="Media Links (one per line)" name="media_links" value={formData.media_links} onChange={handleChange} rows={3} highlighted={highlightedFields.has('media_links')} />
               </Section>
 
               {/* Submit */}
@@ -492,11 +513,11 @@ function IncidentForm() {
   );
 }
 
-function Section({ title, children }) {
+function Section({ title, children, highlighted }) {
   return (
-    <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-5">
+    <div className={`bg-slate-800/30 backdrop-blur-sm border rounded-2xl p-5 transition-all ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-700/50'}`}>
       <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-        <span className="w-1 h-4 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full" />
+        <span className={`w-1 h-4 rounded-full ${highlighted ? 'bg-gradient-to-b from-emerald-400 to-emerald-600' : 'bg-gradient-to-b from-orange-500 to-amber-500'}`} />
         {title}
       </h2>
       <div className="space-y-3">
@@ -506,47 +527,47 @@ function Section({ title, children }) {
   );
 }
 
-function Input({ label, name, type = 'text', value, onChange, placeholder }) {
+function Input({ label, name, type = 'text', value, onChange, placeholder, highlighted }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <label className={`block text-xs font-medium mb-1 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</label>
       <input
         type={type}
         name={name}
         value={value || ''}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all"
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
       />
     </div>
   );
 }
 
-function Textarea({ label, name, value, onChange, rows = 3, placeholder }) {
+function Textarea({ label, name, value, onChange, rows = 3, placeholder, highlighted }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <label className={`block text-xs font-medium mb-1 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</label>
       <textarea
         name={name}
         value={value || ''}
         onChange={onChange}
         rows={rows}
         placeholder={placeholder}
-        className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all resize-none"
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all resize-none ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
       />
     </div>
   );
 }
 
-function Select({ label, name, value, onChange, options }) {
+function Select({ label, name, value, onChange, options, highlighted }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <label className={`block text-xs font-medium mb-1 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</label>
       <select
         name={name}
         value={value || ''}
         onChange={onChange}
-        className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer"
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
       >
         {options.map(opt => (
           <option key={opt.value} value={opt.value} className="bg-slate-900">
@@ -558,9 +579,9 @@ function Select({ label, name, value, onChange, options }) {
   );
 }
 
-function Checkbox({ label, name, checked, onChange }) {
+function Checkbox({ label, name, checked, onChange, highlighted }) {
   return (
-    <label className="flex items-center gap-2.5 cursor-pointer group">
+    <label className={`flex items-center gap-2.5 cursor-pointer group px-2 py-1 rounded-lg transition-all ${highlighted ? 'bg-emerald-500/20 ring-1 ring-emerald-500/50' : ''}`}>
       <div className="relative">
         <input
           type="checkbox"
@@ -569,7 +590,7 @@ function Checkbox({ label, name, checked, onChange }) {
           onChange={onChange}
           className="peer sr-only"
         />
-        <div className="w-4 h-4 bg-slate-900/50 border border-slate-600/50 rounded peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-all" />
+        <div className={`w-4 h-4 bg-slate-900/50 border rounded peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-all ${highlighted ? 'border-emerald-500' : 'border-slate-600/50'}`} />
         <svg
           className="absolute top-0.5 left-0.5 w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
           fill="none"
@@ -579,7 +600,7 @@ function Checkbox({ label, name, checked, onChange }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <span className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{label}</span>
+      <span className={`text-xs group-hover:text-slate-300 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</span>
     </label>
   );
 }

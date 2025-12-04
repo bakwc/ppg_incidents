@@ -53,10 +53,13 @@ The incident has the following fields:
 
 Your response must be valid JSON with exactly two keys:
 - "response": Your text response to the user (ask clarifying questions, confirm details, etc.)
-- "incident_data": Object with incident fields. Only include fields that have been mentioned or can be inferred. Use null for unknown fields.
+- "incident_data": Object with ONLY the fields that are new or updated based on the latest user message. Do NOT include unchanged fields. Omit fields completely if they were not mentioned or updated.
 
-Example response:
-{"response": "I've recorded the basic details. Can you tell me more about the weather conditions?", "incident_data": {"title": "Wing collapse near Madrid", "country": "Spain", "severity": "serious"}}
+Example - first message "Wing collapse in Spain, serious injuries":
+{"response": "I've recorded the basic details. Can you tell me more about the weather conditions?", "incident_data": {"title": "Wing collapse in Spain", "country": "Spain", "severity": "serious"}}
+
+Example - follow-up message "It was near Madrid, pilot name was John":
+{"response": "Got it, updated the location and pilot info.", "incident_data": {"city_or_site": "Madrid", "pilot": "John"}}
 """
 
 
