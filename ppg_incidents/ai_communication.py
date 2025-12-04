@@ -56,7 +56,8 @@ The incident has the following fields:
 - wing_manufacturer: Wing/glider manufacturer
 - wing_model: Wing model name
 - wing_size: Wing size
-- pilot: Pilot name or identifier
+- pilot_name: Pilot name or identifier
+- pilot_details: Pilot details (experience, certifications, etc.)
 - flight_altitude: Altitude in meters (integer)
 - flight_phase: One of: "takeoff", "landing", "flight"
 - severity: One of: "fatal", "serious", "minor"
@@ -97,7 +98,7 @@ Example - first message "Wing collapse in Spain, serious injuries":
 {"response": "I've recorded the basic details. Can you tell me more about the weather conditions?", "incident_data": {"title": "Wing collapse in Spain", "country": "Spain", "severity": "serious"}}
 
 Example - follow-up message "It was near Madrid, pilot name was John":
-{"response": "Got it, updated the location and pilot info.", "incident_data": {"city_or_site": "Madrid", "pilot": "John"}}
+{"response": "Got it, updated the location and pilot info.", "incident_data": {"city_or_site": "Madrid", "pilot_name": "John"}}
 """
 
 TOOLS = [
