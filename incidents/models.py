@@ -84,7 +84,8 @@ class Incident(models.Model):
     wing_size = models.CharField(max_length=50, null=True, blank=True)
 
     # Pilot
-    pilot = models.CharField(max_length=200, null=True, blank=True)
+    pilot_name = models.CharField(max_length=200, null=True, blank=True)
+    pilot_details = models.CharField(max_length=200, null=True, blank=True)
 
     # Flight details
     flight_altitude = models.IntegerField(null=True, blank=True, help_text="Altitude in meters")
@@ -194,8 +195,10 @@ class Incident(models.Model):
             parts.append(f"Wing size: {self.wing_size}")
 
         # Pilot
-        if self.pilot:
-            parts.append(f"Pilot: {self.pilot}")
+        if self.pilot_name:
+            parts.append(f"Pilot name: {self.pilot_name}")
+        if self.pilot_details:
+            parts.append(f"Pilot details: {self.pilot_details}")
 
         # Flight details
         if self.flight_altitude:

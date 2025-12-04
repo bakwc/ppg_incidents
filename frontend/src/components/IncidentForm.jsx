@@ -92,7 +92,8 @@ function IncidentForm() {
     wing_manufacturer: '',
     wing_model: '',
     wing_size: '',
-    pilot: '',
+    pilot_name: '',
+    pilot_details: '',
     flight_altitude: '',
     flight_phase: '',
     severity: '',
@@ -424,7 +425,8 @@ function IncidentForm() {
 
               {/* Pilot & Flight */}
               <Section title="Pilot & Flight">
-                <Input label="Pilot" name="pilot" value={formData.pilot} onChange={handleChange} highlighted={highlightedFields.has('pilot')} />
+                <Input label="Pilot Name" name="pilot_name" value={formData.pilot_name} onChange={handleChange} highlighted={highlightedFields.has('pilot_name')} />
+                <Input label="Pilot Details" name="pilot_details" value={formData.pilot_details} onChange={handleChange} highlighted={highlightedFields.has('pilot_details')} />
                 <div className="grid grid-cols-2 gap-4">
                   <Input label="Flight Altitude (m)" name="flight_altitude" type="number" value={formData.flight_altitude} onChange={handleChange} highlighted={highlightedFields.has('flight_altitude')} />
                   <Select label="Flight Phase" name="flight_phase" value={formData.flight_phase} onChange={handleChange} options={FLIGHT_PHASES} highlighted={highlightedFields.has('flight_phase')} />

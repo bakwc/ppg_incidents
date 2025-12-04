@@ -174,15 +174,15 @@ class CheckDuplicateView(APIView):
         country = incident_data.get("country")
         date = incident_data.get("date")
         city_or_site = incident_data.get("city_or_site")
-        pilot = incident_data.get("pilot")
+        pilot_name = incident_data.get("pilot_name")
         
-        # High confidence: match by country, date, location, pilot
-        if country and date and city_or_site and pilot:
+        # High confidence: match by country, date, location, pilot_name
+        if country and date and city_or_site and pilot_name:
             matches = Incident.objects.filter(
                 country=country,
                 date=date,
                 city_or_site=city_or_site,
-                pilot=pilot
+                pilot_name=pilot_name
             )
             if exclude_id:
                 matches = matches.exclude(id=exclude_id)
@@ -192,7 +192,7 @@ class CheckDuplicateView(APIView):
                     "incidents": IncidentSerializer(matches, many=True).data
                 })
         
-        # Medium confidence: country+date OR country+pilot
+        # Medium confidence: country+date OR country+pilot_name
         medium_matches = set()
         
         if country and date:
@@ -201,8 +201,8 @@ class CheckDuplicateView(APIView):
                 by_country_date = by_country_date.exclude(id=exclude_id)
             medium_matches.update(by_country_date.values_list("id", flat=True))
         
-        if country and pilot:
-            by_country_pilot = Incident.objects.filter(country=country, pilot=pilot)
+        if country and pilot_name:
+            by_country_pilot = Incident.objects.filter(country=country, pilot_name=pilot_name)
             if exclude_id:
                 by_country_pilot = by_country_pilot.exclude(id=exclude_id)
             medium_matches.update(by_country_pilot.values_list("id", flat=True))
