@@ -94,6 +94,13 @@ class IncidentUpdateView(APIView):
         })
 
 
+class IncidentDeleteView(APIView):
+    def delete(self, request, uuid):
+        incident = Incident.objects.get(uuid=uuid)
+        incident.delete()
+        return Response({"deleted": True})
+
+
 class IncidentSearchView(APIView):
     def post(self, request):
         query = request.data.get("query", "")

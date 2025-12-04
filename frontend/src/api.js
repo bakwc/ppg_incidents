@@ -59,3 +59,10 @@ export async function checkDuplicate(incidentData, excludeUuid = null) {
   return response.json();
 }
 
+export async function deleteIncident(uuid) {
+  const response = await fetch(`${API_BASE}/incident/${uuid}/delete`, {
+    method: 'DELETE',
+  });
+  return response.json();
+}
+

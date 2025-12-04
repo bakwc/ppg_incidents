@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate } from '../api';
+import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident } from '../api';
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
@@ -135,6 +135,7 @@ function IncidentForm() {
   const [highlightedFields, setHighlightedFields] = useState(new Set());
   const [duplicateResult, setDuplicateResult] = useState(null);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -268,6 +269,13 @@ function IncidentForm() {
     const result = await checkDuplicate(formData, isEditing ? uuid : null);
     setDuplicateResult(result);
     setDuplicateLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this incident?')) return;
+    setDeleting(true);
+    await deleteIncident(uuid);
+    navigate('/');
   };
 
   const getVerdictInfo = (confidence) => {
@@ -598,6 +606,28 @@ function IncidentForm() {
                 >
                   Cancel
                 </Link>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="px-6 py-3 bg-red-600/80 hover:bg-red-600 border border-red-500/50 rounded-xl text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {deleting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete
+                      </>
+                    )}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleCheckDuplicates}
