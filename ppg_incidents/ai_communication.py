@@ -13,6 +13,8 @@ from ppg_incidents.cleaner import clean_html_text, extract_pdf_text
 
 logger = getLogger(__name__)
 
+EMBEDDING_MODEL = "text-embedding-3-large"
+
 CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 
@@ -132,6 +134,14 @@ class AiCommunicator:
             self.client_deepseek = OpenAI(api_key=api_key_deepseek, base_url="https://api.deepseek.com")
         if api_key_anthropic:
             self.client_anthropic = anthropic.Anthropic(api_key=api_key_anthropic)
+
+    def get_embedding(self, text: str) -> list[float]:
+        """Generate embedding for text using OpenAI text-embedding-3-large."""
+        response = self.client.embeddings.create(
+            model=EMBEDDING_MODEL,
+            input=text
+        )
+        return response.data[0].embedding
 
     def send_request(self, prompt, model):
         if 'claude' in model:

@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models import Case, When
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,6 +8,7 @@ from rest_framework.views import APIView
 from incidents.models import Incident
 from incidents.serializers import IncidentSerializer
 from ppg_incidents.ai_communication import ai_communicator
+from ppg_incidents.vector_store import upsert_embedding, search_similar, init_vector_table
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +17,19 @@ class IncidentListView(generics.ListAPIView):
     serializer_class = IncidentSerializer
 
     def get_queryset(self):
-        queryset = Incident.objects.all()
-        order_by = self.request.query_params.get("order_by")
-        if order_by:
-            queryset = queryset.order_by(order_by)
+        semantic_search = self.request.query_params.get("semantic_search")
+        
+        if semantic_search:
+            embedding = ai_communicator.get_embedding(semantic_search)
+            results = search_similar(embedding, limit=100)
+            incident_ids = [r[0] for r in results]
+            preserved_order = Case(*[When(id=id, then=pos) for pos, id in enumerate(incident_ids)])
+            queryset = Incident.objects.filter(id__in=incident_ids).order_by(preserved_order)
+        else:
+            queryset = Incident.objects.all()
+            order_by = self.request.query_params.get("order_by")
+            if order_by:
+                queryset = queryset.order_by(order_by)
         return queryset
 
 
@@ -50,6 +61,10 @@ class IncidentSaveView(APIView):
         serializer.is_valid(raise_exception=True)
         incident = serializer.save()
 
+        # Generate and store embedding
+        embedding = ai_communicator.get_embedding(incident.to_text())
+        upsert_embedding(incident.id, embedding)
+
         return Response({
             "incident": IncidentSerializer(incident).data,
             "saved": True,
@@ -69,7 +84,77 @@ class IncidentUpdateView(APIView):
         serializer.is_valid(raise_exception=True)
         incident = serializer.save()
 
+        # Regenerate and store embedding
+        embedding = ai_communicator.get_embedding(incident.to_text())
+        upsert_embedding(incident.id, embedding)
+
         return Response({
             "incident": IncidentSerializer(incident).data,
             "saved": True,
+        })
+
+
+class IncidentSearchView(APIView):
+    def post(self, request):
+        query = request.data.get("query", "")
+        limit = request.data.get("limit", 10)
+
+        embedding = ai_communicator.get_embedding(query)
+        results = search_similar(embedding, limit=limit)
+
+        incident_ids = [r[0] for r in results]
+        distances = {r[0]: r[1] for r in results}
+
+        incidents = Incident.objects.filter(id__in=incident_ids)
+        incidents_by_id = {i.id: i for i in incidents}
+
+        # Preserve order from search results
+        ordered_incidents = [incidents_by_id[id] for id in incident_ids if id in incidents_by_id]
+
+        return Response({
+            "results": [
+                {
+                    "incident": IncidentSerializer(inc).data,
+                    "distance": distances[inc.id]
+                }
+                for inc in ordered_incidents
+            ]
+        })
+
+
+class IncidentDuplicatesView(APIView):
+    def post(self, request):
+        incident_data = request.data.get("incident_data", {})
+        limit = request.data.get("limit", 5)
+        exclude_uuid = request.data.get("exclude_uuid")
+
+        # Create a temporary incident object for text generation
+        temp_incident = Incident(**incident_data)
+
+        embedding = ai_communicator.get_embedding(temp_incident.to_text())
+
+        exclude_id = None
+        if exclude_uuid:
+            existing = Incident.objects.filter(uuid=exclude_uuid).first()
+            if existing:
+                exclude_id = existing.id
+
+        results = search_similar(embedding, limit=limit, exclude_id=exclude_id)
+
+        incident_ids = [r[0] for r in results]
+        distances = {r[0]: r[1] for r in results}
+
+        incidents = Incident.objects.filter(id__in=incident_ids)
+        incidents_by_id = {i.id: i for i in incidents}
+
+        ordered_incidents = [incidents_by_id[id] for id in incident_ids if id in incidents_by_id]
+
+        return Response({
+            "duplicates": [
+                {
+                    "incident": IncidentSerializer(inc).data,
+                    "distance": distances[inc.id]
+                }
+                for inc in ordered_incidents
+            ]
         })

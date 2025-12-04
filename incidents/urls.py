@@ -1,6 +1,14 @@
 from django.urls import path
 
-from incidents.views import IncidentChatView, IncidentDetailView, IncidentListView, IncidentSaveView, IncidentUpdateView
+from incidents.views import (
+    IncidentChatView,
+    IncidentDetailView,
+    IncidentDuplicatesView,
+    IncidentListView,
+    IncidentSaveView,
+    IncidentSearchView,
+    IncidentUpdateView,
+)
 
 urlpatterns = [
     path("incidents", IncidentListView.as_view(), name="incident-list"),
@@ -8,5 +16,7 @@ urlpatterns = [
     path("incident/<uuid:uuid>/update", IncidentUpdateView.as_view(), name="incident-update"),
     path("incident/chat", IncidentChatView.as_view(), name="incident-chat"),
     path("incident/save", IncidentSaveView.as_view(), name="incident-save"),
+    path("incidents/search", IncidentSearchView.as_view(), name="incident-search"),
+    path("incidents/duplicates", IncidentDuplicatesView.as_view(), name="incident-duplicates"),
 ]
 

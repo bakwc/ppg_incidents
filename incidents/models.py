@@ -154,3 +154,124 @@ class Incident(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.country} - {self.severity}"
+
+    def to_text(self) -> str:
+        """Convert incident to searchable text for embedding."""
+        parts = []
+
+        # Core text fields
+        if self.title:
+            parts.append(f"Title: {self.title}")
+        if self.summary:
+            parts.append(f"Summary: {self.summary}")
+        if self.description:
+            parts.append(f"Description: {self.description}")
+        if self.causes_description:
+            parts.append(f"Causes: {self.causes_description}")
+        if self.injury_details:
+            parts.append(f"Injuries: {self.injury_details}")
+
+        # Date and location
+        if self.date:
+            parts.append(f"Date: {self.date}")
+        if self.country:
+            parts.append(f"Country: {self.country}")
+        if self.city_or_site:
+            parts.append(f"Location: {self.city_or_site}")
+
+        # Equipment
+        if self.paramotor_type:
+            parts.append(f"Paramotor type: {self.get_paramotor_type_display()}")
+        if self.paramotor_frame:
+            parts.append(f"Frame: {self.paramotor_frame}")
+        if self.paramotor_engine:
+            parts.append(f"Engine: {self.paramotor_engine}")
+        if self.wing_manufacturer:
+            parts.append(f"Wing manufacturer: {self.wing_manufacturer}")
+        if self.wing_model:
+            parts.append(f"Wing model: {self.wing_model}")
+        if self.wing_size:
+            parts.append(f"Wing size: {self.wing_size}")
+
+        # Pilot
+        if self.pilot:
+            parts.append(f"Pilot: {self.pilot}")
+
+        # Flight details
+        if self.flight_altitude:
+            parts.append(f"Altitude: {self.flight_altitude}m")
+        if self.flight_phase:
+            parts.append(f"Flight phase: {self.get_flight_phase_display()}")
+
+        # Incident details
+        if self.severity:
+            parts.append(f"Severity: {self.get_severity_display()}")
+        if self.potentially_fatal is not None:
+            parts.append(f"Potentially fatal: {'yes' if self.potentially_fatal else 'no'}")
+        if self.pilot_actions:
+            parts.append(f"Pilot actions: {self.get_pilot_actions_display()}")
+
+        # Hardware
+        if self.hardware_failure is not None:
+            parts.append(f"Hardware failure: {'yes' if self.hardware_failure else 'no'}")
+        if self.bad_hardware_preflight is not None:
+            parts.append(f"Hardware issue detectable on preflight: {'yes' if self.bad_hardware_preflight else 'no'}")
+
+        # Collapse types
+        if self.collapse_types:
+            collapse_labels = []
+            for ct in self.collapse_types:
+                label = dict(self.CollapseType.choices).get(ct, ct)
+                collapse_labels.append(label)
+            parts.append(f"Collapse sequence: {', '.join(collapse_labels)}")
+
+        # Reserve
+        if self.reserve_use:
+            parts.append(f"Reserve: {self.get_reserve_use_display()}")
+
+        # Surface
+        if self.surface_type:
+            parts.append(f"Surface: {self.surface_type}")
+
+        # Confidence
+        if self.cause_confidence:
+            parts.append(f"Cause confidence: {self.get_cause_confidence_display()}")
+
+        # Factors
+        factors = []
+        if self.factor_low_altitude:
+            factors.append("low altitude")
+        if self.factor_maneuvers:
+            factors.append("maneuvers")
+        if self.factor_accelerator:
+            factors.append(f"accelerator {self.get_factor_accelerator_display()}")
+        if self.factor_thermal_weather:
+            factors.append("thermal weather")
+        if self.factor_rotor_turbulence:
+            factors.append("rotor turbulence")
+        if self.factor_trimmer_position:
+            factors.append(f"trimmer {self.get_factor_trimmer_position_display()}")
+        if self.factor_reflex_profile:
+            factors.append("reflex profile")
+        if self.factor_helmet_missing:
+            factors.append("no helmet")
+        if self.factor_tree_collision:
+            factors.append("tree collision")
+        if self.factor_water_landing:
+            factors.append("water landing")
+        if self.factor_ground_starting:
+            factors.append("ground starting")
+        if self.factor_powerline_collision:
+            factors.append("powerline collision")
+        if factors:
+            parts.append(f"Factors: {', '.join(factors)}")
+
+        # Weather
+        if self.wind_speed:
+            parts.append(f"Wind: {self.wind_speed}")
+        if self.meteorological_conditions:
+            parts.append(f"Weather: {self.meteorological_conditions}")
+        if self.thermal_conditions:
+            parts.append(f"Thermals: {self.thermal_conditions}")
+
+        return "\n".join(parts)
