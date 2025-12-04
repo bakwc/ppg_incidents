@@ -122,6 +122,7 @@ function IncidentForm() {
     factor_turbulent_conditions: false,
     source_links: '',
     media_links: '',
+    report_raw: '',
     wind_speed: '',
     meteorological_conditions: '',
     thermal_conditions: '',
@@ -540,6 +541,7 @@ function IncidentForm() {
               <Section title="Links & Media">
                 <Textarea label="Source Links (one per line)" name="source_links" value={formData.source_links} onChange={handleChange} rows={3} highlighted={highlightedFields.has('source_links')} />
                 <Textarea label="Media Links (one per line)" name="media_links" value={formData.media_links} onChange={handleChange} rows={3} highlighted={highlightedFields.has('media_links')} />
+                <Textarea label="Raw Report / Analysis" name="report_raw" value={formData.report_raw} onChange={handleChange} rows={6} highlighted={highlightedFields.has('report_raw')} />
               </Section>
 
               {/* Duplicate Check Results */}

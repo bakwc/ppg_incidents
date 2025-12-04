@@ -141,6 +141,7 @@ class Incident(models.Model):
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
     media_links = models.TextField(null=True, blank=True, help_text="Videos / photos / reports (one per line)")
+    report_raw = models.TextField(null=True, blank=True, help_text="Raw reports / analysis copied from source")
 
     # Weather conditions
     wind_speed = models.CharField(max_length=100, null=True, blank=True, help_text="Wind speed / gusts")

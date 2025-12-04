@@ -87,6 +87,7 @@ The incident has the following fields:
 - factor_turbulent_conditions: Boolean - turbulent conditions (thermals, rotor, wind gusts, etc.)
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
+- report_raw: Raw reports / analysis copied from source
 - wind_speed: Wind speed and gusts description
 - meteorological_conditions: Weather conditions
 - thermal_conditions: Thermal activity description
