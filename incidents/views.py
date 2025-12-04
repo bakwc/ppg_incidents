@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -5,6 +7,8 @@ from rest_framework.views import APIView
 from incidents.models import Incident
 from incidents.serializers import IncidentSerializer
 from ppg_incidents.ai_communication import ai_communicator
+
+logger = logging.getLogger(__name__)
 
 
 class IncidentListView(generics.ListAPIView):
@@ -54,10 +58,14 @@ class IncidentSaveView(APIView):
 
 class IncidentUpdateView(APIView):
     def put(self, request, uuid):
+        logger.info(f"Update request for {uuid}: {request.data}")
         incident = Incident.objects.get(uuid=uuid)
         incident_data = request.data.get("incident_data", {})
+        logger.info(f"Incident data to update: {incident_data}")
 
         serializer = IncidentSerializer(incident, data=incident_data, partial=True)
+        if not serializer.is_valid():
+            logger.error(f"Validation errors: {serializer.errors}")
         serializer.is_valid(raise_exception=True)
         incident = serializer.save()
 

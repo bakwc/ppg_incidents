@@ -100,6 +100,7 @@ class Incident(models.Model):
     description = models.TextField(null=True, blank=True)
     causes_description = models.TextField(null=True, blank=True)
     pilot_actions = models.CharField(max_length=30, choices=PilotActions.choices, null=True, blank=True, verbose_name="Pilot actions")
+    injury_details = models.TextField(null=True, blank=True, help_text="Details of pilot injuries if any")
 
     # Collapse sequence
     collapse_types = models.JSONField(

@@ -103,6 +103,7 @@ function IncidentForm() {
     surface_type: '',
     cause_confidence: '',
     pilot_actions: '',
+    injury_details: '',
     factor_low_altitude: false,
     factor_maneuvers: false,
     factor_accelerator: '',
@@ -183,6 +184,16 @@ function IncidentForm() {
     }
     if (dataToSave.time === '') {
       dataToSave.time = null;
+    }
+    // Convert empty choice fields to null
+    const choiceFields = [
+      'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
+      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type'
+    ];
+    for (const field of choiceFields) {
+      if (dataToSave[field] === '') {
+        dataToSave[field] = null;
+      }
     }
 
     if (isEditing) {
@@ -407,6 +418,7 @@ function IncidentForm() {
                   <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} highlighted={highlightedFields.has('cause_confidence')} />
                 </div>
                 <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} highlighted={highlightedFields.has('pilot_actions')} />
+                <Textarea label="Injury Details" name="injury_details" value={formData.injury_details} onChange={handleChange} rows={2} highlighted={highlightedFields.has('injury_details')} />
               </Section>
 
               {/* Collapse Sequence */}

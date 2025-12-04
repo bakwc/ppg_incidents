@@ -31,6 +31,7 @@ The incident has the following fields:
 - description: Detailed description of the incident
 - causes_description: Description of causes
 - pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting)
+- injury_details: Details of pilot injuries (only fill if pilot was injured)
 - collapse_types: Array of collapse types in sequence. Values: "asymmetric_small" (<30%), "asymmetric_medium" (30-50%), "asymmetric_large" (>50%), "frontal", "full_stall", "spin", "line_twist", "cravatte"
 - reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened"
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
