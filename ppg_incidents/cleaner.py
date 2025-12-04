@@ -1,6 +1,25 @@
+import io
+
+import fitz
 from bs4 import BeautifulSoup
-import hashlib
-import string
+
+
+def extract_pdf_text(pdf_bytes):
+    """
+    Extracts text from PDF bytes.
+
+    Parameters:
+        pdf_bytes (bytes): The PDF content as bytes.
+
+    Returns:
+        str: The extracted text from the PDF.
+    """
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    text_parts = []
+    for page in doc:
+        text_parts.append(page.get_text())
+    doc.close()
+    return "\n".join(text_parts)
 
 
 def clean_html_text(html):

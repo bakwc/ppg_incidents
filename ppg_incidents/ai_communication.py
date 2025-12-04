@@ -9,7 +9,7 @@ import anthropic
 import certifi
 from openai import OpenAI
 
-from ppg_incidents.cleaner import clean_html_text
+from ppg_incidents.cleaner import clean_html_text, extract_pdf_text
 
 logger = getLogger(__name__)
 
@@ -17,13 +17,20 @@ CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 
 
 def get_webpage_content(url: str) -> str:
-    """Download and clean webpage HTML content."""
+    """Download and clean webpage HTML content or extract text from PDF."""
     ssl_context = ssl.create_default_context(cafile=certifi.where())
     request = urllib.request.Request(url, headers={"User-Agent": CHROME_USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
-            html = response.read().decode("utf-8")
-        return clean_html_text(html)
+            content_type = response.headers.get("Content-Type", "")
+            content = response.read()
+
+            if "application/pdf" in content_type or url.lower().endswith(".pdf"):
+                logger.info(f"Extracting text from PDF: {url}")
+                return extract_pdf_text(content)
+            else:
+                html = content.decode("utf-8")
+                return clean_html_text(html)
     except urllib.error.HTTPError as e:
         return f"Error fetching URL: HTTP {e.code} {e.reason}"
     except urllib.error.URLError as e:
@@ -193,13 +200,21 @@ class AiCommunicator:
                 return {"response": "Error: No response from AI", "incident_data": {}}
             result_text = text_block.text.strip()
             logger.info(f"Claude raw response: {result_text}")
+
             # Extract JSON from response - it might be wrapped in markdown code blocks
+            json_text = result_text
             if "```json" in result_text:
-                result_text = result_text.split("```json", 1)[1].split("```", 1)[0].strip()
+                json_text = result_text.split("```json", 1)[1].split("```", 1)[0].strip()
             elif "```" in result_text:
-                result_text = result_text.split("```", 1)[1].split("```", 1)[0].strip()
-            result = json.loads(result_text)
-            return result
+                json_text = result_text.split("```", 1)[1].split("```", 1)[0].strip()
+
+            try:
+                result = json.loads(json_text)
+                return result
+            except json.JSONDecodeError:
+                # No valid JSON found - return text as response with empty incident_data
+                logger.info("No JSON found in response, returning text only")
+                return {"response": result_text, "incident_data": {}}
 
         client = self.client
         if 'deepseek' in model:
