@@ -36,12 +36,12 @@ The incident has the following fields:
 - cause_confidence: One of: "maximum", "high", "low", "minimal"
 - factor_low_altitude: Boolean - low flight altitude was a factor
 - factor_maneuvers: Boolean - performed maneuvers
-- factor_accelerator: Boolean - accelerator position was a factor
+- factor_accelerator: One of: "released", "partially_engaged", "fully_engaged"
 - factor_thermal_weather: Boolean - thermally active weather
 - factor_rotor_turbulence: Boolean - entered rotor turbulence
-- factor_trimmer_position: Boolean - trimmer position was a factor
+- factor_trimmer_position: One of: "closed", "partially_open", "fully_open"
 - factor_reflex_profile: Boolean - presence of reflex profile
-- factor_helmet_worn: Boolean - was helmet worn
+- factor_helmet_missing: Boolean - helmet was not worn
 - factor_tree_collision: Boolean - landed/collided with tree
 - factor_water_landing: Boolean - landed/fell in water
 - source_links: Links to sources (one per line)

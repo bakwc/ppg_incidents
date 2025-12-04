@@ -50,6 +50,20 @@ const PARAMOTOR_TYPES = [
   { value: 'trike', label: 'Trike' },
 ];
 
+const TRIMMER_POSITIONS = [
+  { value: '', label: 'Select...' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'partially_open', label: 'Partially open' },
+  { value: 'fully_open', label: 'Fully open' },
+];
+
+const ACCELERATOR_POSITIONS = [
+  { value: '', label: 'Select...' },
+  { value: 'released', label: 'Released' },
+  { value: 'partially_engaged', label: 'Partially engaged' },
+  { value: 'fully_engaged', label: 'Fully engaged' },
+];
+
 function IncidentForm() {
   const { uuid } = useParams();
   const navigate = useNavigate();
@@ -82,12 +96,12 @@ function IncidentForm() {
     cause_confidence: '',
     factor_low_altitude: false,
     factor_maneuvers: false,
-    factor_accelerator: false,
+    factor_accelerator: '',
     factor_thermal_weather: false,
     factor_rotor_turbulence: false,
-    factor_trimmer_position: false,
+    factor_trimmer_position: '',
     factor_reflex_profile: false,
-    factor_helmet_worn: false,
+    factor_helmet_missing: false,
     factor_tree_collision: false,
     factor_water_landing: false,
     source_links: '',
@@ -415,15 +429,17 @@ function IncidentForm() {
 
               {/* Contributing Factors */}
               <Section title="Contributing Factors">
+                <div className="grid grid-cols-2 gap-4">
+                  <Select label="Trimmer Position" name="factor_trimmer_position" value={formData.factor_trimmer_position} onChange={handleChange} options={TRIMMER_POSITIONS} />
+                  <Select label="Accelerator Position" name="factor_accelerator" value={formData.factor_accelerator} onChange={handleChange} options={ACCELERATOR_POSITIONS} />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} />
                   <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} />
-                  <Checkbox label="Accelerator position" name="factor_accelerator" checked={formData.factor_accelerator} onChange={handleChange} />
                   <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} />
                   <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} />
-                  <Checkbox label="Trimmer position" name="factor_trimmer_position" checked={formData.factor_trimmer_position} onChange={handleChange} />
                   <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} />
-                  <Checkbox label="Helmet worn" name="factor_helmet_worn" checked={formData.factor_helmet_worn} onChange={handleChange} />
+                  <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} />
                   <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} />
                   <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} />
                 </div>

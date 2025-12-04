@@ -42,6 +42,16 @@ class Incident(models.Model):
         FOOTLAUNCH = "footlaunch", "Footlaunch"
         TRIKE = "trike", "Trike"
 
+    class TrimmerPosition(models.TextChoices):
+        CLOSED = "closed", "Closed"
+        PARTIALLY_OPEN = "partially_open", "Partially open"
+        FULLY_OPEN = "fully_open", "Fully open"
+
+    class AcceleratorPosition(models.TextChoices):
+        RELEASED = "released", "Released"
+        PARTIALLY_ENGAGED = "partially_engaged", "Partially engaged"
+        FULLY_ENGAGED = "fully_engaged", "Fully engaged"
+
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -103,12 +113,12 @@ class Incident(models.Model):
     # Factors
     factor_low_altitude = models.BooleanField(null=True, blank=True, verbose_name="Low flight altitude")
     factor_maneuvers = models.BooleanField(null=True, blank=True, verbose_name="Performed maneuvers")
-    factor_accelerator = models.BooleanField(null=True, blank=True, verbose_name="Accelerator position")
+    factor_accelerator = models.CharField(max_length=20, choices=AcceleratorPosition.choices, null=True, blank=True, verbose_name="Accelerator position")
     factor_thermal_weather = models.BooleanField(null=True, blank=True, verbose_name="Thermally active weather")
     factor_rotor_turbulence = models.BooleanField(null=True, blank=True, verbose_name="Entered rotor turbulence")
-    factor_trimmer_position = models.BooleanField(null=True, blank=True, verbose_name="Trimmer position")
+    factor_trimmer_position = models.CharField(max_length=20, choices=TrimmerPosition.choices, null=True, blank=True, verbose_name="Trimmer position")
     factor_reflex_profile = models.BooleanField(null=True, blank=True, verbose_name="Presence of reflex profile")
-    factor_helmet_worn = models.BooleanField(null=True, blank=True, verbose_name="Helmet worn")
+    factor_helmet_missing = models.BooleanField(null=True, blank=True, verbose_name="Helmet missing")
     factor_tree_collision = models.BooleanField(null=True, blank=True, verbose_name="Landed / collided with tree")
     factor_water_landing = models.BooleanField(null=True, blank=True, verbose_name="Landed / fell in water")
 
