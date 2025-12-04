@@ -104,6 +104,8 @@ function IncidentForm() {
     cause_confidence: '',
     pilot_actions: '',
     injury_details: '',
+    hardware_failure: false,
+    bad_hardware_preflight: false,
     factor_low_altitude: false,
     factor_maneuvers: false,
     factor_accelerator: '',
@@ -114,6 +116,7 @@ function IncidentForm() {
     factor_helmet_missing: false,
     factor_tree_collision: false,
     factor_water_landing: false,
+    factor_ground_starting: false,
     source_links: '',
     media_links: '',
     wind_speed: '',
@@ -421,6 +424,14 @@ function IncidentForm() {
                 <Textarea label="Injury Details" name="injury_details" value={formData.injury_details} onChange={handleChange} rows={2} highlighted={highlightedFields.has('injury_details')} />
               </Section>
 
+              {/* Hardware */}
+              <Section title="Hardware">
+                <div className="grid grid-cols-2 gap-3">
+                  <Checkbox label="Hardware failure occurred" name="hardware_failure" checked={formData.hardware_failure} onChange={handleChange} highlighted={highlightedFields.has('hardware_failure')} />
+                  <Checkbox label="Issue could be found on preflight" name="bad_hardware_preflight" checked={formData.bad_hardware_preflight} onChange={handleChange} highlighted={highlightedFields.has('bad_hardware_preflight')} />
+                </div>
+              </Section>
+
               {/* Collapse Sequence */}
               <Section title="Collapse Sequence" highlighted={highlightedFields.has('collapse_types')}>
                 <div>
@@ -485,6 +496,7 @@ function IncidentForm() {
                   <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} highlighted={highlightedFields.has('factor_helmet_missing')} />
                   <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_tree_collision')} />
                   <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} highlighted={highlightedFields.has('factor_water_landing')} />
+                  <Checkbox label="Ground starting" name="factor_ground_starting" checked={formData.factor_ground_starting} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_starting')} />
                 </div>
               </Section>
 

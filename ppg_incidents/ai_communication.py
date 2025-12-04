@@ -56,6 +56,8 @@ The incident has the following fields:
 - causes_description: Description of causes
 - pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting)
 - injury_details: Details of pilot injuries (only fill if pilot was injured)
+- hardware_failure: Boolean - hardware failure occurred
+- bad_hardware_preflight: Boolean - hardware issue could have been found on preflight but pilot missed it
 - collapse_types: Array of collapse types in sequence. Values: "asymmetric_small" (<30%), "asymmetric_medium" (30-50%), "asymmetric_large" (>50%), "frontal", "full_stall", "spin", "line_twist", "cravatte"
 - reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened"
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
@@ -70,6 +72,7 @@ The incident has the following fields:
 - factor_helmet_missing: Boolean - helmet was not worn
 - factor_tree_collision: Boolean - landed/collided with tree
 - factor_water_landing: Boolean - landed/fell in water
+- factor_ground_starting: Boolean - ground starting (engine started while on ground)
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
 - wind_speed: Wind speed and gusts description
@@ -183,10 +186,18 @@ class AiCommunicator:
                     tools=TOOLS,
                 )
 
-            result_text = next(block for block in response.content if block.type == "text").text.strip()
+            logger.info(f"Claude response content: {response.content}")
+            text_block = next((block for block in response.content if block.type == "text"), None)
+            if text_block is None:
+                logger.error(f"No text block in Claude response: {response.content}")
+                return {"response": "Error: No response from AI", "incident_data": {}}
+            result_text = text_block.text.strip()
             logger.info(f"Claude raw response: {result_text}")
-            if result_text.startswith("```"):
-                result_text = result_text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            # Extract JSON from response - it might be wrapped in markdown code blocks
+            if "```json" in result_text:
+                result_text = result_text.split("```json", 1)[1].split("```", 1)[0].strip()
+            elif "```" in result_text:
+                result_text = result_text.split("```", 1)[1].split("```", 1)[0].strip()
             result = json.loads(result_text)
             return result
 

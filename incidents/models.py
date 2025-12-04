@@ -102,6 +102,10 @@ class Incident(models.Model):
     pilot_actions = models.CharField(max_length=30, choices=PilotActions.choices, null=True, blank=True, verbose_name="Pilot actions")
     injury_details = models.TextField(null=True, blank=True, help_text="Details of pilot injuries if any")
 
+    # Hardware
+    hardware_failure = models.BooleanField(null=True, blank=True, verbose_name="Hardware failure occurred")
+    bad_hardware_preflight = models.BooleanField(null=True, blank=True, verbose_name="Hardware issue could be found on preflight")
+
     # Collapse sequence
     collapse_types = models.JSONField(
         null=True,
@@ -129,6 +133,7 @@ class Incident(models.Model):
     factor_helmet_missing = models.BooleanField(null=True, blank=True, verbose_name="Helmet missing")
     factor_tree_collision = models.BooleanField(null=True, blank=True, verbose_name="Landed / collided with tree")
     factor_water_landing = models.BooleanField(null=True, blank=True, verbose_name="Landed / fell in water")
+    factor_ground_starting = models.BooleanField(null=True, blank=True, verbose_name="Ground starting")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
