@@ -17,6 +17,7 @@ The incident has the following fields:
 - time: Time of incident (HH:MM:SS format)
 - country: Country where incident occurred
 - city_or_site: City or flying site name
+- paramotor_type: One of: "footlaunch", "trike"
 - paramotor_frame: Paramotor frame/chassis model
 - paramotor_engine: Engine model
 - wing_manufacturer: Wing/glider manufacturer

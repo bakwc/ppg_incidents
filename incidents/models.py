@@ -38,6 +38,10 @@ class Incident(models.Model):
         LINE_TWIST = "line_twist", "Line twist"
         CRAVATTE = "cravatte", "Cravatte"
 
+    class ParamotorType(models.TextChoices):
+        FOOTLAUNCH = "footlaunch", "Footlaunch"
+        TRIKE = "trike", "Trike"
+
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -54,6 +58,7 @@ class Incident(models.Model):
     city_or_site = models.CharField(max_length=200, null=True, blank=True)
 
     # Paramotor
+    paramotor_type = models.CharField(max_length=20, choices=ParamotorType.choices, null=True, blank=True)
     paramotor_frame = models.CharField(max_length=100, null=True, blank=True)
     paramotor_engine = models.CharField(max_length=100, null=True, blank=True)
 

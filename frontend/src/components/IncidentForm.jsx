@@ -33,6 +33,23 @@ const CAUSE_CONFIDENCE = [
   { value: 'minimal', label: 'Minimal — nothing is clear' },
 ];
 
+const COLLAPSE_TYPES = [
+  { value: 'asymmetric_small', label: 'Asymmetric collapse (<30%)' },
+  { value: 'asymmetric_medium', label: 'Asymmetric collapse (30-50%)' },
+  { value: 'asymmetric_large', label: 'Asymmetric collapse (>50%)' },
+  { value: 'frontal', label: 'Frontal collapse' },
+  { value: 'full_stall', label: 'Full stall' },
+  { value: 'spin', label: 'Spin' },
+  { value: 'line_twist', label: 'Line twist' },
+  { value: 'cravatte', label: 'Cravatte' },
+];
+
+const PARAMOTOR_TYPES = [
+  { value: '', label: 'Select...' },
+  { value: 'footlaunch', label: 'Footlaunch' },
+  { value: 'trike', label: 'Trike' },
+];
+
 function IncidentForm() {
   const { uuid } = useParams();
   const navigate = useNavigate();
@@ -47,6 +64,7 @@ function IncidentForm() {
     time: '',
     country: '',
     city_or_site: '',
+    paramotor_type: '',
     paramotor_frame: '',
     paramotor_engine: '',
     wing_manufacturer: '',
@@ -77,6 +95,7 @@ function IncidentForm() {
     wind_speed: '',
     meteorological_conditions: '',
     thermal_conditions: '',
+    collapse_types: [],
   });
 
   const [messages, setMessages] = useState([]);
@@ -92,6 +111,7 @@ function IncidentForm() {
           date: data.date || '',
           time: data.time || '',
           flight_altitude: data.flight_altitude || '',
+          collapse_types: data.collapse_types || [],
         });
         setLoading(false);
       });
@@ -107,6 +127,21 @@ function IncidentForm() {
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const addCollapseType = (collapseType) => {
+    if (!collapseType) return;
+    setFormData(prev => ({
+      ...prev,
+      collapse_types: [...(prev.collapse_types || []), collapseType],
+    }));
+  };
+
+  const removeCollapseType = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      collapse_types: prev.collapse_types.filter((_, i) => i !== index),
     }));
   };
 
@@ -293,7 +328,8 @@ function IncidentForm() {
 
               {/* Equipment */}
               <Section title="Equipment">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <Select label="Paramotor Type" name="paramotor_type" value={formData.paramotor_type} onChange={handleChange} options={PARAMOTOR_TYPES} />
                   <Input label="Paramotor Frame" name="paramotor_frame" value={formData.paramotor_frame} onChange={handleChange} />
                   <Input label="Paramotor Engine" name="paramotor_engine" value={formData.paramotor_engine} onChange={handleChange} />
                 </div>
@@ -326,6 +362,55 @@ function IncidentForm() {
                   <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." />
                   <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} />
                 </div>
+              </Section>
+
+              {/* Collapse Sequence */}
+              <Section title="Collapse Sequence">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-2">Add collapse type to sequence</label>
+                  <select
+                    onChange={(e) => {
+                      addCollapseType(e.target.value);
+                      e.target.value = '';
+                    }}
+                    className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="" className="bg-slate-900">Select to add...</option>
+                    {COLLAPSE_TYPES.map(opt => (
+                      <option key={opt.value} value={opt.value} className="bg-slate-900">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {formData.collapse_types && formData.collapse_types.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-slate-400">Sequence (in order)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.collapse_types.map((type, idx) => {
+                        const label = COLLAPSE_TYPES.find(t => t.value === type)?.label || type;
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg"
+                          >
+                            <span className="text-xs text-orange-400 font-medium">{idx + 1}.</span>
+                            <span className="text-sm text-slate-200">{label}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeCollapseType(idx)}
+                              className="text-slate-500 hover:text-red-400 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </Section>
 
               {/* Contributing Factors */}
