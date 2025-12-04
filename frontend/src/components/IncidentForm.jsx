@@ -120,6 +120,7 @@ function IncidentForm() {
     factor_ground_starting: false,
     factor_powerline_collision: false,
     factor_turbulent_conditions: false,
+    factor_spiral_maneuver: false,
     source_links: '',
     media_links: '',
     report_raw: '',
@@ -137,6 +138,7 @@ function IncidentForm() {
   const [duplicateLoading, setDuplicateLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -185,6 +187,7 @@ function IncidentForm() {
     e.preventDefault();
     setSaving(true);
     setSaveError(null);
+    setSaveSuccess(false);
     setHighlightedFields(new Set());
 
     const dataToSave = { ...formData };
@@ -211,15 +214,15 @@ function IncidentForm() {
     try {
       if (isEditing) {
         await updateIncident(uuid, dataToSave);
-        navigate(`/edit/${uuid}`);
+        setSaveSuccess(true);
       } else {
         const result = await createIncident(dataToSave);
         navigate(`/edit/${result.incident.uuid}`);
       }
     } catch (error) {
       setSaveError(error.message);
-      setSaving(false);
     }
+    setSaving(false);
   };
 
   const handleSendMessage = async (e) => {
@@ -543,6 +546,7 @@ function IncidentForm() {
                   <Checkbox label="Ground starting" name="factor_ground_starting" checked={formData.factor_ground_starting} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_starting')} />
                   <Checkbox label="Powerline collision" name="factor_powerline_collision" checked={formData.factor_powerline_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_powerline_collision')} />
                   <Checkbox label="Turbulent conditions" name="factor_turbulent_conditions" checked={formData.factor_turbulent_conditions} onChange={handleChange} highlighted={highlightedFields.has('factor_turbulent_conditions')} />
+                  <Checkbox label="Spiral maneuver" name="factor_spiral_maneuver" checked={formData.factor_spiral_maneuver} onChange={handleChange} highlighted={highlightedFields.has('factor_spiral_maneuver')} />
                 </div>
               </Section>
 
@@ -606,7 +610,7 @@ function IncidentForm() {
                 </div>
               )}
 
-              {/* Error Display */}
+              {/* Save Status */}
               {saveError && (
                 <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-xl">
                   <div className="flex items-center gap-2 text-red-400">
@@ -618,15 +622,19 @@ function IncidentForm() {
                   </div>
                 </div>
               )}
+              {saveSuccess && (
+                <div className="p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-xl">
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Saved successfully</span>
+                  </div>
+                </div>
+              )}
 
               {/* Submit */}
               <div className="flex justify-end gap-4 pt-4 pb-8">
-                <Link
-                  to="/"
-                  className="px-6 py-3 rounded-xl bg-slate-700/50 text-slate-300 font-medium hover:bg-slate-700 transition-all"
-                >
-                  Cancel
-                </Link>
                 {isEditing && (
                   <button
                     type="button"

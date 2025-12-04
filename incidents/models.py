@@ -137,6 +137,7 @@ class Incident(models.Model):
     factor_ground_starting = models.BooleanField(null=True, blank=True, verbose_name="Ground starting")
     factor_powerline_collision = models.BooleanField(null=True, blank=True, verbose_name="Powerline collision")
     factor_turbulent_conditions = models.BooleanField(null=True, blank=True, verbose_name="Turbulent conditions")
+    factor_spiral_maneuver = models.BooleanField(null=True, blank=True, verbose_name="Spiral maneuver")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
@@ -270,6 +271,8 @@ class Incident(models.Model):
             factors.append("powerline collision")
         if self.factor_turbulent_conditions:
             factors.append("turbulent conditions")
+        if self.factor_spiral_maneuver:
+            factors.append("spiral maneuver")
         if factors:
             parts.append(f"Factors: {', '.join(factors)}")
 

@@ -85,6 +85,7 @@ The incident has the following fields:
 - factor_ground_starting: Boolean - ground starting (engine started while paramotor NOT ATTACHED to pilot, for footlaunch only)
 - factor_powerline_collision: Boolean - collision with powerlines
 - factor_turbulent_conditions: Boolean - turbulent conditions (thermals, rotor, wind gusts, etc.)
+- factor_spiral_maneuver: Boolean - spiral maneuver (spiral dive, SAT, etc.)
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
 - report_raw: Raw reports / analysis copied from source
