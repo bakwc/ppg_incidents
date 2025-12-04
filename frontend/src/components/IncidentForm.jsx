@@ -119,6 +119,7 @@ function IncidentForm() {
     factor_water_landing: false,
     factor_ground_starting: false,
     factor_powerline_collision: false,
+    factor_turbulent_conditions: false,
     source_links: '',
     media_links: '',
     wind_speed: '',
@@ -524,6 +525,7 @@ function IncidentForm() {
                   <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} highlighted={highlightedFields.has('factor_water_landing')} />
                   <Checkbox label="Ground starting" name="factor_ground_starting" checked={formData.factor_ground_starting} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_starting')} />
                   <Checkbox label="Powerline collision" name="factor_powerline_collision" checked={formData.factor_powerline_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_powerline_collision')} />
+                  <Checkbox label="Turbulent conditions" name="factor_turbulent_conditions" checked={formData.factor_turbulent_conditions} onChange={handleChange} highlighted={highlightedFields.has('factor_turbulent_conditions')} />
                 </div>
               </Section>
 

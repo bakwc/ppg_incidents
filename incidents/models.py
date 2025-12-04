@@ -136,6 +136,7 @@ class Incident(models.Model):
     factor_water_landing = models.BooleanField(null=True, blank=True, verbose_name="Landed / fell in water")
     factor_ground_starting = models.BooleanField(null=True, blank=True, verbose_name="Ground starting")
     factor_powerline_collision = models.BooleanField(null=True, blank=True, verbose_name="Powerline collision")
+    factor_turbulent_conditions = models.BooleanField(null=True, blank=True, verbose_name="Turbulent conditions")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
@@ -266,6 +267,8 @@ class Incident(models.Model):
             factors.append("ground starting")
         if self.factor_powerline_collision:
             factors.append("powerline collision")
+        if self.factor_turbulent_conditions:
+            factors.append("turbulent conditions")
         if factors:
             parts.append(f"Factors: {', '.join(factors)}")
 
