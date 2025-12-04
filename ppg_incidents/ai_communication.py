@@ -1,14 +1,38 @@
 import json
 import os
+import ssl
+import urllib.error
+import urllib.request
 from logging import getLogger
 
 import anthropic
+import certifi
 from openai import OpenAI
+
+from ppg_incidents.cleaner import clean_html_text
 
 logger = getLogger(__name__)
 
+CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+
+def get_webpage_content(url: str) -> str:
+    """Download and clean webpage HTML content."""
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+    request = urllib.request.Request(url, headers={"User-Agent": CHROME_USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+            html = response.read().decode("utf-8")
+        return clean_html_text(html)
+    except urllib.error.HTTPError as e:
+        return f"Error fetching URL: HTTP {e.code} {e.reason}"
+    except urllib.error.URLError as e:
+        return f"Error fetching URL: {e.reason}"
+
 INCIDENT_CHAT_SYSTEM_PROMPT = """You are an assistant helping to document paramotor incidents. 
 Analyze the user's messages and extract incident details into a structured format.
+
+If the user provides URLs to incident reports or relevant pages, use the get_webpage_content tool to fetch and analyze the content.
 
 The incident has the following fields:
 - title: Short title for the incident (max 300 chars)
@@ -63,6 +87,23 @@ Example - follow-up message "It was near Madrid, pilot name was John":
 {"response": "Got it, updated the location and pilot info.", "incident_data": {"city_or_site": "Madrid", "pilot": "John"}}
 """
 
+TOOLS = [
+    {
+        "name": "get_webpage_content",
+        "description": "Fetches and cleans webpage content from a URL. Use this when user provides a URL to an incident report or relevant page.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "description": "The URL to fetch content from"
+                }
+            },
+            "required": ["url"]
+        }
+    }
+]
+
 
 class AiCommunicator:
     def __init__(self):
@@ -105,6 +146,11 @@ class AiCommunicator:
         )
         return response.choices[0].message.content.strip()
 
+    def _handle_tool_call(self, tool_name: str, tool_input: dict) -> str:
+        if tool_name == "get_webpage_content":
+            return get_webpage_content(tool_input["url"])
+        raise ValueError(f"Unknown tool: {tool_name}")
+
     def incident_chat(self, messages, incident_data, model="gpt-4o-mini"):
         system_prompt = INCIDENT_CHAT_SYSTEM_PROMPT
         if incident_data:
@@ -118,8 +164,26 @@ class AiCommunicator:
                 max_tokens=4096,
                 system=system_prompt,
                 messages=chat_messages,
+                tools=TOOLS,
             )
-            result_text = response.content[0].text.strip()
+
+            while response.stop_reason == "tool_use":
+                tool_use_block = next(block for block in response.content if block.type == "tool_use")
+                tool_result = self._handle_tool_call(tool_use_block.name, tool_use_block.input)
+                chat_messages.append({"role": "assistant", "content": response.content})
+                chat_messages.append({
+                    "role": "user",
+                    "content": [{"type": "tool_result", "tool_use_id": tool_use_block.id, "content": tool_result}]
+                })
+                response = self.client_anthropic.messages.create(
+                    model=model,
+                    max_tokens=4096,
+                    system=system_prompt,
+                    messages=chat_messages,
+                    tools=TOOLS,
+                )
+
+            result_text = next(block for block in response.content if block.type == "text").text.strip()
             logger.info(f"Claude raw response: {result_text}")
             if result_text.startswith("```"):
                 result_text = result_text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
@@ -130,6 +194,26 @@ class AiCommunicator:
         if 'deepseek' in model:
             client = self.client_deepseek
 
+        openai_tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_webpage_content",
+                    "description": "Fetches and cleans webpage content from a URL. Use this when user provides a URL to an incident report or relevant page.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "url": {
+                                "type": "string",
+                                "description": "The URL to fetch content from"
+                            }
+                        },
+                        "required": ["url"]
+                    }
+                }
+            }
+        ]
+
         chat_messages = [{"role": "system", "content": system_prompt}]
         for msg in messages:
             chat_messages.append({"role": msg["role"], "content": msg["content"]})
@@ -137,8 +221,24 @@ class AiCommunicator:
         response = client.chat.completions.create(
             model=model,
             messages=chat_messages,
-            response_format={"type": "json_object"},
+            tools=openai_tools,
         )
+
+        while response.choices[0].message.tool_calls:
+            assistant_message = response.choices[0].message
+            chat_messages.append(assistant_message)
+            for tool_call in assistant_message.tool_calls:
+                tool_result = self._handle_tool_call(tool_call.function.name, json.loads(tool_call.function.arguments))
+                chat_messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": tool_result
+                })
+            response = client.chat.completions.create(
+                model=model,
+                messages=chat_messages,
+                tools=openai_tools,
+            )
 
         result_text = response.choices[0].message.content.strip()
         result = json.loads(result_text)
