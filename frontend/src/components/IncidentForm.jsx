@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { fetchIncident, createIncident, updateIncident, chatWithAI } from '../api';
+import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate } from '../api';
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
@@ -130,6 +130,8 @@ function IncidentForm() {
   const [inputMessage, setInputMessage] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [highlightedFields, setHighlightedFields] = useState(new Set());
+  const [duplicateResult, setDuplicateResult] = useState(null);
+  const [duplicateLoading, setDuplicateLoading] = useState(false);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -255,6 +257,27 @@ function IncidentForm() {
     }
 
     setChatLoading(false);
+  };
+
+  const handleCheckDuplicates = async () => {
+    setDuplicateLoading(true);
+    setDuplicateResult(null);
+    const result = await checkDuplicate(formData, isEditing ? uuid : null);
+    setDuplicateResult(result);
+    setDuplicateLoading(false);
+  };
+
+  const getVerdictInfo = (confidence) => {
+    switch (confidence) {
+      case 'High':
+        return { text: 'Duplicate', color: 'text-red-400', bg: 'bg-red-500/20 border-red-500/30' };
+      case 'Medium':
+        return { text: 'Probably Duplicate', color: 'text-amber-400', bg: 'bg-amber-500/20 border-amber-500/30' };
+      case 'Low':
+        return { text: 'Probably not a duplicate', color: 'text-emerald-400', bg: 'bg-emerald-500/20 border-emerald-500/30' };
+      default:
+        return { text: 'Unknown', color: 'text-slate-400', bg: 'bg-slate-500/20 border-slate-500/30' };
+    }
   };
 
   if (loading) {
@@ -515,6 +538,52 @@ function IncidentForm() {
                 <Textarea label="Media Links (one per line)" name="media_links" value={formData.media_links} onChange={handleChange} rows={3} highlighted={highlightedFields.has('media_links')} />
               </Section>
 
+              {/* Duplicate Check Results */}
+              {duplicateResult && (
+                <div className={`p-4 border rounded-xl ${getVerdictInfo(duplicateResult.confidence).bg}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-lg font-semibold ${getVerdictInfo(duplicateResult.confidence).color}`}>
+                      {getVerdictInfo(duplicateResult.confidence).text}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDuplicateResult(null)}
+                      className="text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  {duplicateResult.incidents && duplicateResult.incidents.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-400 mb-2">Similar incidents found:</p>
+                      {duplicateResult.incidents.map((incident) => (
+                        <Link
+                          key={incident.uuid}
+                          to={`/edit/${incident.uuid}`}
+                          className="block p-3 bg-slate-900/50 rounded-lg hover:bg-slate-800/50 transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-white font-medium">{incident.title || 'Untitled'}</span>
+                            {incident.date && (
+                              <span className="text-slate-500 text-sm">{incident.date}</span>
+                            )}
+                          </div>
+                          {(incident.country || incident.city_or_site) && (
+                            <p className="text-slate-500 text-sm mt-1">
+                              {[incident.city_or_site, incident.country].filter(Boolean).join(', ')}
+                            </p>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-slate-400 text-sm">No similar incidents found.</p>
+                  )}
+                </div>
+              )}
+
               {/* Submit */}
               <div className="flex justify-end gap-4 pt-4 pb-8">
                 <Link
@@ -523,6 +592,26 @@ function IncidentForm() {
                 >
                   Cancel
                 </Link>
+                <button
+                  type="button"
+                  onClick={handleCheckDuplicates}
+                  disabled={duplicateLoading}
+                  className="px-6 py-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-xl text-slate-300 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {duplicateLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Check Duplicates
+                    </>
+                  )}
+                </button>
                 <button
                   type="submit"
                   disabled={saving}

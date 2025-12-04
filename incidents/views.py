@@ -158,3 +158,73 @@ class IncidentDuplicatesView(APIView):
                 for inc in ordered_incidents
             ]
         })
+
+
+class CheckDuplicateView(APIView):
+    def post(self, request):
+        incident_data = request.data.get("incident_data", {})
+        exclude_uuid = request.data.get("exclude_uuid")
+        
+        exclude_id = None
+        if exclude_uuid:
+            existing = Incident.objects.filter(uuid=exclude_uuid).first()
+            if existing:
+                exclude_id = existing.id
+        
+        country = incident_data.get("country")
+        date = incident_data.get("date")
+        city_or_site = incident_data.get("city_or_site")
+        pilot = incident_data.get("pilot")
+        
+        # High confidence: match by country, date, location, pilot
+        if country and date and city_or_site and pilot:
+            matches = Incident.objects.filter(
+                country=country,
+                date=date,
+                city_or_site=city_or_site,
+                pilot=pilot
+            )
+            if exclude_id:
+                matches = matches.exclude(id=exclude_id)
+            if matches.exists():
+                return Response({
+                    "confidence": "High",
+                    "incidents": IncidentSerializer(matches, many=True).data
+                })
+        
+        # Medium confidence: country+date OR country+pilot
+        medium_matches = set()
+        
+        if country and date:
+            by_country_date = Incident.objects.filter(country=country, date=date)
+            if exclude_id:
+                by_country_date = by_country_date.exclude(id=exclude_id)
+            medium_matches.update(by_country_date.values_list("id", flat=True))
+        
+        if country and pilot:
+            by_country_pilot = Incident.objects.filter(country=country, pilot=pilot)
+            if exclude_id:
+                by_country_pilot = by_country_pilot.exclude(id=exclude_id)
+            medium_matches.update(by_country_pilot.values_list("id", flat=True))
+        
+        if medium_matches:
+            incidents = Incident.objects.filter(id__in=medium_matches)
+            return Response({
+                "confidence": "Medium",
+                "incidents": IncidentSerializer(incidents, many=True).data
+            })
+        
+        # Low confidence: semantic search top 3
+        temp_incident = Incident(**incident_data)
+        embedding = ai_communicator.get_embedding(temp_incident.to_text())
+        results = search_similar(embedding, limit=3, exclude_id=exclude_id)
+        
+        incident_ids = [r[0] for r in results]
+        incidents = Incident.objects.filter(id__in=incident_ids)
+        incidents_by_id = {i.id: i for i in incidents}
+        ordered_incidents = [incidents_by_id[id] for id in incident_ids if id in incidents_by_id]
+        
+        return Response({
+            "confidence": "Low",
+            "incidents": IncidentSerializer(ordered_incidents, many=True).data
+        })

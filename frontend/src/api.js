@@ -48,3 +48,14 @@ export async function chatWithAI(messages, incidentData) {
   return response.json();
 }
 
+export async function checkDuplicate(incidentData, excludeUuid = null) {
+  const response = await fetch(`${API_BASE}/incident/check_duplicate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ incident_data: incidentData, exclude_uuid: excludeUuid }),
+  });
+  return response.json();
+}
+
