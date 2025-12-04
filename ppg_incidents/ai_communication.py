@@ -72,7 +72,7 @@ The incident has the following fields:
 - reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened"
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
 - cause_confidence: One of: "maximum", "high", "low", "minimal"
-- factor_low_altitude: Boolean - low flight altitude was a factor
+- factor_low_altitude: Boolean - low flight altitude was a factor. Low altitude is <80 meters altitude.
 - factor_maneuvers: Boolean - performed maneuvers
 - factor_accelerator: One of: "released", "partially_engaged", "fully_engaged"
 - factor_thermal_weather: Boolean - thermally active weather
