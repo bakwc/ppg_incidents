@@ -134,6 +134,11 @@ function IncidentList() {
                           ⚙️ {incident.paramotor_frame}
                         </span>
                       )}
+                      {incident.paramotor_type === 'trike' && (
+                        <span className="px-2.5 py-1 bg-slate-700/50 text-slate-300 rounded-lg text-xs">
+                          🛞 Trike
+                        </span>
+                      )}
                     </div>
                   </div>
 
