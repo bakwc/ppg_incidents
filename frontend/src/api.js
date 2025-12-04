@@ -32,3 +32,14 @@ export async function updateIncident(uuid, incidentData) {
   return response.json();
 }
 
+export async function chatWithAI(messages, incidentData) {
+  const response = await fetch(`${API_BASE}/incident/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ messages, incident_data: incidentData }),
+  });
+  return response.json();
+}
+

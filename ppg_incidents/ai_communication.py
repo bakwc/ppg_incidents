@@ -105,6 +105,7 @@ class AiCommunicator:
 
         if 'claude' in model:
             chat_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
+            logger.info(f"Claude request - model: {model}, messages: {chat_messages}")
             response = self.client_anthropic.messages.create(
                 model=model,
                 max_tokens=4096,
@@ -112,6 +113,9 @@ class AiCommunicator:
                 messages=chat_messages,
             )
             result_text = response.content[0].text.strip()
+            logger.info(f"Claude raw response: {result_text}")
+            if result_text.startswith("```"):
+                result_text = result_text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
             result = json.loads(result_text)
             return result
 
