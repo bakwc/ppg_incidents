@@ -29,6 +29,7 @@ The incident has the following fields:
 - potentially_fatal: Boolean - could have resulted in death under different circumstances
 - description: Detailed description of the incident
 - causes_description: Description of causes
+- collapse_types: Array of collapse types in sequence. Values: "asymmetric_small" (<30%), "asymmetric_medium" (30-50%), "asymmetric_large" (>50%), "frontal", "full_stall", "spin", "line_twist", "cravatte"
 - reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened"
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
 - cause_confidence: One of: "maximum", "high", "low", "minimal"

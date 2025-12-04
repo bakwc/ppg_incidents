@@ -28,6 +28,16 @@ class Incident(models.Model):
         LOW = "low", "Low — not exactly known but plausible assumptions"
         MINIMAL = "minimal", "Minimal — nothing is clear"
 
+    class CollapseType(models.TextChoices):
+        ASYMMETRIC_SMALL = "asymmetric_small", "Asymmetric collapse (<30%)"
+        ASYMMETRIC_MEDIUM = "asymmetric_medium", "Asymmetric collapse (30-50%)"
+        ASYMMETRIC_LARGE = "asymmetric_large", "Asymmetric collapse (>50%)"
+        FRONTAL = "frontal", "Frontal collapse"
+        FULL_STALL = "full_stall", "Full stall"
+        SPIN = "spin", "Spin"
+        LINE_TWIST = "line_twist", "Line twist"
+        CRAVATTE = "cravatte", "Cravatte"
+
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -68,6 +78,13 @@ class Incident(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     causes_description = models.TextField(null=True, blank=True)
+
+    # Collapse sequence
+    collapse_types = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="List of collapse types in sequence (e.g., ['asymmetric_medium', 'asymmetric_large', 'frontal', 'line_twist'])",
+    )
 
     # Reserve parachute
     reserve_use = models.CharField(max_length=30, choices=ReserveUse.choices, null=True, blank=True)
