@@ -52,6 +52,12 @@ class Incident(models.Model):
         PARTIALLY_ENGAGED = "partially_engaged", "Partially engaged"
         FULLY_ENGAGED = "fully_engaged", "Fully engaged"
 
+    class PilotActions(models.TextChoices):
+        WRONG_INPUT_TRIGGERED = "wrong_input_triggered", "Wrong input triggered incident / was primary reason"
+        MOSTLY_WRONG = "mostly_wrong", "Mostly wrong inputs while reacting on incident"
+        MIXED = "mixed", "Some correct and some wrong inputs while reacting"
+        MOSTLY_CORRECT = "mostly_correct", "Mostly correct inputs while reacting on incident"
+
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -93,6 +99,7 @@ class Incident(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     causes_description = models.TextField(null=True, blank=True)
+    pilot_actions = models.CharField(max_length=30, choices=PilotActions.choices, null=True, blank=True, verbose_name="Pilot actions")
 
     # Collapse sequence
     collapse_types = models.JSONField(

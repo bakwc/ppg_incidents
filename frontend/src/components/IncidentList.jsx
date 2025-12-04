@@ -100,9 +100,11 @@ function IncidentList() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xl font-semibold text-white mb-2 truncate">
-                      {incident.title || 'Untitled Incident'}
-                    </h3>
+                    <Link to={`/edit/${incident.uuid}`} className="block">
+                      <h3 className="text-xl font-semibold text-white mb-2 truncate hover:text-orange-400 transition-colors">
+                        {incident.title || 'Untitled Incident'}
+                      </h3>
+                    </Link>
 
                     {/* Location */}
                     {(incident.country || incident.city_or_site) && (

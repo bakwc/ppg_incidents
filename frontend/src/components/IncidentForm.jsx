@@ -64,6 +64,14 @@ const ACCELERATOR_POSITIONS = [
   { value: 'fully_engaged', label: 'Fully engaged' },
 ];
 
+const PILOT_ACTIONS = [
+  { value: '', label: 'Select...' },
+  { value: 'wrong_input_triggered', label: 'Wrong input triggered incident' },
+  { value: 'mostly_wrong', label: 'Mostly wrong inputs while reacting' },
+  { value: 'mixed', label: 'Some correct and some wrong inputs' },
+  { value: 'mostly_correct', label: 'Mostly correct inputs while reacting' },
+];
+
 function IncidentForm() {
   const { uuid } = useParams();
   const navigate = useNavigate();
@@ -94,6 +102,7 @@ function IncidentForm() {
     reserve_use: '',
     surface_type: '',
     cause_confidence: '',
+    pilot_actions: '',
     factor_low_altitude: false,
     factor_maneuvers: false,
     factor_accelerator: '',
@@ -376,6 +385,7 @@ function IncidentForm() {
                   <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." />
                   <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} />
                 </div>
+                <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} />
               </Section>
 
               {/* Collapse Sequence */}
