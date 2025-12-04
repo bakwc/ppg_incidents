@@ -23,6 +23,10 @@ export async function createIncident(incidentData) {
     },
     body: JSON.stringify({ incident_data: incidentData }),
   });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `HTTP ${response.status}`);
+  }
   return response.json();
 }
 
@@ -34,6 +38,10 @@ export async function updateIncident(uuid, incidentData) {
     },
     body: JSON.stringify({ incident_data: incidentData }),
   });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `HTTP ${response.status}`);
+  }
   return response.json();
 }
 

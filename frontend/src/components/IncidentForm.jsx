@@ -136,6 +136,7 @@ function IncidentForm() {
   const [duplicateResult, setDuplicateResult] = useState(null);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -183,6 +184,7 @@ function IncidentForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setSaveError(null);
     setHighlightedFields(new Set());
 
     const dataToSave = { ...formData };
@@ -206,12 +208,18 @@ function IncidentForm() {
       }
     }
 
-    if (isEditing) {
-      await updateIncident(uuid, dataToSave);
-    } else {
-      await createIncident(dataToSave);
+    try {
+      if (isEditing) {
+        await updateIncident(uuid, dataToSave);
+        navigate(`/edit/${uuid}`);
+      } else {
+        const result = await createIncident(dataToSave);
+        navigate(`/edit/${result.incident.uuid}`);
+      }
+    } catch (error) {
+      setSaveError(error.message);
+      setSaving(false);
     }
-    navigate('/');
   };
 
   const handleSendMessage = async (e) => {
@@ -595,6 +603,19 @@ function IncidentForm() {
                   ) : (
                     <p className="text-slate-400 text-sm">No similar incidents found.</p>
                   )}
+                </div>
+              )}
+
+              {/* Error Display */}
+              {saveError && (
+                <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-xl">
+                  <div className="flex items-center gap-2 text-red-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-medium">Failed to save:</span>
+                    <span>{saveError}</span>
+                  </div>
                 </div>
               )}
 

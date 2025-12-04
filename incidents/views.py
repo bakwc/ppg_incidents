@@ -56,8 +56,11 @@ class IncidentChatView(APIView):
 class IncidentSaveView(APIView):
     def post(self, request):
         incident_data = request.data.get("incident_data", {})
+        logger.info(f"Save request data: {incident_data}")
 
         serializer = IncidentSerializer(data=incident_data)
+        if not serializer.is_valid():
+            logger.error(f"Validation errors: {serializer.errors}")
         serializer.is_valid(raise_exception=True)
         incident = serializer.save()
 

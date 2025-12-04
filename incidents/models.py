@@ -85,7 +85,7 @@ class Incident(models.Model):
 
     # Pilot
     pilot_name = models.CharField(max_length=200, null=True, blank=True)
-    pilot_details = models.CharField(max_length=200, null=True, blank=True)
+    pilot_details = models.TextField(null=True, blank=True)
 
     # Flight details
     flight_altitude = models.IntegerField(null=True, blank=True, help_text="Altitude in meters")
@@ -144,7 +144,7 @@ class Incident(models.Model):
     report_raw = models.TextField(null=True, blank=True, help_text="Raw reports / analysis copied from source")
 
     # Weather conditions
-    wind_speed = models.CharField(max_length=100, null=True, blank=True, help_text="Wind speed / gusts")
+    wind_speed = models.TextField(null=True, blank=True, help_text="Wind speed / gusts")
     meteorological_conditions = models.TextField(null=True, blank=True)
     thermal_conditions = models.TextField(null=True, blank=True)
 
