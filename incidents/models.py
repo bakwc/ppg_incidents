@@ -134,6 +134,7 @@ class Incident(models.Model):
     factor_tree_collision = models.BooleanField(null=True, blank=True, verbose_name="Landed / collided with tree")
     factor_water_landing = models.BooleanField(null=True, blank=True, verbose_name="Landed / fell in water")
     factor_ground_starting = models.BooleanField(null=True, blank=True, verbose_name="Ground starting")
+    factor_powerline_collision = models.BooleanField(null=True, blank=True, verbose_name="Powerline collision")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")

@@ -80,6 +80,7 @@ The incident has the following fields:
 - factor_tree_collision: Boolean - landed/collided with tree
 - factor_water_landing: Boolean - landed/fell in water
 - factor_ground_starting: Boolean - ground starting (engine started while on ground)
+- factor_powerline_collision: Boolean - collision with powerlines
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
 - wind_speed: Wind speed and gusts description
