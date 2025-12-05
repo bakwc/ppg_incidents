@@ -76,7 +76,8 @@ class IncidentListView(generics.ListAPIView):
         for field in self.CHOICE_FILTER_FIELDS:
             value = self.request.query_params.get(field)
             if value:
-                queryset = queryset.filter(**{field: value})
+                values = [v.strip() for v in value.split(",")]
+                queryset = queryset.filter(**{f"{field}__in": values})
 
         # Custom collapse_types filters
         if self.request.query_params.get("collapse", "").lower() == "true":
@@ -109,7 +110,8 @@ class IncidentListView(generics.ListAPIView):
         for field in self.CHOICE_FILTER_FIELDS:
             value = self.request.query_params.get(f"exclude_{field}")
             if value:
-                queryset = queryset.exclude(**{field: value})
+                values = [v.strip() for v in value.split(",")]
+                queryset = queryset.exclude(**{f"{field}__in": values})
 
         # Custom collapse_types exclude filters
         if self.request.query_params.get("exclude_collapse", "").lower() == "true":

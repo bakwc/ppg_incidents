@@ -110,7 +110,12 @@ function IncidentList() {
     const result = {};
     activeFilters.forEach(f => {
       const key = f.exclude ? `exclude_${f.key}` : f.key;
-      result[key] = f.value || 'true';
+      const val = f.value || 'true';
+      if (result[key]) {
+        result[key] = result[key] + ',' + val;
+      } else {
+        result[key] = val;
+      }
     });
     return result;
   };
@@ -127,14 +132,15 @@ function IncidentList() {
     return activeFilters.some(f => f.key === key && f.value === value && f.exclude === (filterMode === 'exclude'));
   };
 
-  const toggleFilter = (key, value, label) => {
+  const toggleFilter = (key, value, label, categoryLabel) => {
     const exclude = filterMode === 'exclude';
     const existingIndex = activeFilters.findIndex(f => f.key === key && f.value === value && f.exclude === exclude);
     
     if (existingIndex >= 0) {
       setActiveFilters(activeFilters.filter((_, i) => i !== existingIndex));
     } else {
-      setActiveFilters([...activeFilters, { key, value, label, exclude }]);
+      setActiveFilters([...activeFilters, { key, value, label, categoryLabel, exclude }]);
+      setFiltersExpanded(false);
     }
   };
 
@@ -235,7 +241,7 @@ function IncidentList() {
                 }`}
               >
                 <span className="text-xs opacity-70">{f.exclude ? '−' : '+'}</span>
-                {f.label}
+                {f.categoryLabel}: {f.label}
                 <button
                   type="button"
                   onClick={() => removeFilter(index)}
@@ -257,37 +263,55 @@ function IncidentList() {
           </div>
         )}
 
-        {/* Add filter button + expandable panel */}
+        {/* Filter buttons + expandable panel */}
         <div className="mb-8">
-          <button
-            type="button"
-            onClick={() => setFiltersExpanded(!filtersExpanded)}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-slate-300 hover:bg-slate-800 transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Add filter</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (filtersExpanded && filterMode === 'include') {
+                  setFiltersExpanded(false);
+                } else {
+                  setFilterMode('include');
+                  setFiltersExpanded(true);
+                }
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                filtersExpanded && filterMode === 'include'
+                  ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
+                  : 'bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span className="text-sm">+</span>
+              <span>Include filter</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (filtersExpanded && filterMode === 'exclude') {
+                  setFiltersExpanded(false);
+                } else {
+                  setFilterMode('exclude');
+                  setFiltersExpanded(true);
+                }
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                filtersExpanded && filterMode === 'exclude'
+                  ? 'bg-red-500/20 border border-red-500/30 text-red-400'
+                  : 'bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span className="text-sm">−</span>
+              <span>Exclude filter</span>
+            </button>
+          </div>
 
           {filtersExpanded && (
-            <div className="mt-4 p-6 bg-slate-800/30 border border-slate-700/50 rounded-2xl">
-              {/* Filter mode selector */}
-              <div className="flex items-center gap-4 mb-6">
-                <label className="text-sm text-slate-400">Filter mode:</label>
-                <select
-                  value={filterMode}
-                  onChange={(e) => setFilterMode(e.target.value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border focus:outline-none ${
-                    filterMode === 'include'
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                      : 'bg-red-500/20 text-red-400 border-red-500/30'
-                  }`}
-                >
-                  <option value="include">+ Include</option>
-                  <option value="exclude">− Exclude</option>
-                </select>
-              </div>
+            <div className={`mt-4 p-6 border rounded-2xl ${
+              filterMode === 'include'
+                ? 'bg-emerald-500/5 border-emerald-500/20'
+                : 'bg-red-500/5 border-red-500/20'
+            }`}>
 
               {/* Select Filters */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
@@ -299,7 +323,7 @@ function IncidentList() {
                         <button
                           key={opt.value}
                           type="button"
-                          onClick={() => toggleFilter(filter.key, opt.value, opt.label)}
+                          onClick={() => toggleFilter(filter.key, opt.value, opt.label, filter.label)}
                           className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                             isFilterActive(filter.key, opt.value)
                               ? filterMode === 'include'
@@ -324,7 +348,7 @@ function IncidentList() {
                     <button
                       key={key}
                       type="button"
-                      onClick={() => toggleFilter(key, null, label)}
+                      onClick={() => toggleFilter(key, null, label, 'Collapse')}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         isFilterActive(key, null)
                           ? filterMode === 'include'
@@ -347,7 +371,7 @@ function IncidentList() {
                     <button
                       key={key}
                       type="button"
-                      onClick={() => toggleFilter(key, null, label)}
+                      onClick={() => toggleFilter(key, null, label, 'Factor')}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         isFilterActive(key, null)
                           ? filterMode === 'include'
