@@ -72,6 +72,14 @@ const PILOT_ACTIONS = [
   { value: 'mostly_correct', label: 'Mostly correct inputs while reacting' },
 ];
 
+const MID_AIR_COLLISION = [
+  { value: '', label: 'Select...' },
+  { value: 'fly_nearby', label: 'Fly nearby' },
+  { value: 'got_in_wake_turbulence', label: 'Got in wake turbulence' },
+  { value: 'almost_collided', label: 'Almost collided' },
+  { value: 'collided', label: 'Collided' },
+];
+
 function IncidentForm() {
   const { uuid } = useParams();
   const navigate = useNavigate();
@@ -121,6 +129,7 @@ function IncidentForm() {
     factor_powerline_collision: false,
     factor_turbulent_conditions: false,
     factor_spiral_maneuver: false,
+    factor_mid_air_collision: '',
     source_links: '',
     media_links: '',
     report_raw: '',
@@ -203,7 +212,8 @@ function IncidentForm() {
     // Convert empty choice fields to null
     const choiceFields = [
       'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
-      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type'
+      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type',
+      'factor_mid_air_collision'
     ];
     for (const field of choiceFields) {
       if (dataToSave[field] === '') {
@@ -530,9 +540,10 @@ function IncidentForm() {
 
               {/* Contributing Factors */}
               <Section title="Contributing Factors">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <Select label="Trimmer Position" name="factor_trimmer_position" value={formData.factor_trimmer_position} onChange={handleChange} options={TRIMMER_POSITIONS} highlighted={highlightedFields.has('factor_trimmer_position')} />
                   <Select label="Accelerator Position" name="factor_accelerator" value={formData.factor_accelerator} onChange={handleChange} options={ACCELERATOR_POSITIONS} highlighted={highlightedFields.has('factor_accelerator')} />
+                  <Select label="Mid-air Collision" name="factor_mid_air_collision" value={formData.factor_mid_air_collision} onChange={handleChange} options={MID_AIR_COLLISION} highlighted={highlightedFields.has('factor_mid_air_collision')} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} highlighted={highlightedFields.has('factor_low_altitude')} />

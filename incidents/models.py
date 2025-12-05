@@ -58,6 +58,12 @@ class Incident(models.Model):
         MIXED = "mixed", "Some correct and some wrong inputs while reacting"
         MOSTLY_CORRECT = "mostly_correct", "Mostly correct inputs while reacting on incident"
 
+    class MidAirCollision(models.TextChoices):
+        FLY_NEARBY = "fly_nearby", "Fly nearby"
+        GOT_IN_WAKE_TURBULENCE = "got_in_wake_turbulence", "Got in wake turbulence"
+        ALMOST_COLLIDED = "almost_collided", "Almost collided"
+        COLLIDED = "collided", "Collided"
+
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -138,6 +144,7 @@ class Incident(models.Model):
     factor_powerline_collision = models.BooleanField(null=True, blank=True, verbose_name="Powerline collision")
     factor_turbulent_conditions = models.BooleanField(null=True, blank=True, verbose_name="Turbulent conditions")
     factor_spiral_maneuver = models.BooleanField(null=True, blank=True, verbose_name="Spiral maneuver")
+    factor_mid_air_collision = models.CharField(max_length=30, choices=MidAirCollision.choices, null=True, blank=True, verbose_name="Mid-air collision")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
@@ -273,6 +280,8 @@ class Incident(models.Model):
             factors.append("turbulent conditions")
         if self.factor_spiral_maneuver:
             factors.append("spiral maneuver")
+        if self.factor_mid_air_collision:
+            factors.append(f"mid-air collision: {self.get_factor_mid_air_collision_display()}")
         if factors:
             parts.append(f"Factors: {', '.join(factors)}")
 

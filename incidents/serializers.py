@@ -24,6 +24,7 @@ class IncidentSerializer(serializers.ModelSerializer):
             "reserve_use": [c[0] for c in Incident.ReserveUse.choices],
             "cause_confidence": [c[0] for c in Incident.CauseConfidence.choices],
             "paramotor_type": [c[0] for c in Incident.ParamotorType.choices],
+            "factor_mid_air_collision": [c[0] for c in Incident.MidAirCollision.choices],
         }
         for field_name, valid_values in choice_fields.items():
             if field_name in data and data[field_name] not in valid_values and data[field_name] is not None:

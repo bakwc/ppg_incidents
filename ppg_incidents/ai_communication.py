@@ -88,6 +88,7 @@ The incident has the following fields:
 - factor_powerline_collision: Boolean - collision with powerlines
 - factor_turbulent_conditions: Boolean - turbulent conditions (thermals, rotor, wind gusts, etc.)
 - factor_spiral_maneuver: Boolean - spiral maneuver (spiral dive, SAT, etc.)
+- factor_mid_air_collision: One of: "fly_nearby", "got_in_wake_turbulence", "almost_collided", "collided".
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
 - report_raw: Raw reports / analysis copied from source. If no link provided - just copy the text from the user message.
