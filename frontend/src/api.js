@@ -1,10 +1,16 @@
 const API_BASE = '/api';
 
-export async function fetchIncidents(searchQuery = null) {
+export async function fetchIncidents(searchQuery = null, filters = {}) {
   const params = new URLSearchParams();
   if (searchQuery) {
     params.set('semantic_search', searchQuery);
   }
+  // Add all filters to params
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      params.set(key, value);
+    }
+  });
   const url = params.toString() ? `${API_BASE}/incidents?${params}` : `${API_BASE}/incidents`;
   const response = await fetch(url);
   return response.json();

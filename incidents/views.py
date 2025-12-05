@@ -1,6 +1,6 @@
 import logging
 
-from django.db.models import Case, When
+from django.db.models import Case, Q, When
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,6 +16,38 @@ logger = logging.getLogger(__name__)
 class IncidentListView(generics.ListAPIView):
     serializer_class = IncidentSerializer
 
+    # Boolean fields that can be filtered
+    BOOLEAN_FILTER_FIELDS = [
+        "potentially_fatal",
+        "hardware_failure",
+        "bad_hardware_preflight",
+        "factor_low_altitude",
+        "factor_maneuvers",
+        "factor_thermal_weather",
+        "factor_rotor_turbulence",
+        "factor_reflex_profile",
+        "factor_helmet_missing",
+        "factor_tree_collision",
+        "factor_water_landing",
+        "factor_ground_starting",
+        "factor_powerline_collision",
+        "factor_turbulent_conditions",
+        "factor_spiral_maneuver",
+    ]
+
+    # Choice fields that can be filtered
+    CHOICE_FILTER_FIELDS = [
+        "flight_phase",
+        "severity",
+        "reserve_use",
+        "cause_confidence",
+        "paramotor_type",
+        "factor_accelerator",
+        "factor_trimmer_position",
+        "pilot_actions",
+        "factor_mid_air_collision",
+    ]
+
     def get_queryset(self):
         semantic_search = self.request.query_params.get("semantic_search")
         
@@ -30,6 +62,40 @@ class IncidentListView(generics.ListAPIView):
             order_by = self.request.query_params.get("order_by")
             if order_by:
                 queryset = queryset.order_by(order_by)
+
+        # Apply boolean filters
+        for field in self.BOOLEAN_FILTER_FIELDS:
+            value = self.request.query_params.get(field)
+            if value is not None:
+                if value.lower() == "true":
+                    queryset = queryset.filter(**{field: True})
+                elif value.lower() == "false":
+                    queryset = queryset.filter(**{field: False})
+
+        # Apply choice filters
+        for field in self.CHOICE_FILTER_FIELDS:
+            value = self.request.query_params.get(field)
+            if value:
+                queryset = queryset.filter(**{field: value})
+
+        # Custom collapse_types filters
+        if self.request.query_params.get("collapse", "").lower() == "true":
+            queryset = queryset.filter(
+                Q(collapse_types__contains="asymmetric_small") |
+                Q(collapse_types__contains="asymmetric_medium") |
+                Q(collapse_types__contains="asymmetric_large") |
+                Q(collapse_types__contains="frontal")
+            )
+
+        if self.request.query_params.get("stall", "").lower() == "true":
+            queryset = queryset.filter(collapse_types__contains="full_stall")
+
+        if self.request.query_params.get("spin", "").lower() == "true":
+            queryset = queryset.filter(collapse_types__contains="spin")
+
+        if self.request.query_params.get("line_twist", "").lower() == "true":
+            queryset = queryset.filter(collapse_types__contains="line_twist")
+
         return queryset
 
 

@@ -14,19 +14,116 @@ const flightPhaseIcons = {
   flight: '✈️',
 };
 
+const SEVERITY_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: 'fatal', label: 'Fatal' },
+  { value: 'serious', label: 'Serious' },
+  { value: 'minor', label: 'Minor' },
+];
+
+const FLIGHT_PHASE_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: 'takeoff', label: 'Takeoff' },
+  { value: 'landing', label: 'Landing' },
+  { value: 'flight', label: 'Flight' },
+];
+
+const PARAMOTOR_TYPE_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: 'footlaunch', label: 'Footlaunch' },
+  { value: 'trike', label: 'Trike' },
+];
+
+const RESERVE_USE_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: 'not_deployed', label: 'Not deployed' },
+  { value: 'no_time', label: 'No time to open' },
+  { value: 'tangled', label: 'Became tangled' },
+  { value: 'partially_opened', label: 'Partially opened' },
+  { value: 'fully_opened', label: 'Fully opened' },
+];
+
+const PILOT_ACTIONS_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: 'wrong_input_triggered', label: 'Wrong input triggered' },
+  { value: 'mostly_wrong', label: 'Mostly wrong' },
+  { value: 'mixed', label: 'Mixed' },
+  { value: 'mostly_correct', label: 'Mostly correct' },
+];
+
+const BOOLEAN_FILTERS = [
+  { key: 'potentially_fatal', label: 'Potentially fatal' },
+  { key: 'hardware_failure', label: 'Hardware failure' },
+  { key: 'factor_low_altitude', label: 'Low altitude' },
+  { key: 'factor_maneuvers', label: 'Maneuvers' },
+  { key: 'factor_thermal_weather', label: 'Thermal weather' },
+  { key: 'factor_rotor_turbulence', label: 'Rotor turbulence' },
+  { key: 'factor_turbulent_conditions', label: 'Turbulent conditions' },
+  { key: 'factor_tree_collision', label: 'Tree collision' },
+  { key: 'factor_water_landing', label: 'Water landing' },
+  { key: 'factor_powerline_collision', label: 'Powerline collision' },
+  { key: 'factor_ground_starting', label: 'Ground starting' },
+  { key: 'factor_spiral_maneuver', label: 'Spiral maneuver' },
+  { key: 'factor_helmet_missing', label: 'Helmet missing' },
+];
+
+const COLLAPSE_FILTERS = [
+  { key: 'collapse', label: 'Collapse' },
+  { key: 'stall', label: 'Stall' },
+  { key: 'spin', label: 'Spin' },
+  { key: 'line_twist', label: 'Line twist' },
+];
+
+const initialFilters = {
+  severity: '',
+  flight_phase: '',
+  paramotor_type: '',
+  reserve_use: '',
+  pilot_actions: '',
+};
+
 function IncidentList() {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [filters, setFilters] = useState(initialFilters);
+  const [booleanFilters, setBooleanFilters] = useState({});
+  const [collapseFilters, setCollapseFilters] = useState({});
+
+  const buildFilters = () => {
+    const allFilters = { ...filters };
+    Object.entries(booleanFilters).forEach(([key, value]) => {
+      if (value === true) allFilters[key] = 'true';
+    });
+    Object.entries(collapseFilters).forEach(([key, value]) => {
+      if (value === true) allFilters[key] = 'true';
+    });
+    return allFilters;
+  };
 
   useEffect(() => {
     setLoading(true);
-    fetchIncidents(searchQuery || null).then(data => {
+    fetchIncidents(searchQuery || null, buildFilters()).then(data => {
       setIncidents(data);
       setLoading(false);
     });
-  }, [searchQuery]);
+  }, [searchQuery, filters, booleanFilters, collapseFilters]);
+
+  const activeFilterCount = () => {
+    let count = 0;
+    Object.values(filters).forEach(v => { if (v) count++; });
+    Object.values(booleanFilters).forEach(v => { if (v) count++; });
+    Object.values(collapseFilters).forEach(v => { if (v) count++; });
+    return count;
+  };
+
+  const clearFilters = () => {
+    setFilters(initialFilters);
+    setBooleanFilters({});
+    setCollapseFilters({});
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -65,7 +162,7 @@ function IncidentList() {
         </div>
 
         {/* Search bar */}
-        <form onSubmit={handleSearch} className="mb-8">
+        <form onSubmit={handleSearch} className="mb-4">
           <div className="relative flex gap-3">
             <div className="relative flex-1">
               <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,6 +200,146 @@ function IncidentList() {
             </p>
           )}
         </form>
+
+        {/* Expandable Filters */}
+        <div className="mb-8">
+          <button
+            type="button"
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-slate-300 hover:bg-slate-800 transition-all"
+          >
+            <svg className={`w-4 h-4 transition-transform ${filtersExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            <span>Filters</span>
+            {activeFilterCount() > 0 && (
+              <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full text-xs font-medium">
+                {activeFilterCount()}
+              </span>
+            )}
+          </button>
+
+          {filtersExpanded && (
+            <div className="mt-4 p-6 bg-slate-800/30 border border-slate-700/50 rounded-2xl">
+              {/* Select Filters */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1.5">Severity</label>
+                  <select
+                    value={filters.severity}
+                    onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
+                  >
+                    {SEVERITY_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1.5">Flight Phase</label>
+                  <select
+                    value={filters.flight_phase}
+                    onChange={(e) => setFilters({ ...filters, flight_phase: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
+                  >
+                    {FLIGHT_PHASE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1.5">Paramotor Type</label>
+                  <select
+                    value={filters.paramotor_type}
+                    onChange={(e) => setFilters({ ...filters, paramotor_type: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
+                  >
+                    {PARAMOTOR_TYPE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1.5">Reserve Use</label>
+                  <select
+                    value={filters.reserve_use}
+                    onChange={(e) => setFilters({ ...filters, reserve_use: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
+                  >
+                    {RESERVE_USE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1.5">Pilot Actions</label>
+                  <select
+                    value={filters.pilot_actions}
+                    onChange={(e) => setFilters({ ...filters, pilot_actions: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
+                  >
+                    {PILOT_ACTIONS_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Collapse Filters */}
+              <div className="mb-6">
+                <label className="block text-xs text-slate-500 mb-2">Collapse Events</label>
+                <div className="flex flex-wrap gap-2">
+                  {COLLAPSE_FILTERS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setCollapseFilters({ ...collapseFilters, [key]: !collapseFilters[key] })}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        collapseFilters[key]
+                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Boolean Filters */}
+              <div className="mb-4">
+                <label className="block text-xs text-slate-500 mb-2">Factors</label>
+                <div className="flex flex-wrap gap-2">
+                  {BOOLEAN_FILTERS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setBooleanFilters({ ...booleanFilters, [key]: !booleanFilters[key] })}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        booleanFilters[key]
+                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Clear Filters */}
+              {activeFilterCount() > 0 && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Loading state */}
         {loading && (
