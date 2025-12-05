@@ -96,6 +96,39 @@ class IncidentListView(generics.ListAPIView):
         if self.request.query_params.get("line_twist", "").lower() == "true":
             queryset = queryset.filter(collapse_types__contains="line_twist")
 
+        # Apply boolean exclude filters
+        for field in self.BOOLEAN_FILTER_FIELDS:
+            value = self.request.query_params.get(f"exclude_{field}")
+            if value is not None:
+                if value.lower() == "true":
+                    queryset = queryset.exclude(**{field: True})
+                elif value.lower() == "false":
+                    queryset = queryset.exclude(**{field: False})
+
+        # Apply choice exclude filters
+        for field in self.CHOICE_FILTER_FIELDS:
+            value = self.request.query_params.get(f"exclude_{field}")
+            if value:
+                queryset = queryset.exclude(**{field: value})
+
+        # Custom collapse_types exclude filters
+        if self.request.query_params.get("exclude_collapse", "").lower() == "true":
+            queryset = queryset.exclude(
+                Q(collapse_types__contains="asymmetric_small") |
+                Q(collapse_types__contains="asymmetric_medium") |
+                Q(collapse_types__contains="asymmetric_large") |
+                Q(collapse_types__contains="frontal")
+            )
+
+        if self.request.query_params.get("exclude_stall", "").lower() == "true":
+            queryset = queryset.exclude(collapse_types__contains="full_stall")
+
+        if self.request.query_params.get("exclude_spin", "").lower() == "true":
+            queryset = queryset.exclude(collapse_types__contains="spin")
+
+        if self.request.query_params.get("exclude_line_twist", "").lower() == "true":
+            queryset = queryset.exclude(collapse_types__contains="line_twist")
+
         return queryset
 
 
