@@ -66,7 +66,7 @@ The incident has the following fields:
 - potentially_fatal: Boolean - could have resulted in death under different circumstances. Estimate yourself.
 - description: Detailed description of the incident
 - causes_description: Description of causes
-- pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting)
+- pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting). Focus on piloting actions, not the general decision making.
 - injury_details: Details of pilot injuries (only fill if pilot was injured)
 - hardware_failure: Boolean - hardware failure occurred
 - bad_hardware_preflight: Boolean - hardware issue could have been found on preflight but pilot missed it
@@ -204,13 +204,13 @@ class AiCommunicator:
             )
 
             while response.stop_reason == "tool_use":
-                tool_use_block = next(block for block in response.content if block.type == "tool_use")
-                tool_result = self._handle_tool_call(tool_use_block.name, tool_use_block.input)
+                tool_use_blocks = [block for block in response.content if block.type == "tool_use"]
+                tool_results = []
+                for tool_use_block in tool_use_blocks:
+                    tool_result = self._handle_tool_call(tool_use_block.name, tool_use_block.input)
+                    tool_results.append({"type": "tool_result", "tool_use_id": tool_use_block.id, "content": tool_result})
                 chat_messages.append({"role": "assistant", "content": response.content})
-                chat_messages.append({
-                    "role": "user",
-                    "content": [{"type": "tool_result", "tool_use_id": tool_use_block.id, "content": tool_result}]
-                })
+                chat_messages.append({"role": "user", "content": tool_results})
                 response = self.client_anthropic.messages.create(
                     model=model,
                     max_tokens=4096,
