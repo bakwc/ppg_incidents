@@ -14,49 +14,64 @@ const flightPhaseIcons = {
   flight: '✈️',
 };
 
-const SEVERITY_OPTIONS = [
-  { value: '', label: 'Any' },
-  { value: 'fatal', label: 'Fatal' },
-  { value: 'serious', label: 'Serious' },
-  { value: 'minor', label: 'Minor' },
-];
-
-const FLIGHT_PHASE_OPTIONS = [
-  { value: '', label: 'Any' },
-  { value: 'takeoff', label: 'Takeoff' },
-  { value: 'landing', label: 'Landing' },
-  { value: 'flight', label: 'Flight' },
-];
-
-const PARAMOTOR_TYPE_OPTIONS = [
-  { value: '', label: 'Any' },
-  { value: 'footlaunch', label: 'Footlaunch' },
-  { value: 'trike', label: 'Trike' },
-];
-
-const RESERVE_USE_OPTIONS = [
-  { value: '', label: 'Any' },
-  { value: 'not_deployed', label: 'Not deployed' },
-  { value: 'no_time', label: 'No time to open' },
-  { value: 'tangled', label: 'Became tangled' },
-  { value: 'partially_opened', label: 'Partially opened' },
-  { value: 'fully_opened', label: 'Fully opened' },
-];
-
-const PILOT_ACTIONS_OPTIONS = [
-  { value: '', label: 'Any' },
-  { value: 'wrong_input_triggered', label: 'Wrong input triggered' },
-  { value: 'mostly_wrong', label: 'Mostly wrong' },
-  { value: 'mixed', label: 'Mixed' },
-  { value: 'mostly_correct', label: 'Mostly correct' },
-];
-
-const CAUSE_CONFIDENCE_OPTIONS = [
-  { value: '', label: 'Any' },
-  { value: 'maximum', label: 'Maximum' },
-  { value: 'high', label: 'High' },
-  { value: 'low', label: 'Low' },
-  { value: 'minimal', label: 'Minimal' },
+const SELECT_FILTERS = [
+  {
+    key: 'severity',
+    label: 'Severity',
+    options: [
+      { value: 'fatal', label: 'Fatal' },
+      { value: 'serious', label: 'Serious' },
+      { value: 'minor', label: 'Minor' },
+    ],
+  },
+  {
+    key: 'flight_phase',
+    label: 'Flight Phase',
+    options: [
+      { value: 'takeoff', label: 'Takeoff' },
+      { value: 'landing', label: 'Landing' },
+      { value: 'flight', label: 'Flight' },
+    ],
+  },
+  {
+    key: 'paramotor_type',
+    label: 'Paramotor Type',
+    options: [
+      { value: 'footlaunch', label: 'Footlaunch' },
+      { value: 'trike', label: 'Trike' },
+    ],
+  },
+  {
+    key: 'reserve_use',
+    label: 'Reserve Use',
+    options: [
+      { value: 'not_deployed', label: 'Not deployed' },
+      { value: 'no_time', label: 'No time to open' },
+      { value: 'tangled', label: 'Became tangled' },
+      { value: 'partially_opened', label: 'Partially opened' },
+      { value: 'fully_opened', label: 'Fully opened' },
+    ],
+  },
+  {
+    key: 'pilot_actions',
+    label: 'Pilot Actions',
+    options: [
+      { value: 'wrong_input_triggered', label: 'Wrong input triggered' },
+      { value: 'mostly_wrong', label: 'Mostly wrong' },
+      { value: 'mixed', label: 'Mixed' },
+      { value: 'mostly_correct', label: 'Mostly correct' },
+    ],
+  },
+  {
+    key: 'cause_confidence',
+    label: 'Cause Confidence',
+    options: [
+      { value: 'maximum', label: 'Maximum' },
+      { value: 'high', label: 'High' },
+      { value: 'low', label: 'Low' },
+      { value: 'minimal', label: 'Minimal' },
+    ],
+  },
 ];
 
 const BOOLEAN_FILTERS = [
@@ -82,47 +97,22 @@ const COLLAPSE_FILTERS = [
   { key: 'line_twist', label: 'Line twist' },
 ];
 
-const initialFilters = {
-  severity: '',
-  flight_phase: '',
-  paramotor_type: '',
-  reserve_use: '',
-  pilot_actions: '',
-  cause_confidence: '',
-};
-
 function IncidentList() {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-  const [filters, setFilters] = useState(initialFilters);
-  const [booleanFilters, setBooleanFilters] = useState({});
-  const [collapseFilters, setCollapseFilters] = useState({});
-  const [excludeFilters, setExcludeFilters] = useState(initialFilters);
-  const [excludeBooleanFilters, setExcludeBooleanFilters] = useState({});
-  const [excludeCollapseFilters, setExcludeCollapseFilters] = useState({});
+  const [filterMode, setFilterMode] = useState('include'); // 'include' or 'exclude'
+  const [activeFilters, setActiveFilters] = useState([]);
 
   const buildFilters = () => {
-    const allFilters = { ...filters };
-    Object.entries(booleanFilters).forEach(([key, value]) => {
-      if (value === true) allFilters[key] = 'true';
+    const result = {};
+    activeFilters.forEach(f => {
+      const key = f.exclude ? `exclude_${f.key}` : f.key;
+      result[key] = f.value || 'true';
     });
-    Object.entries(collapseFilters).forEach(([key, value]) => {
-      if (value === true) allFilters[key] = 'true';
-    });
-    // Exclude filters
-    Object.entries(excludeFilters).forEach(([key, value]) => {
-      if (value) allFilters[`exclude_${key}`] = value;
-    });
-    Object.entries(excludeBooleanFilters).forEach(([key, value]) => {
-      if (value === true) allFilters[`exclude_${key}`] = 'true';
-    });
-    Object.entries(excludeCollapseFilters).forEach(([key, value]) => {
-      if (value === true) allFilters[`exclude_${key}`] = 'true';
-    });
-    return allFilters;
+    return result;
   };
 
   useEffect(() => {
@@ -131,26 +121,29 @@ function IncidentList() {
       setIncidents(data);
       setLoading(false);
     });
-  }, [searchQuery, filters, booleanFilters, collapseFilters, excludeFilters, excludeBooleanFilters, excludeCollapseFilters]);
+  }, [searchQuery, activeFilters]);
 
-  const activeFilterCount = () => {
-    let count = 0;
-    Object.values(filters).forEach(v => { if (v) count++; });
-    Object.values(booleanFilters).forEach(v => { if (v) count++; });
-    Object.values(collapseFilters).forEach(v => { if (v) count++; });
-    Object.values(excludeFilters).forEach(v => { if (v) count++; });
-    Object.values(excludeBooleanFilters).forEach(v => { if (v) count++; });
-    Object.values(excludeCollapseFilters).forEach(v => { if (v) count++; });
-    return count;
+  const isFilterActive = (key, value = null) => {
+    return activeFilters.some(f => f.key === key && f.value === value && f.exclude === (filterMode === 'exclude'));
   };
 
-  const clearFilters = () => {
-    setFilters(initialFilters);
-    setBooleanFilters({});
-    setCollapseFilters({});
-    setExcludeFilters(initialFilters);
-    setExcludeBooleanFilters({});
-    setExcludeCollapseFilters({});
+  const toggleFilter = (key, value, label) => {
+    const exclude = filterMode === 'exclude';
+    const existingIndex = activeFilters.findIndex(f => f.key === key && f.value === value && f.exclude === exclude);
+    
+    if (existingIndex >= 0) {
+      setActiveFilters(activeFilters.filter((_, i) => i !== existingIndex));
+    } else {
+      setActiveFilters([...activeFilters, { key, value, label, exclude }]);
+    }
+  };
+
+  const removeFilter = (index) => {
+    setActiveFilters(activeFilters.filter((_, i) => i !== index));
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters([]);
   };
 
   const handleSearch = (e) => {
@@ -229,288 +222,145 @@ function IncidentList() {
           )}
         </form>
 
-        {/* Expandable Filters */}
+        {/* Active filter tags */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {activeFilters.map((f, index) => (
+              <span
+                key={index}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                  f.exclude
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                }`}
+              >
+                <span className="text-xs opacity-70">{f.exclude ? '−' : '+'}</span>
+                {f.label}
+                <button
+                  type="button"
+                  onClick={() => removeFilter(index)}
+                  className="ml-1 hover:opacity-70"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="text-sm text-slate-500 hover:text-red-400 transition-colors"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+
+        {/* Add filter button + expandable panel */}
         <div className="mb-8">
           <button
             type="button"
             onClick={() => setFiltersExpanded(!filtersExpanded)}
             className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-slate-300 hover:bg-slate-800 transition-all"
           >
-            <svg className={`w-4 h-4 transition-transform ${filtersExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            <span>Filters</span>
-            {activeFilterCount() > 0 && (
-              <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full text-xs font-medium">
-                {activeFilterCount()}
-              </span>
-            )}
+            <span>Add filter</span>
           </button>
 
           {filtersExpanded && (
-            <div className="mt-4 p-6 bg-slate-800/30 border border-slate-700/50 rounded-2xl space-y-6">
-              {/* Include Filters Section */}
-              <div>
-                <h3 className="text-sm font-medium text-emerald-400 mb-4 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                  Include
-                </h3>
-                
-                {/* Select Filters */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Severity</label>
-                    <select
-                      value={filters.severity}
-                      onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
-                    >
-                      {SEVERITY_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Flight Phase</label>
-                    <select
-                      value={filters.flight_phase}
-                      onChange={(e) => setFilters({ ...filters, flight_phase: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
-                    >
-                      {FLIGHT_PHASE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Paramotor Type</label>
-                    <select
-                      value={filters.paramotor_type}
-                      onChange={(e) => setFilters({ ...filters, paramotor_type: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
-                    >
-                      {PARAMOTOR_TYPE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Reserve Use</label>
-                    <select
-                      value={filters.reserve_use}
-                      onChange={(e) => setFilters({ ...filters, reserve_use: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
-                    >
-                      {RESERVE_USE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Pilot Actions</label>
-                    <select
-                      value={filters.pilot_actions}
-                      onChange={(e) => setFilters({ ...filters, pilot_actions: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
-                    >
-                      {PILOT_ACTIONS_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Cause Confidence</label>
-                    <select
-                      value={filters.cause_confidence}
-                      onChange={(e) => setFilters({ ...filters, cause_confidence: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
-                    >
-                      {CAUSE_CONFIDENCE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Collapse Filters */}
-                <div className="mb-4">
-                  <label className="block text-xs text-slate-500 mb-2">Collapse Events</label>
-                  <div className="flex flex-wrap gap-2">
-                    {COLLAPSE_FILTERS.map(({ key, label }) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setCollapseFilters({ ...collapseFilters, [key]: !collapseFilters[key] })}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                          collapseFilters[key]
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Boolean Filters */}
-                <div>
-                  <label className="block text-xs text-slate-500 mb-2">Factors</label>
-                  <div className="flex flex-wrap gap-2">
-                    {BOOLEAN_FILTERS.map(({ key, label }) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setBooleanFilters({ ...booleanFilters, [key]: !booleanFilters[key] })}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                          booleanFilters[key]
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Exclude Filters Section */}
-              <div className="pt-4 border-t border-slate-700/50">
-                <h3 className="text-sm font-medium text-red-400 mb-4 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded bg-red-500/20 flex items-center justify-center text-xs">✕</span>
-                  Exclude
-                </h3>
-                
-                {/* Exclude Select Filters */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Severity</label>
-                    <select
-                      value={excludeFilters.severity}
-                      onChange={(e) => setExcludeFilters({ ...excludeFilters, severity: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
-                    >
-                      {SEVERITY_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Flight Phase</label>
-                    <select
-                      value={excludeFilters.flight_phase}
-                      onChange={(e) => setExcludeFilters({ ...excludeFilters, flight_phase: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
-                    >
-                      {FLIGHT_PHASE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Paramotor Type</label>
-                    <select
-                      value={excludeFilters.paramotor_type}
-                      onChange={(e) => setExcludeFilters({ ...excludeFilters, paramotor_type: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
-                    >
-                      {PARAMOTOR_TYPE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Reserve Use</label>
-                    <select
-                      value={excludeFilters.reserve_use}
-                      onChange={(e) => setExcludeFilters({ ...excludeFilters, reserve_use: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
-                    >
-                      {RESERVE_USE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Pilot Actions</label>
-                    <select
-                      value={excludeFilters.pilot_actions}
-                      onChange={(e) => setExcludeFilters({ ...excludeFilters, pilot_actions: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
-                    >
-                      {PILOT_ACTIONS_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1.5">Cause Confidence</label>
-                    <select
-                      value={excludeFilters.cause_confidence}
-                      onChange={(e) => setExcludeFilters({ ...excludeFilters, cause_confidence: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
-                    >
-                      {CAUSE_CONFIDENCE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Exclude Collapse Filters */}
-                <div className="mb-4">
-                  <label className="block text-xs text-slate-500 mb-2">Collapse Events</label>
-                  <div className="flex flex-wrap gap-2">
-                    {COLLAPSE_FILTERS.map(({ key, label }) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setExcludeCollapseFilters({ ...excludeCollapseFilters, [key]: !excludeCollapseFilters[key] })}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                          excludeCollapseFilters[key]
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Exclude Boolean Filters */}
-                <div>
-                  <label className="block text-xs text-slate-500 mb-2">Factors</label>
-                  <div className="flex flex-wrap gap-2">
-                    {BOOLEAN_FILTERS.map(({ key, label }) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setExcludeBooleanFilters({ ...excludeBooleanFilters, [key]: !excludeBooleanFilters[key] })}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                          excludeBooleanFilters[key]
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Clear Filters */}
-              {activeFilterCount() > 0 && (
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors"
+            <div className="mt-4 p-6 bg-slate-800/30 border border-slate-700/50 rounded-2xl">
+              {/* Filter mode selector */}
+              <div className="flex items-center gap-4 mb-6">
+                <label className="text-sm text-slate-400">Filter mode:</label>
+                <select
+                  value={filterMode}
+                  onChange={(e) => setFilterMode(e.target.value)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border focus:outline-none ${
+                    filterMode === 'include'
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : 'bg-red-500/20 text-red-400 border-red-500/30'
+                  }`}
                 >
-                  Clear all filters
-                </button>
-              )}
+                  <option value="include">+ Include</option>
+                  <option value="exclude">− Exclude</option>
+                </select>
+              </div>
+
+              {/* Select Filters */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                {SELECT_FILTERS.map(filter => (
+                  <div key={filter.key}>
+                    <label className="block text-xs text-slate-500 mb-1.5">{filter.label}</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {filter.options.map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => toggleFilter(filter.key, opt.value, opt.label)}
+                          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                            isFilterActive(filter.key, opt.value)
+                              ? filterMode === 'include'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Collapse Filters */}
+              <div className="mb-6">
+                <label className="block text-xs text-slate-500 mb-2">Collapse Events</label>
+                <div className="flex flex-wrap gap-2">
+                  {COLLAPSE_FILTERS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleFilter(key, null, label)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        isFilterActive(key, null)
+                          ? filterMode === 'include'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Boolean Filters */}
+              <div>
+                <label className="block text-xs text-slate-500 mb-2">Factors</label>
+                <div className="flex flex-wrap gap-2">
+                  {BOOLEAN_FILTERS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleFilter(key, null, label)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        isFilterActive(key, null)
+                          ? filterMode === 'include'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -533,8 +383,8 @@ function IncidentList() {
         {!loading && incidents.length === 0 && (
           <div className="text-center py-24">
             <div className="text-6xl mb-4">🪂</div>
-            <h2 className="text-2xl font-semibold text-slate-300 mb-2">No incidents yet</h2>
-            <p className="text-slate-500">Create your first incident report to get started</p>
+            <h2 className="text-2xl font-semibold text-slate-300 mb-2">No incidents found</h2>
+            <p className="text-slate-500">Try adjusting your filters or search query</p>
           </div>
         )}
 
@@ -635,4 +485,3 @@ function IncidentList() {
 }
 
 export default IncidentList;
-
