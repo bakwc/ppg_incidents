@@ -51,6 +51,14 @@ const PILOT_ACTIONS_OPTIONS = [
   { value: 'mostly_correct', label: 'Mostly correct' },
 ];
 
+const CAUSE_CONFIDENCE_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: 'maximum', label: 'Maximum' },
+  { value: 'high', label: 'High' },
+  { value: 'low', label: 'Low' },
+  { value: 'minimal', label: 'Minimal' },
+];
+
 const BOOLEAN_FILTERS = [
   { key: 'potentially_fatal', label: 'Potentially fatal' },
   { key: 'hardware_failure', label: 'Hardware failure' },
@@ -80,6 +88,7 @@ const initialFilters = {
   paramotor_type: '',
   reserve_use: '',
   pilot_actions: '',
+  cause_confidence: '',
 };
 
 function IncidentList() {
@@ -91,6 +100,9 @@ function IncidentList() {
   const [filters, setFilters] = useState(initialFilters);
   const [booleanFilters, setBooleanFilters] = useState({});
   const [collapseFilters, setCollapseFilters] = useState({});
+  const [excludeFilters, setExcludeFilters] = useState(initialFilters);
+  const [excludeBooleanFilters, setExcludeBooleanFilters] = useState({});
+  const [excludeCollapseFilters, setExcludeCollapseFilters] = useState({});
 
   const buildFilters = () => {
     const allFilters = { ...filters };
@@ -99,6 +111,16 @@ function IncidentList() {
     });
     Object.entries(collapseFilters).forEach(([key, value]) => {
       if (value === true) allFilters[key] = 'true';
+    });
+    // Exclude filters
+    Object.entries(excludeFilters).forEach(([key, value]) => {
+      if (value) allFilters[`exclude_${key}`] = value;
+    });
+    Object.entries(excludeBooleanFilters).forEach(([key, value]) => {
+      if (value === true) allFilters[`exclude_${key}`] = 'true';
+    });
+    Object.entries(excludeCollapseFilters).forEach(([key, value]) => {
+      if (value === true) allFilters[`exclude_${key}`] = 'true';
     });
     return allFilters;
   };
@@ -109,13 +131,16 @@ function IncidentList() {
       setIncidents(data);
       setLoading(false);
     });
-  }, [searchQuery, filters, booleanFilters, collapseFilters]);
+  }, [searchQuery, filters, booleanFilters, collapseFilters, excludeFilters, excludeBooleanFilters, excludeCollapseFilters]);
 
   const activeFilterCount = () => {
     let count = 0;
     Object.values(filters).forEach(v => { if (v) count++; });
     Object.values(booleanFilters).forEach(v => { if (v) count++; });
     Object.values(collapseFilters).forEach(v => { if (v) count++; });
+    Object.values(excludeFilters).forEach(v => { if (v) count++; });
+    Object.values(excludeBooleanFilters).forEach(v => { if (v) count++; });
+    Object.values(excludeCollapseFilters).forEach(v => { if (v) count++; });
     return count;
   };
 
@@ -123,6 +148,9 @@ function IncidentList() {
     setFilters(initialFilters);
     setBooleanFilters({});
     setCollapseFilters({});
+    setExcludeFilters(initialFilters);
+    setExcludeBooleanFilters({});
+    setExcludeCollapseFilters({});
   };
 
   const handleSearch = (e) => {
@@ -220,110 +248,256 @@ function IncidentList() {
           </button>
 
           {filtersExpanded && (
-            <div className="mt-4 p-6 bg-slate-800/30 border border-slate-700/50 rounded-2xl">
-              {/* Select Filters */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1.5">Severity</label>
-                  <select
-                    value={filters.severity}
-                    onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
-                  >
-                    {SEVERITY_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+            <div className="mt-4 p-6 bg-slate-800/30 border border-slate-700/50 rounded-2xl space-y-6">
+              {/* Include Filters Section */}
+              <div>
+                <h3 className="text-sm font-medium text-emerald-400 mb-4 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
+                  Include
+                </h3>
+                
+                {/* Select Filters */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Severity</label>
+                    <select
+                      value={filters.severity}
+                      onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                    >
+                      {SEVERITY_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Flight Phase</label>
+                    <select
+                      value={filters.flight_phase}
+                      onChange={(e) => setFilters({ ...filters, flight_phase: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                    >
+                      {FLIGHT_PHASE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Paramotor Type</label>
+                    <select
+                      value={filters.paramotor_type}
+                      onChange={(e) => setFilters({ ...filters, paramotor_type: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                    >
+                      {PARAMOTOR_TYPE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Reserve Use</label>
+                    <select
+                      value={filters.reserve_use}
+                      onChange={(e) => setFilters({ ...filters, reserve_use: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                    >
+                      {RESERVE_USE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Pilot Actions</label>
+                    <select
+                      value={filters.pilot_actions}
+                      onChange={(e) => setFilters({ ...filters, pilot_actions: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                    >
+                      {PILOT_ACTIONS_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Cause Confidence</label>
+                    <select
+                      value={filters.cause_confidence}
+                      onChange={(e) => setFilters({ ...filters, cause_confidence: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                    >
+                      {CAUSE_CONFIDENCE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1.5">Flight Phase</label>
-                  <select
-                    value={filters.flight_phase}
-                    onChange={(e) => setFilters({ ...filters, flight_phase: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
-                  >
-                    {FLIGHT_PHASE_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+
+                {/* Collapse Filters */}
+                <div className="mb-4">
+                  <label className="block text-xs text-slate-500 mb-2">Collapse Events</label>
+                  <div className="flex flex-wrap gap-2">
+                    {COLLAPSE_FILTERS.map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setCollapseFilters({ ...collapseFilters, [key]: !collapseFilters[key] })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          collapseFilters[key]
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                        }`}
+                      >
+                        {label}
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
+
+                {/* Boolean Filters */}
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1.5">Paramotor Type</label>
-                  <select
-                    value={filters.paramotor_type}
-                    onChange={(e) => setFilters({ ...filters, paramotor_type: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
-                  >
-                    {PARAMOTOR_TYPE_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <label className="block text-xs text-slate-500 mb-2">Factors</label>
+                  <div className="flex flex-wrap gap-2">
+                    {BOOLEAN_FILTERS.map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setBooleanFilters({ ...booleanFilters, [key]: !booleanFilters[key] })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          booleanFilters[key]
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                        }`}
+                      >
+                        {label}
+                      </button>
                     ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1.5">Reserve Use</label>
-                  <select
-                    value={filters.reserve_use}
-                    onChange={(e) => setFilters({ ...filters, reserve_use: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
-                  >
-                    {RESERVE_USE_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1.5">Pilot Actions</label>
-                  <select
-                    value={filters.pilot_actions}
-                    onChange={(e) => setFilters({ ...filters, pilot_actions: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-orange-500/50"
-                  >
-                    {PILOT_ACTIONS_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Collapse Filters */}
-              <div className="mb-6">
-                <label className="block text-xs text-slate-500 mb-2">Collapse Events</label>
-                <div className="flex flex-wrap gap-2">
-                  {COLLAPSE_FILTERS.map(({ key, label }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setCollapseFilters({ ...collapseFilters, [key]: !collapseFilters[key] })}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        collapseFilters[key]
-                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
-                      }`}
+              {/* Exclude Filters Section */}
+              <div className="pt-4 border-t border-slate-700/50">
+                <h3 className="text-sm font-medium text-red-400 mb-4 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded bg-red-500/20 flex items-center justify-center text-xs">✕</span>
+                  Exclude
+                </h3>
+                
+                {/* Exclude Select Filters */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Severity</label>
+                    <select
+                      value={excludeFilters.severity}
+                      onChange={(e) => setExcludeFilters({ ...excludeFilters, severity: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
                     >
-                      {label}
-                    </button>
-                  ))}
+                      {SEVERITY_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Flight Phase</label>
+                    <select
+                      value={excludeFilters.flight_phase}
+                      onChange={(e) => setExcludeFilters({ ...excludeFilters, flight_phase: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
+                    >
+                      {FLIGHT_PHASE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Paramotor Type</label>
+                    <select
+                      value={excludeFilters.paramotor_type}
+                      onChange={(e) => setExcludeFilters({ ...excludeFilters, paramotor_type: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
+                    >
+                      {PARAMOTOR_TYPE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Reserve Use</label>
+                    <select
+                      value={excludeFilters.reserve_use}
+                      onChange={(e) => setExcludeFilters({ ...excludeFilters, reserve_use: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
+                    >
+                      {RESERVE_USE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Pilot Actions</label>
+                    <select
+                      value={excludeFilters.pilot_actions}
+                      onChange={(e) => setExcludeFilters({ ...excludeFilters, pilot_actions: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
+                    >
+                      {PILOT_ACTIONS_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1.5">Cause Confidence</label>
+                    <select
+                      value={excludeFilters.cause_confidence}
+                      onChange={(e) => setExcludeFilters({ ...excludeFilters, cause_confidence: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white focus:outline-none focus:border-red-500/50"
+                    >
+                      {CAUSE_CONFIDENCE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              {/* Boolean Filters */}
-              <div className="mb-4">
-                <label className="block text-xs text-slate-500 mb-2">Factors</label>
-                <div className="flex flex-wrap gap-2">
-                  {BOOLEAN_FILTERS.map(({ key, label }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setBooleanFilters({ ...booleanFilters, [key]: !booleanFilters[key] })}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        booleanFilters[key]
-                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                {/* Exclude Collapse Filters */}
+                <div className="mb-4">
+                  <label className="block text-xs text-slate-500 mb-2">Collapse Events</label>
+                  <div className="flex flex-wrap gap-2">
+                    {COLLAPSE_FILTERS.map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setExcludeCollapseFilters({ ...excludeCollapseFilters, [key]: !excludeCollapseFilters[key] })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          excludeCollapseFilters[key]
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Exclude Boolean Filters */}
+                <div>
+                  <label className="block text-xs text-slate-500 mb-2">Factors</label>
+                  <div className="flex flex-wrap gap-2">
+                    {BOOLEAN_FILTERS.map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setExcludeBooleanFilters({ ...excludeBooleanFilters, [key]: !excludeBooleanFilters[key] })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          excludeBooleanFilters[key]
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
