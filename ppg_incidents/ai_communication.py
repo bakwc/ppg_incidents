@@ -20,6 +20,8 @@ CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 
 def get_webpage_content(url: str) -> str:
     """Download and clean webpage HTML content or extract text from PDF."""
+    if not url:
+        return "Error: No URL provided"
     ssl_context = ssl.create_default_context(cafile=certifi.where())
     request = urllib.request.Request(url, headers={"User-Agent": CHROME_USER_AGENT})
     try:
@@ -45,10 +47,10 @@ If the user provides URLs to incident reports or relevant pages, use the get_web
 
 The incident has the following fields:
 - title: Short title for the incident (max 300 chars)
-- summary: Brief summary of what happened
+- summary: Brief summary of what happened (mandatory to fill)
 - date: Date of incident (YYYY-MM-DD format)
 - time: Time of incident (HH:MM:SS format)
-- country: Country where incident occurred
+- country: Country where incident occurred. Full country name. Eg. "United States" - allowed, "USA" - not allowed.
 - city_or_site: City or flying site name
 - paramotor_type: One of: "footlaunch", "trike"
 - paramotor_frame: Paramotor frame/chassis model
@@ -56,12 +58,12 @@ The incident has the following fields:
 - wing_manufacturer: Wing/glider manufacturer
 - wing_model: Wing model name
 - wing_size: Wing size
-- pilot_name: Pilot name or identifier
+- pilot_name: Pilot name. Only fill if real pilot name is known.
 - pilot_details: Pilot details (experience, certifications, etc.)
 - flight_altitude: Altitude in meters (integer)
 - flight_phase: One of: "takeoff", "landing", "flight"
 - severity: One of: "fatal", "serious", "minor"
-- potentially_fatal: Boolean - could have resulted in death under different circumstances
+- potentially_fatal: Boolean - could have resulted in death under different circumstances. Estimate yourself.
 - description: Detailed description of the incident
 - causes_description: Description of causes
 - pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting)
@@ -71,7 +73,7 @@ The incident has the following fields:
 - collapse_types: Array of collapse types in sequence. Values: "asymmetric_small" (<30%), "asymmetric_medium" (30-50%), "asymmetric_large" (>50%), "frontal", "full_stall", "spin", "line_twist", "cravatte"
 - reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened"
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
-- cause_confidence: One of: "maximum", "high", "low", "minimal"
+- cause_confidence: One of: "maximum", "high", "low", "minimal". If the reason is 100% known but a lot of fields missing - confidence should be "maximum". If all fields exists but reason not clear - confidence should be "low".
 - factor_low_altitude: Boolean - low flight altitude was a factor. Low altitude is <80 meters altitude.
 - factor_maneuvers: Boolean - performed maneuvers
 - factor_accelerator: One of: "released", "partially_engaged", "fully_engaged"
@@ -88,7 +90,7 @@ The incident has the following fields:
 - factor_spiral_maneuver: Boolean - spiral maneuver (spiral dive, SAT, etc.)
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
-- report_raw: Raw reports / analysis copied from source
+- report_raw: Raw reports / analysis copied from source. If no link provided - just copy the text from the user message.
 - wind_speed: Wind speed and gusts description
 - meteorological_conditions: Weather conditions
 - thermal_conditions: Thermal activity description
@@ -176,6 +178,14 @@ class AiCommunicator:
             return get_webpage_content(tool_input["url"])
         raise ValueError(f"Unknown tool: {tool_name}")
 
+    def _extract_json_from_response(self, result_text: str) -> tuple[str, bool]:
+        """Extract JSON text from response, returns (json_text, has_json_markers)."""
+        if "```json" in result_text:
+            return result_text.split("```json", 1)[1].split("```", 1)[0].strip(), True
+        if "```" in result_text:
+            return result_text.split("```", 1)[1].split("```", 1)[0].strip(), True
+        return result_text, False
+
     def incident_chat(self, messages, incident_data, model="gpt-4o-mini"):
         system_prompt = INCIDENT_CHAT_SYSTEM_PROMPT
         if incident_data:
@@ -208,28 +218,33 @@ class AiCommunicator:
                     tools=TOOLS,
                 )
 
-            logger.info(f"Claude response content: {response.content}")
-            text_block = next((block for block in response.content if block.type == "text"), None)
-            if text_block is None:
-                logger.error(f"No text block in Claude response: {response.content}")
-                return {"response": "Error: No response from AI", "incident_data": {}}
-            result_text = text_block.text.strip()
-            logger.info(f"Claude raw response: {result_text}")
+            while True:
+                logger.info(f"Claude response content: {response.content}")
+                text_block = next((block for block in response.content if block.type == "text"), None)
+                if text_block is None:
+                    logger.error(f"No text block in Claude response: {response.content}")
+                    return {"response": "Error: No response from AI", "incident_data": {}}
+                result_text = text_block.text.strip()
+                logger.info(f"Claude raw response: {result_text}")
 
-            # Extract JSON from response - it might be wrapped in markdown code blocks
-            json_text = result_text
-            if "```json" in result_text:
-                json_text = result_text.split("```json", 1)[1].split("```", 1)[0].strip()
-            elif "```" in result_text:
-                json_text = result_text.split("```", 1)[1].split("```", 1)[0].strip()
+                json_text, has_json = self._extract_json_from_response(result_text)
 
-            try:
-                result = json.loads(json_text)
-                return result
-            except json.JSONDecodeError:
-                # No valid JSON found - return text as response with empty incident_data
-                logger.info("No JSON found in response, returning text only")
-                return {"response": result_text, "incident_data": {}}
+                try:
+                    return json.loads(json_text)
+                except json.JSONDecodeError as e:
+                    if not has_json:
+                        logger.error(f"No JSON found in response, returning text only", exc_info=True)
+                        return {"response": result_text, "incident_data": {}}
+                    logger.warning(f"JSONDecodeError with has_json=True, asking Claude to retry: {e}")
+                    chat_messages.append({"role": "assistant", "content": result_text})
+                    chat_messages.append({"role": "user", "content": f"Your JSON is invalid: {e}. Please provide valid JSON."})
+                    response = self.client_anthropic.messages.create(
+                        model=model,
+                        max_tokens=4096,
+                        system=system_prompt,
+                        messages=chat_messages,
+                        tools=TOOLS,
+                    )
 
         client = self.client
         if 'deepseek' in model:
