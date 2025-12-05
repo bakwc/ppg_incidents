@@ -72,16 +72,46 @@ const SELECT_FILTERS = [
       { value: 'minimal', label: 'Minimal' },
     ],
   },
+  {
+    key: 'factor_accelerator',
+    label: 'Accelerator',
+    options: [
+      { value: 'released', label: 'Released' },
+      { value: 'partially_engaged', label: 'Partially engaged' },
+      { value: 'fully_engaged', label: 'Fully engaged' },
+    ],
+  },
+  {
+    key: 'factor_trimmer_position',
+    label: 'Trimmer Position',
+    options: [
+      { value: 'closed', label: 'Closed' },
+      { value: 'partially_open', label: 'Partially open' },
+      { value: 'fully_open', label: 'Fully open' },
+    ],
+  },
+  {
+    key: 'factor_mid_air_collision',
+    label: 'Mid-air Collision',
+    options: [
+      { value: 'fly_nearby', label: 'Fly nearby' },
+      { value: 'got_in_wake_turbulence', label: 'Wake turbulence' },
+      { value: 'almost_collided', label: 'Almost collided' },
+      { value: 'collided', label: 'Collided' },
+    ],
+  },
 ];
 
 const BOOLEAN_FILTERS = [
   { key: 'potentially_fatal', label: 'Potentially fatal' },
   { key: 'hardware_failure', label: 'Hardware failure' },
+  { key: 'bad_hardware_preflight', label: 'Bad hardware preflight' },
   { key: 'factor_low_altitude', label: 'Low altitude' },
   { key: 'factor_maneuvers', label: 'Maneuvers' },
   { key: 'factor_thermal_weather', label: 'Thermal weather' },
   { key: 'factor_rotor_turbulence', label: 'Rotor turbulence' },
   { key: 'factor_turbulent_conditions', label: 'Turbulent conditions' },
+  { key: 'factor_reflex_profile', label: 'Reflex profile' },
   { key: 'factor_tree_collision', label: 'Tree collision' },
   { key: 'factor_water_landing', label: 'Water landing' },
   { key: 'factor_powerline_collision', label: 'Powerline collision' },
@@ -175,17 +205,25 @@ function IncidentList() {
               Paramotor incident tracking database
             </p>
           </div>
-          <Link
-            to="/create"
-            className="group relative px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
-          >
-            <span className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Create Incident
-            </span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/dashboard"
+              className="px-5 py-3 bg-slate-800/70 hover:bg-slate-700 border border-slate-700/50 rounded-xl font-medium text-slate-300 transition-all"
+            >
+              📊 Dashboard
+            </Link>
+            <Link
+              to="/create"
+              className="group relative px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Incident
+              </span>
+            </Link>
+          </div>
         </div>
 
         {/* Search bar */}

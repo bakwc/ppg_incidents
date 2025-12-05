@@ -2,6 +2,7 @@ from django.urls import path
 
 from incidents.views import (
     CheckDuplicateView,
+    DashboardStatsView,
     IncidentChatView,
     IncidentDeleteView,
     IncidentDetailView,
@@ -22,5 +23,6 @@ urlpatterns = [
     path("incident/check_duplicate", CheckDuplicateView.as_view(), name="incident-check-duplicate"),
     path("incidents/search", IncidentSearchView.as_view(), name="incident-search"),
     path("incidents/duplicates", IncidentDuplicatesView.as_view(), name="incident-duplicates"),
+    path("dashboard_stats", DashboardStatsView.as_view(), name="dashboard-stats"),
 ]
 

@@ -13,40 +13,97 @@ from ppg_incidents.vector_store import upsert_embedding, search_similar, init_ve
 logger = logging.getLogger(__name__)
 
 
+# Boolean fields that can be filtered
+BOOLEAN_FILTER_FIELDS = [
+    "potentially_fatal",
+    "hardware_failure",
+    "bad_hardware_preflight",
+    "factor_low_altitude",
+    "factor_maneuvers",
+    "factor_thermal_weather",
+    "factor_rotor_turbulence",
+    "factor_reflex_profile",
+    "factor_helmet_missing",
+    "factor_tree_collision",
+    "factor_water_landing",
+    "factor_ground_starting",
+    "factor_powerline_collision",
+    "factor_turbulent_conditions",
+    "factor_spiral_maneuver",
+]
+
+# Choice fields that can be filtered
+CHOICE_FILTER_FIELDS = [
+    "flight_phase",
+    "severity",
+    "reserve_use",
+    "cause_confidence",
+    "paramotor_type",
+    "factor_accelerator",
+    "factor_trimmer_position",
+    "pilot_actions",
+    "factor_mid_air_collision",
+]
+
+
+def apply_filters(queryset, filters, exclude=False):
+    """Apply include or exclude filters to a queryset."""
+    for field, value in filters.items():
+        if field in BOOLEAN_FILTER_FIELDS:
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                if exclude:
+                    queryset = queryset.exclude(**{field: True})
+                else:
+                    queryset = queryset.filter(**{field: True})
+            elif value is False or (isinstance(value, str) and value.lower() == "false"):
+                if exclude:
+                    queryset = queryset.exclude(**{field: False})
+                else:
+                    queryset = queryset.filter(**{field: False})
+        elif field in CHOICE_FILTER_FIELDS:
+            if isinstance(value, list):
+                values = value
+            else:
+                values = [v.strip() for v in str(value).split(",")]
+            if exclude:
+                queryset = queryset.exclude(**{f"{field}__in": values})
+            else:
+                queryset = queryset.filter(**{f"{field}__in": values})
+        elif field == "collapse":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                q = (
+                    Q(collapse_types__contains="asymmetric_small") |
+                    Q(collapse_types__contains="asymmetric_medium") |
+                    Q(collapse_types__contains="asymmetric_large") |
+                    Q(collapse_types__contains="frontal")
+                )
+                if exclude:
+                    queryset = queryset.exclude(q)
+                else:
+                    queryset = queryset.filter(q)
+        elif field == "stall":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                if exclude:
+                    queryset = queryset.exclude(collapse_types__contains="full_stall")
+                else:
+                    queryset = queryset.filter(collapse_types__contains="full_stall")
+        elif field == "spin":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                if exclude:
+                    queryset = queryset.exclude(collapse_types__contains="spin")
+                else:
+                    queryset = queryset.filter(collapse_types__contains="spin")
+        elif field == "line_twist":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                if exclude:
+                    queryset = queryset.exclude(collapse_types__contains="line_twist")
+                else:
+                    queryset = queryset.filter(collapse_types__contains="line_twist")
+    return queryset
+
+
 class IncidentListView(generics.ListAPIView):
     serializer_class = IncidentSerializer
-
-    # Boolean fields that can be filtered
-    BOOLEAN_FILTER_FIELDS = [
-        "potentially_fatal",
-        "hardware_failure",
-        "bad_hardware_preflight",
-        "factor_low_altitude",
-        "factor_maneuvers",
-        "factor_thermal_weather",
-        "factor_rotor_turbulence",
-        "factor_reflex_profile",
-        "factor_helmet_missing",
-        "factor_tree_collision",
-        "factor_water_landing",
-        "factor_ground_starting",
-        "factor_powerline_collision",
-        "factor_turbulent_conditions",
-        "factor_spiral_maneuver",
-    ]
-
-    # Choice fields that can be filtered
-    CHOICE_FILTER_FIELDS = [
-        "flight_phase",
-        "severity",
-        "reserve_use",
-        "cause_confidence",
-        "paramotor_type",
-        "factor_accelerator",
-        "factor_trimmer_position",
-        "pilot_actions",
-        "factor_mid_air_collision",
-    ]
 
     def get_queryset(self):
         semantic_search = self.request.query_params.get("semantic_search")
@@ -63,73 +120,26 @@ class IncidentListView(generics.ListAPIView):
             if order_by:
                 queryset = queryset.order_by(order_by)
 
-        # Apply boolean filters
-        for field in self.BOOLEAN_FILTER_FIELDS:
+        # Collect include filters from query params
+        include_filters = {}
+        for field in BOOLEAN_FILTER_FIELDS + CHOICE_FILTER_FIELDS + ["collapse", "stall", "spin", "line_twist"]:
             value = self.request.query_params.get(field)
             if value is not None:
-                if value.lower() == "true":
-                    queryset = queryset.filter(**{field: True})
-                elif value.lower() == "false":
-                    queryset = queryset.filter(**{field: False})
+                include_filters[field] = value
 
-        # Apply choice filters
-        for field in self.CHOICE_FILTER_FIELDS:
-            value = self.request.query_params.get(field)
-            if value:
-                values = [v.strip() for v in value.split(",")]
-                queryset = queryset.filter(**{f"{field}__in": values})
-
-        # Custom collapse_types filters
-        if self.request.query_params.get("collapse", "").lower() == "true":
-            queryset = queryset.filter(
-                Q(collapse_types__contains="asymmetric_small") |
-                Q(collapse_types__contains="asymmetric_medium") |
-                Q(collapse_types__contains="asymmetric_large") |
-                Q(collapse_types__contains="frontal")
-            )
-
-        if self.request.query_params.get("stall", "").lower() == "true":
-            queryset = queryset.filter(collapse_types__contains="full_stall")
-
-        if self.request.query_params.get("spin", "").lower() == "true":
-            queryset = queryset.filter(collapse_types__contains="spin")
-
-        if self.request.query_params.get("line_twist", "").lower() == "true":
-            queryset = queryset.filter(collapse_types__contains="line_twist")
-
-        # Apply boolean exclude filters
-        for field in self.BOOLEAN_FILTER_FIELDS:
+        # Collect exclude filters from query params
+        exclude_filters = {}
+        for field in BOOLEAN_FILTER_FIELDS + CHOICE_FILTER_FIELDS:
             value = self.request.query_params.get(f"exclude_{field}")
             if value is not None:
-                if value.lower() == "true":
-                    queryset = queryset.exclude(**{field: True})
-                elif value.lower() == "false":
-                    queryset = queryset.exclude(**{field: False})
-
-        # Apply choice exclude filters
-        for field in self.CHOICE_FILTER_FIELDS:
+                exclude_filters[field] = value
+        for field in ["collapse", "stall", "spin", "line_twist"]:
             value = self.request.query_params.get(f"exclude_{field}")
-            if value:
-                values = [v.strip() for v in value.split(",")]
-                queryset = queryset.exclude(**{f"{field}__in": values})
+            if value is not None:
+                exclude_filters[field] = value
 
-        # Custom collapse_types exclude filters
-        if self.request.query_params.get("exclude_collapse", "").lower() == "true":
-            queryset = queryset.exclude(
-                Q(collapse_types__contains="asymmetric_small") |
-                Q(collapse_types__contains="asymmetric_medium") |
-                Q(collapse_types__contains="asymmetric_large") |
-                Q(collapse_types__contains="frontal")
-            )
-
-        if self.request.query_params.get("exclude_stall", "").lower() == "true":
-            queryset = queryset.exclude(collapse_types__contains="full_stall")
-
-        if self.request.query_params.get("exclude_spin", "").lower() == "true":
-            queryset = queryset.exclude(collapse_types__contains="spin")
-
-        if self.request.query_params.get("exclude_line_twist", "").lower() == "true":
-            queryset = queryset.exclude(collapse_types__contains="line_twist")
+        queryset = apply_filters(queryset, include_filters, exclude=False)
+        queryset = apply_filters(queryset, exclude_filters, exclude=True)
 
         return queryset
 
@@ -339,3 +349,22 @@ class CheckDuplicateView(APIView):
             "confidence": "Low",
             "incidents": IncidentSerializer(ordered_incidents, many=True).data
         })
+
+
+class DashboardStatsView(APIView):
+    def post(self, request):
+        filter_packs = request.data.get("filter_packs", [])
+        results = {}
+        
+        for pack in filter_packs:
+            name = pack["name"]
+            include_filters = pack.get("include", {})
+            exclude_filters = pack.get("exclude", {})
+            
+            queryset = Incident.objects.all()
+            queryset = apply_filters(queryset, include_filters, exclude=False)
+            queryset = apply_filters(queryset, exclude_filters, exclude=True)
+            
+            results[name] = queryset.count()
+        
+        return Response(results)

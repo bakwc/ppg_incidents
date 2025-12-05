@@ -80,3 +80,14 @@ export async function deleteIncident(uuid) {
   return response.json();
 }
 
+export async function fetchDashboardStats(filterPacks) {
+  const response = await fetch(`${API_BASE}/dashboard_stats`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ filter_packs: filterPacks }),
+  });
+  return response.json();
+}
+
