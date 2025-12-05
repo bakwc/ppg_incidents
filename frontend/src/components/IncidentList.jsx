@@ -397,7 +397,7 @@ function IncidentList() {
                     </div>
 
                     {/* Title */}
-                    <Link to={`/edit/${incident.uuid}`} className="block">
+                    <Link to={`/view/${incident.uuid}`} className="block">
                       <h3 className="text-xl font-semibold text-white mb-2 truncate hover:text-orange-400 transition-colors">
                         {incident.title || 'Untitled Incident'}
                       </h3>
