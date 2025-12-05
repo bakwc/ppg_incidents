@@ -111,6 +111,13 @@ function IncidentList() {
           </div>
         )}
 
+        {/* Incident count */}
+        {!loading && incidents.length > 0 && (
+          <p className="text-slate-500 text-sm mb-4">
+            {incidents.length} incident{incidents.length !== 1 ? 's' : ''}
+          </p>
+        )}
+
         {/* Incidents grid */}
         {!loading && incidents.length === 0 && (
           <div className="text-center py-24">
