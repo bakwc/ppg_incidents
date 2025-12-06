@@ -216,7 +216,12 @@ class AiCommunicator:
                 tool_results = []
                 for tool_use_block in tool_use_blocks:
                     tool_result = self._handle_tool_call(tool_use_block.name, tool_use_block.input)
-                    tool_results.append({"type": "tool_result", "tool_use_id": tool_use_block.id, "content": tool_result})
+                    text_content = str(tool_result) if tool_result else "No content retrieved"
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": tool_use_block.id,
+                        "content": [{"type": "text", "text": text_content}]
+                    })
                 chat_messages.append({"role": "assistant", "content": response.content})
                 chat_messages.append({"role": "user", "content": tool_results})
                 response = self.client_anthropic.messages.create(

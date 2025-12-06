@@ -892,8 +892,15 @@ function ToolUseMessage({ name, input }) {
 
 function ToolResultMessage({ content }) {
   const [expanded, setExpanded] = useState(false);
-  const isLong = content && content.length > 300;
-  const displayContent = isLong && !expanded ? content.slice(0, 300) + '...' : content;
+  // Handle content that might be an array of content blocks (Anthropic format)
+  let textContent = content;
+  if (Array.isArray(content)) {
+    textContent = content.map(block => block.text || JSON.stringify(block)).join('\n');
+  } else if (typeof content === 'object' && content !== null) {
+    textContent = content.text || JSON.stringify(content);
+  }
+  const isLong = textContent && textContent.length > 300;
+  const displayContent = isLong && !expanded ? textContent.slice(0, 300) + '...' : textContent;
   
   return (
     <div className="flex justify-start">

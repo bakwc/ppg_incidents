@@ -97,7 +97,12 @@ def get_webpage_content(url: str) -> str:
             else:
                 html = content.decode("utf-8")
                 article = simple_json_from_html_string(html, use_readability=True)
-                return article["plain_text"]
+                plain_text = article["plain_text"]
+                if plain_text:
+                    if isinstance(plain_text, list):
+                        return plain_text[0]["text"]
+                    return plain_text
+                return f"Could not extract readable content from {url}"
     except urllib.error.HTTPError as e:
         return f"Error fetching URL: HTTP {e.code} {e.reason}"
     except urllib.error.URLError as e:
