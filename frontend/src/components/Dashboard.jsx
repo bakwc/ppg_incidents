@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { fetchDashboardStats } from '../api';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6'];
@@ -62,6 +62,13 @@ export default function Dashboard() {
     { name: 'Turbulent Conditions', value: stats['Turbulent Conditions'] || 0 },
     { name: 'Powerline Collision', value: stats['Powerline Collision'] || 0 },
   ];
+
+  const barChartData = chartData
+    .map(item => ({
+      ...item,
+      percent: total > 0 ? (item.value / total) * 100 : 0
+    }))
+    .sort((a, b) => b.percent - a.percent);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
@@ -131,6 +138,31 @@ export default function Dashboard() {
                 <div className="text-sm text-slate-400 mt-1">{item.name}</div>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+          <h2 className="text-xl font-semibold mb-6 text-center">Causes by Percentage</h2>
+          
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barChartData} layout="vertical">
+                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
+                <YAxis type="category" dataKey="name" width={150} stroke="#64748b" />
+                <Tooltip
+                  formatter={(value) => `${value.toFixed(1)}%`}
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    border: '1px solid #334155',
+                    borderRadius: '8px',
+                    color: '#f1f5f9'
+                  }}
+                />
+                <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]}>
+                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
