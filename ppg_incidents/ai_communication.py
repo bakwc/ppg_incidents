@@ -158,6 +158,43 @@ class AiCommunicator:
             return result_text.split("```", 1)[1].split("```", 1)[0].strip(), True
         return result_text, False
 
+    def _serialize_anthropic_messages(self, messages: list) -> list:
+        """Convert Anthropic message objects to JSON-serializable dicts."""
+        serialized = []
+        for msg in messages:
+            if isinstance(msg.get("content"), list):
+                content = []
+                for block in msg["content"]:
+                    if hasattr(block, "type"):
+                        if block.type == "tool_use":
+                            content.append({
+                                "type": "tool_use",
+                                "id": block.id,
+                                "name": block.name,
+                                "input": block.input,
+                            })
+                        elif block.type == "tool_result":
+                            content.append({
+                                "type": "tool_result",
+                                "tool_use_id": block["tool_use_id"],
+                                "content": block["content"],
+                            })
+                        elif block.type == "text":
+                            content.append({
+                                "type": "text",
+                                "text": block.text,
+                            })
+                        else:
+                            content.append({"type": block.type})
+                    elif isinstance(block, dict):
+                        content.append(block)
+                    else:
+                        content.append(str(block))
+                serialized.append({"role": msg["role"], "content": content})
+            else:
+                serialized.append({"role": msg["role"], "content": msg["content"]})
+        return serialized
+
     def incident_chat(self, messages, incident_data, model="gpt-4o-mini"):
         system_prompt = INCIDENT_CHAT_SYSTEM_PROMPT
         if incident_data:
@@ -195,18 +232,25 @@ class AiCommunicator:
                 text_block = next((block for block in response.content if block.type == "text"), None)
                 if text_block is None:
                     logger.error(f"No text block in Claude response: {response.content}")
-                    return {"response": "Error: No response from AI", "incident_data": {}}
+                    return {"response": "Error: No response from AI", "incident_data": {}, "messages": self._serialize_anthropic_messages(chat_messages)}
                 result_text = text_block.text.strip()
                 logger.info(f"Claude raw response: {result_text}")
 
                 json_text, has_json = self._extract_json_from_response(result_text)
 
                 try:
-                    return json.loads(json_text)
+                    parsed = json.loads(json_text)
+                    chat_messages.append({"role": "assistant", "content": result_text})
+                    return {
+                        "response": parsed.get("response", ""),
+                        "incident_data": parsed.get("incident_data", {}),
+                        "messages": self._serialize_anthropic_messages(chat_messages),
+                    }
                 except json.JSONDecodeError as e:
                     if not has_json:
                         logger.error(f"No JSON found in response, returning text only", exc_info=True)
-                        return {"response": result_text, "incident_data": {}}
+                        chat_messages.append({"role": "assistant", "content": result_text})
+                        return {"response": result_text, "incident_data": {}, "messages": self._serialize_anthropic_messages(chat_messages)}
                     logger.warning(f"JSONDecodeError with has_json=True, asking Claude to retry: {e}")
                     chat_messages.append({"role": "assistant", "content": result_text})
                     chat_messages.append({"role": "user", "content": f"Your JSON is invalid: {e}. Please provide valid JSON."})
@@ -254,7 +298,18 @@ class AiCommunicator:
 
         while response.choices[0].message.tool_calls:
             assistant_message = response.choices[0].message
-            chat_messages.append(assistant_message)
+            chat_messages.append({
+                "role": "assistant",
+                "content": assistant_message.content,
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {"name": tc.function.name, "arguments": tc.function.arguments}
+                    }
+                    for tc in assistant_message.tool_calls
+                ]
+            })
             for tool_call in assistant_message.tool_calls:
                 tool_result = self._handle_tool_call(tool_call.function.name, json.loads(tool_call.function.arguments))
                 chat_messages.append({
@@ -270,7 +325,14 @@ class AiCommunicator:
 
         result_text = response.choices[0].message.content.strip()
         result = json.loads(result_text)
-        return result
+        chat_messages.append({"role": "assistant", "content": result_text})
+        # Filter out system message from returned messages
+        return_messages = [m for m in chat_messages if m.get("role") != "system"]
+        return {
+            "response": result.get("response", ""),
+            "incident_data": result.get("incident_data", {}),
+            "messages": return_messages,
+        }
 
 
 ai_communicator = AiCommunicator()

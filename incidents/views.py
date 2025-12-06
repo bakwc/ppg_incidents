@@ -160,6 +160,7 @@ class IncidentChatView(APIView):
         return Response({
             "response": result.get("response"),
             "incident_data": result.get("incident_data"),
+            "messages": result.get("messages"),
             "saved": False,
         })
 

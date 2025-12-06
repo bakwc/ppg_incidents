@@ -249,8 +249,14 @@ function IncidentForm() {
 
     const result = await chatWithAI(newMessages, formData);
     
-    const assistantMessage = { role: 'assistant', content: result.response };
-    setMessages([...newMessages, assistantMessage]);
+    // Use the full message history returned from backend (includes tool calls)
+    if (result.messages) {
+      setMessages(result.messages);
+    } else {
+      // Fallback if messages not returned
+      const assistantMessage = { role: 'assistant', content: result.response };
+      setMessages([...newMessages, assistantMessage]);
+    }
 
     if (result.incident_data) {
       const changedFields = new Set();
@@ -360,22 +366,59 @@ function IncidentForm() {
                   </p>
                 </div>
               )}
-              {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
+              {messages.map((msg, idx) => {
+                // Handle tool_result messages (from Anthropic format)
+                if (msg.role === 'user' && Array.isArray(msg.content) && msg.content[0]?.type === 'tool_result') {
+                  return msg.content.map((toolResult, tIdx) => (
+                    <ToolResultMessage key={`${idx}-${tIdx}`} content={toolResult.content} />
+                  ));
+                }
+                // Handle assistant messages with tool_use (from Anthropic format)
+                if (msg.role === 'assistant' && Array.isArray(msg.content)) {
+                  return msg.content.map((block, bIdx) => {
+                    if (block.type === 'tool_use') {
+                      return <ToolUseMessage key={`${idx}-${bIdx}`} name={block.name} input={block.input} />;
+                    }
+                    if (block.type === 'text') {
+                      return (
+                        <div key={`${idx}-${bIdx}`} className="flex justify-start">
+                          <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-slate-700/50 text-slate-200 rounded-bl-md">
+                            <p className="text-sm whitespace-pre-wrap">{block.text}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  });
+                }
+                // Handle tool messages (from OpenAI format)
+                if (msg.role === 'tool') {
+                  return <ToolResultMessage key={idx} content={msg.content} />;
+                }
+                // Handle assistant with tool_calls (from OpenAI format)
+                if (msg.role === 'assistant' && msg.tool_calls) {
+                  return msg.tool_calls.map((tc, tIdx) => (
+                    <ToolUseMessage key={`${idx}-${tIdx}`} name={tc.function.name} input={JSON.parse(tc.function.arguments)} />
+                  ));
+                }
+                // Regular user/assistant messages
+                return (
                   <div
-                    className={`max-w-[85%] px-4 py-3 rounded-2xl ${
-                      msg.role === 'user'
-                        ? 'bg-orange-500/20 text-orange-100 rounded-br-md'
-                        : 'bg-slate-700/50 text-slate-200 rounded-bl-md'
-                    }`}
+                    key={idx}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <div
+                      className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+                        msg.role === 'user'
+                          ? 'bg-orange-500/20 text-orange-100 rounded-br-md'
+                          : 'bg-slate-700/50 text-slate-200 rounded-bl-md'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {chatLoading && (
                 <div className="flex justify-start">
                   <div className="bg-slate-700/50 px-4 py-3 rounded-2xl rounded-bl-md">
@@ -793,6 +836,50 @@ function Checkbox({ label, name, checked, onChange, highlighted }) {
       </div>
       <span className={`text-xs group-hover:text-slate-300 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</span>
     </label>
+  );
+}
+
+function ToolUseMessage({ name, input }) {
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[85%] px-3 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-200">
+        <div className="flex items-center gap-2 text-xs">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          <span className="font-medium">Fetching:</span>
+          <span className="text-blue-300 truncate max-w-[200px]">{input?.url || JSON.stringify(input)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToolResultMessage({ content }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = content && content.length > 300;
+  const displayContent = isLong && !expanded ? content.slice(0, 300) + '...' : content;
+  
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[85%] px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">
+        <div className="flex items-center gap-2 text-xs mb-1">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-medium">Downloaded content</span>
+        </div>
+        <pre className="text-xs text-slate-400 whitespace-pre-wrap max-h-48 overflow-y-auto">{displayContent}</pre>
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-xs text-emerald-400 hover:text-emerald-300 mt-1"
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
