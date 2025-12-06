@@ -380,10 +380,19 @@ function IncidentForm() {
                       return <ToolUseMessage key={`${idx}-${bIdx}`} name={block.name} input={block.input} />;
                     }
                     if (block.type === 'text') {
+                      let displayText = block.text;
+                      try {
+                        const parsed = JSON.parse(block.text);
+                        if (parsed.response) {
+                          displayText = parsed.response;
+                        }
+                      } catch {
+                        // Not JSON, use as-is
+                      }
                       return (
                         <div key={`${idx}-${bIdx}`} className="flex justify-start">
                           <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-slate-700/50 text-slate-200 rounded-bl-md">
-                            <p className="text-sm whitespace-pre-wrap">{block.text}</p>
+                            <p className="text-sm whitespace-pre-wrap">{displayText}</p>
                           </div>
                         </div>
                       );
@@ -402,6 +411,18 @@ function IncidentForm() {
                   ));
                 }
                 // Regular user/assistant messages
+                let displayContent = msg.content;
+                // For assistant messages, try to extract just the "response" field from JSON
+                if (msg.role === 'assistant' && typeof msg.content === 'string') {
+                  try {
+                    const parsed = JSON.parse(msg.content);
+                    if (parsed.response) {
+                      displayContent = parsed.response;
+                    }
+                  } catch {
+                    // Not JSON, use as-is
+                  }
+                }
                 return (
                   <div
                     key={idx}
@@ -414,7 +435,7 @@ function IncidentForm() {
                           : 'bg-slate-700/50 text-slate-200 rounded-bl-md'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">{displayContent}</p>
                     </div>
                   </div>
                 );
