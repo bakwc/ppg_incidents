@@ -6,9 +6,10 @@ from logging import getLogger
 
 import certifi
 import yt_dlp
+from readabilipy import simple_json_from_html_string
 from youtube_transcript_api import YouTubeTranscriptApi
 
-from ppg_incidents.cleaner import clean_html_text, extract_pdf_text
+from ppg_incidents.cleaner import extract_pdf_text
 
 logger = getLogger(__name__)
 
@@ -95,7 +96,8 @@ def get_webpage_content(url: str) -> str:
                 return extract_pdf_text(content)
             else:
                 html = content.decode("utf-8")
-                return clean_html_text(html)
+                article = simple_json_from_html_string(html, use_readability=True)
+                return article["plain_text"]
     except urllib.error.HTTPError as e:
         return f"Error fetching URL: HTTP {e.code} {e.reason}"
     except urllib.error.URLError as e:

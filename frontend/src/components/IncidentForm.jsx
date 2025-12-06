@@ -381,8 +381,15 @@ function IncidentForm() {
                     }
                     if (block.type === 'text') {
                       let displayText = block.text;
+                      let jsonText = block.text;
+                      // Strip markdown code block markers if present
+                      if (jsonText.includes('```json')) {
+                        jsonText = jsonText.split('```json')[1].split('```')[0].trim();
+                      } else if (jsonText.includes('```')) {
+                        jsonText = jsonText.split('```')[1].split('```')[0].trim();
+                      }
                       try {
-                        const parsed = JSON.parse(block.text);
+                        const parsed = JSON.parse(jsonText);
                         if (parsed.response) {
                           displayText = parsed.response;
                         }
@@ -414,8 +421,15 @@ function IncidentForm() {
                 let displayContent = msg.content;
                 // For assistant messages, try to extract just the "response" field from JSON
                 if (msg.role === 'assistant' && typeof msg.content === 'string') {
+                  let jsonText = msg.content;
+                  // Strip markdown code block markers if present
+                  if (jsonText.includes('```json')) {
+                    jsonText = jsonText.split('```json')[1].split('```')[0].trim();
+                  } else if (jsonText.includes('```')) {
+                    jsonText = jsonText.split('```')[1].split('```')[0].trim();
+                  }
                   try {
-                    const parsed = JSON.parse(msg.content);
+                    const parsed = JSON.parse(jsonText);
                     if (parsed.response) {
                       displayContent = parsed.response;
                     }
