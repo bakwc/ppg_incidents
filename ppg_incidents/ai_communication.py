@@ -1,44 +1,15 @@
 import json
 import os
-import ssl
-import urllib.error
-import urllib.request
 from logging import getLogger
 
 import anthropic
-import certifi
 from openai import OpenAI
 
-from ppg_incidents.cleaner import clean_html_text, extract_pdf_text
+from ppg_incidents.downloader import get_webpage_content
 
 logger = getLogger(__name__)
 
 EMBEDDING_MODEL = "text-embedding-3-large"
-
-CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-
-
-def get_webpage_content(url: str) -> str:
-    """Download and clean webpage HTML content or extract text from PDF."""
-    if not url:
-        return "Error: No URL provided"
-    ssl_context = ssl.create_default_context(cafile=certifi.where())
-    request = urllib.request.Request(url, headers={"User-Agent": CHROME_USER_AGENT})
-    try:
-        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
-            content_type = response.headers.get("Content-Type", "")
-            content = response.read()
-
-            if "application/pdf" in content_type or url.lower().endswith(".pdf"):
-                logger.info(f"Extracting text from PDF: {url}")
-                return extract_pdf_text(content)
-            else:
-                html = content.decode("utf-8")
-                return clean_html_text(html)
-    except urllib.error.HTTPError as e:
-        return f"Error fetching URL: HTTP {e.code} {e.reason}"
-    except urllib.error.URLError as e:
-        return f"Error fetching URL: {e.reason}"
 
 INCIDENT_CHAT_SYSTEM_PROMPT = """You are an assistant helping to document paramotor incidents. 
 Analyze the user's messages and extract incident details into a structured format.
@@ -110,7 +81,7 @@ Example - follow-up message "It was near Madrid, pilot name was John":
 TOOLS = [
     {
         "name": "get_webpage_content",
-        "description": "Fetches and cleans webpage content from a URL. Use this when user provides a URL to an incident report or relevant page.",
+        "description": "Fetches and cleans webpage content from a URL. Use this when user provides a URL to an incident report or relevant page or youtube video.",
         "input_schema": {
             "type": "object",
             "properties": {
