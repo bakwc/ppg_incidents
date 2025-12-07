@@ -231,6 +231,12 @@ function IncidentList() {
               📊 Dashboard
             </Link>
             <Link
+              to="/unverified"
+              className="px-5 py-3 bg-slate-800/70 hover:bg-slate-700 border border-amber-500/50 rounded-xl font-medium text-amber-400 transition-all"
+            >
+              📝 Unverified Incidents
+            </Link>
+            <Link
               to="/create"
               className="group relative px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
             >

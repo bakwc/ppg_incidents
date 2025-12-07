@@ -91,3 +91,8 @@ export async function fetchDashboardStats(filterPacks) {
   return response.json();
 }
 
+export async function fetchUnverifiedIncidents() {
+  const response = await fetch(`${API_BASE}/incidents/unverified`);
+  return response.json();
+}
+

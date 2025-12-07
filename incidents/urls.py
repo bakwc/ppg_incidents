@@ -11,10 +11,12 @@ from incidents.views import (
     IncidentSaveView,
     IncidentSearchView,
     IncidentUpdateView,
+    UnverifiedIncidentListView,
 )
 
 urlpatterns = [
     path("incidents", IncidentListView.as_view(), name="incident-list"),
+    path("incidents/unverified", UnverifiedIncidentListView.as_view(), name="incident-unverified-list"),
     path("incident/<uuid:uuid>", IncidentDetailView.as_view(), name="incident-detail"),
     path("incident/<uuid:uuid>/update", IncidentUpdateView.as_view(), name="incident-update"),
     path("incident/<uuid:uuid>/delete", IncidentDeleteView.as_view(), name="incident-delete"),

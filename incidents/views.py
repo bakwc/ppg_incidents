@@ -102,6 +102,13 @@ def apply_filters(queryset, filters, exclude=False):
     return queryset
 
 
+class UnverifiedIncidentListView(generics.ListAPIView):
+    serializer_class = IncidentSerializer
+
+    def get_queryset(self):
+        return Incident.all_objects.filter(verified=False).order_by("created_at")
+
+
 class IncidentListView(generics.ListAPIView):
     serializer_class = IncidentSerializer
 
