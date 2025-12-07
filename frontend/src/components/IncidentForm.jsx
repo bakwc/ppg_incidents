@@ -43,6 +43,7 @@ const COLLAPSE_TYPES = [
   { value: 'spin', label: 'Spin' },
   { value: 'line_twist', label: 'Line twist' },
   { value: 'cravatte', label: 'Cravatte' },
+  { value: 'unknown', label: 'Unknown collapse' },
 ];
 
 const PARAMOTOR_TYPES = [
@@ -81,6 +82,17 @@ const MID_AIR_COLLISION = [
   { value: 'collided', label: 'Collided' },
 ];
 
+const PRIMARY_CAUSES = [
+  { value: '', label: 'Select...' },
+  { value: 'turbulence', label: 'Turbulence' },
+  { value: 'wrong_pilot_input', label: 'Wrong pilot input' },
+  { value: 'hardware_failure', label: 'Hardware failure' },
+  { value: 'powerline_collision', label: 'Powerline collision / Near Miss' },
+  { value: 'midair_collision', label: 'Midair collision / Near Miss' },
+  { value: 'lines_brakes_issues', label: 'Lines & Brakes Knots / Twists / Obstructions' },
+  { value: 'water_landing', label: 'Water landing' },
+];
+
 function IncidentForm() {
   const { uuid } = useParams();
   const navigate = useNavigate();
@@ -109,6 +121,7 @@ function IncidentForm() {
     potentially_fatal: false,
     description: '',
     causes_description: '',
+    primary_cause: '',
     reserve_use: '',
     surface_type: '',
     cause_confidence: '',
@@ -216,7 +229,7 @@ function IncidentForm() {
     const choiceFields = [
       'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
       'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type',
-      'factor_mid_air_collision'
+      'factor_mid_air_collision', 'primary_cause'
     ];
     for (const field of choiceFields) {
       if (dataToSave[field] === '') {
@@ -572,6 +585,7 @@ function IncidentForm() {
                 <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} highlighted={highlightedFields.has('potentially_fatal')} />
                 <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} highlighted={highlightedFields.has('description')} />
                 <Textarea label="Causes Description" name="causes_description" value={formData.causes_description} onChange={handleChange} rows={3} highlighted={highlightedFields.has('causes_description')} />
+                <Select label="Primary Cause" name="primary_cause" value={formData.primary_cause} onChange={handleChange} options={PRIMARY_CAUSES} highlighted={highlightedFields.has('primary_cause')} />
                 <div className="grid grid-cols-2 gap-4">
                   <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." highlighted={highlightedFields.has('surface_type')} />
                   <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} highlighted={highlightedFields.has('cause_confidence')} />

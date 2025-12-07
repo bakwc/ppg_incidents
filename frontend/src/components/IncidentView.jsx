@@ -11,6 +11,7 @@ const COLLAPSE_LABELS = {
   spin: 'Spin',
   line_twist: 'Line twist',
   cravatte: 'Cravatte',
+  unknown: 'Unknown collapse',
 };
 
 const FLIGHT_PHASE_LABELS = {
@@ -70,6 +71,16 @@ const MID_AIR_COLLISION_LABELS = {
   got_in_wake_turbulence: 'Got in wake turbulence',
   almost_collided: 'Almost collided',
   collided: 'Collided',
+};
+
+const PRIMARY_CAUSE_LABELS = {
+  turbulence: 'Turbulence',
+  wrong_pilot_input: 'Wrong pilot input',
+  hardware_failure: 'Hardware failure',
+  powerline_collision: 'Powerline collision / Near Miss',
+  midair_collision: 'Midair collision / Near Miss',
+  lines_brakes_issues: 'Lines & Brakes Knots / Twists / Obstructions',
+  water_landing: 'Water landing',
 };
 
 const severityColors = {
@@ -199,10 +210,11 @@ function IncidentView() {
           )}
 
           {/* Incident Details */}
-          {(incident.description || incident.causes_description || incident.reserve_use || incident.surface_type || incident.cause_confidence || incident.pilot_actions || incident.injury_details) && (
+          {(incident.description || incident.causes_description || incident.primary_cause || incident.reserve_use || incident.surface_type || incident.cause_confidence || incident.pilot_actions || incident.injury_details) && (
             <Section title="Incident Details">
               {incident.description && <Field label="Description" value={incident.description} multiline />}
               {incident.causes_description && <Field label="Causes" value={incident.causes_description} multiline />}
+              {incident.primary_cause && <Field label="Primary Cause" value={PRIMARY_CAUSE_LABELS[incident.primary_cause] || incident.primary_cause} />}
               <div className="grid grid-cols-2 gap-4">
                 {incident.reserve_use && <Field label="Reserve Use" value={RESERVE_USE_LABELS[incident.reserve_use] || incident.reserve_use} />}
                 {incident.surface_type && <Field label="Surface Type" value={incident.surface_type} />}

@@ -50,6 +50,7 @@ CHOICE_FILTER_FIELDS = [
     "factor_trimmer_position",
     "pilot_actions",
     "factor_mid_air_collision",
+    "primary_cause",
 ]
 
 
@@ -82,7 +83,8 @@ def apply_filters(queryset, filters, exclude=False):
                     Q(collapse_types__icontains="asymmetric_small") |
                     Q(collapse_types__icontains="asymmetric_medium") |
                     Q(collapse_types__icontains="asymmetric_large") |
-                    Q(collapse_types__icontains="frontal")
+                    Q(collapse_types__icontains="frontal") |
+                    Q(collapse_types__icontains="unknown")
                 )
                 if exclude:
                     queryset = queryset.exclude(q)
@@ -106,6 +108,12 @@ def apply_filters(queryset, filters, exclude=False):
                     queryset = queryset.exclude(collapse_types__icontains="line_twist")
                 else:
                     queryset = queryset.filter(collapse_types__icontains="line_twist")
+        elif field == "unknown_collapse":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                if exclude:
+                    queryset = queryset.exclude(collapse_types__icontains="unknown")
+                else:
+                    queryset = queryset.filter(collapse_types__icontains="unknown")
     return queryset
 
 
@@ -137,7 +145,7 @@ class IncidentListView(generics.ListAPIView):
 
         # Collect include filters from query params
         include_filters = {}
-        for field in BOOLEAN_FILTER_FIELDS + CHOICE_FILTER_FIELDS + ["collapse", "stall", "spin", "line_twist"]:
+        for field in BOOLEAN_FILTER_FIELDS + CHOICE_FILTER_FIELDS + ["collapse", "stall", "spin", "line_twist", "unknown_collapse"]:
             value = self.request.query_params.get(field)
             if value is not None:
                 include_filters[field] = value
@@ -148,7 +156,7 @@ class IncidentListView(generics.ListAPIView):
             value = self.request.query_params.get(f"exclude_{field}")
             if value is not None:
                 exclude_filters[field] = value
-        for field in ["collapse", "stall", "spin", "line_twist"]:
+        for field in ["collapse", "stall", "spin", "line_twist", "unknown_collapse"]:
             value = self.request.query_params.get(f"exclude_{field}")
             if value is not None:
                 exclude_filters[field] = value

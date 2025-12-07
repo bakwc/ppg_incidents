@@ -43,6 +43,7 @@ class Incident(models.Model):
         SPIN = "spin", "Spin"
         LINE_TWIST = "line_twist", "Line twist"
         CRAVATTE = "cravatte", "Cravatte"
+        UNKNOWN = "unknown", "Unknown collapse"
 
     class ParamotorType(models.TextChoices):
         FOOTLAUNCH = "footlaunch", "Footlaunch"
@@ -69,6 +70,15 @@ class Incident(models.Model):
         GOT_IN_WAKE_TURBULENCE = "got_in_wake_turbulence", "Got in wake turbulence"
         ALMOST_COLLIDED = "almost_collided", "Almost collided"
         COLLIDED = "collided", "Collided"
+
+    class PrimaryCause(models.TextChoices):
+        TURBULENCE = "turbulence", "Turbulence"
+        WRONG_PILOT_INPUT = "wrong_pilot_input", "Wrong pilot input"
+        HARDWARE_FAILURE = "hardware_failure", "Hardware failure"
+        POWERLINE_COLLISION = "powerline_collision", "Powerline collision / Near Miss"
+        MIDAIR_COLLISION = "midair_collision", "Midair collision / Near Miss"
+        LINES_BRAKES_ISSUES = "lines_brakes_issues", "Lines & Brakes Knots / Twists / Obstructions"
+        WATER_LANDING = "water_landing", "Water landing"
 
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -112,6 +122,7 @@ class Incident(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     causes_description = models.TextField(null=True, blank=True)
+    primary_cause = models.CharField(max_length=30, choices=PrimaryCause.choices, null=True, blank=True, verbose_name="Primary cause")
     pilot_actions = models.CharField(max_length=30, choices=PilotActions.choices, null=True, blank=True, verbose_name="Pilot actions")
     injury_details = models.TextField(null=True, blank=True, help_text="Details of pilot injuries if any")
 

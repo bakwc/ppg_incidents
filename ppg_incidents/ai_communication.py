@@ -37,12 +37,13 @@ The incident has the following fields:
 - potentially_fatal: Boolean - could have resulted in death under different circumstances. Estimate yourself.
 - description: Detailed description of the incident
 - causes_description: Description of causes
-- pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting). Focus on piloting actions, not the general decision making.
+- primary_cause: One of: "turbulence", "wrong_pilot_input", "hardware_failure", "powerline_collision", "midair_collision", "lines_brakes_issues", "water_landing". Do not fill if not sure, leave empty.
+- pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting). Focus on piloting actions, not the general decision making. If pilot himself triggered incident eg by agressive maneuvers - use "wrong_input_triggered".
 - injury_details: Details of pilot injuries (only fill if pilot was injured)
 - hardware_failure: Boolean - hardware failure occurred
 - bad_hardware_preflight: Boolean - hardware issue could have been found on preflight but pilot missed it
-- collapse_types: Array of collapse types in sequence. Values: "asymmetric_small" (<30%), "asymmetric_medium" (30-50%), "asymmetric_large" (>50%), "frontal", "full_stall", "spin", "line_twist", "cravatte"
-- reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened". no_time means he deployed but it didnt have time to open!
+- collapse_types: Array of collapse types in sequence. Values: "asymmetric_small" (<30%), "asymmetric_medium" (30-50%), "asymmetric_large" (>50%), "frontal", "full_stall", "spin", "line_twist", "cravatte", "unknown". Unknown means the collapse HAPPENED but type is not known.
+- reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened". no_time means he deployed but it didnt have time to open! DO NOT USE "no_time" if there was NO DEPLOY ATTEMPT!!!
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
 - cause_confidence: One of: "maximum", "high", "low", "minimal". If the reason is 100% known but a lot of fields missing - confidence should be "maximum". If all fields exists but reason not clear - confidence should be "low".
 - factor_low_altitude: Boolean - low flight altitude was a factor. Low altitude is <80 meters altitude.

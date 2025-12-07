@@ -9,6 +9,7 @@ const severityColors = {
 };
 
 const flightPhaseIcons = {
+  ground: '🚶',
   takeoff: '🛫',
   landing: '🛬',
   flight: '✈️',
@@ -28,6 +29,7 @@ const SELECT_FILTERS = [
     key: 'flight_phase',
     label: 'Flight Phase',
     options: [
+      { value: 'ground', label: 'Ground' },
       { value: 'takeoff', label: 'Takeoff' },
       { value: 'landing', label: 'Landing' },
       { value: 'flight', label: 'Flight' },
@@ -100,6 +102,19 @@ const SELECT_FILTERS = [
       { value: 'collided', label: 'Collided' },
     ],
   },
+  {
+    key: 'primary_cause',
+    label: 'Primary Cause',
+    options: [
+      { value: 'turbulence', label: 'Turbulence' },
+      { value: 'wrong_pilot_input', label: 'Wrong pilot input' },
+      { value: 'hardware_failure', label: 'Hardware failure' },
+      { value: 'powerline_collision', label: 'Powerline collision' },
+      { value: 'midair_collision', label: 'Midair collision' },
+      { value: 'lines_brakes_issues', label: 'Lines & Brakes issues' },
+      { value: 'water_landing', label: 'Water landing' },
+    ],
+  },
 ];
 
 const BOOLEAN_FILTERS = [
@@ -125,6 +140,7 @@ const COLLAPSE_FILTERS = [
   { key: 'stall', label: 'Stall' },
   { key: 'spin', label: 'Spin' },
   { key: 'line_twist', label: 'Line twist' },
+  { key: 'unknown_collapse', label: 'Unknown collapse' },
 ];
 
 function IncidentList() {
