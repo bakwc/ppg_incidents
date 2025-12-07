@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { fetchIncidents } from '../api';
 
 const severityColors = {
@@ -128,13 +128,31 @@ const COLLAPSE_FILTERS = [
 ];
 
 function IncidentList() {
+  const [searchParams] = useSearchParams();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [filterMode, setFilterMode] = useState('include'); // 'include' or 'exclude'
-  const [activeFilters, setActiveFilters] = useState([]);
+  const [activeFilters, setActiveFilters] = useState(() => {
+    const filters = [];
+    for (const [key, value] of searchParams.entries()) {
+      const isExclude = key.startsWith('exclude_');
+      const actualKey = isExclude ? key.replace('exclude_', '') : key;
+      const values = value.split(',');
+      for (const v of values) {
+        filters.push({
+          key: actualKey,
+          value: v === 'true' ? null : v,
+          label: v === 'true' ? actualKey : v,
+          categoryLabel: actualKey,
+          exclude: isExclude
+        });
+      }
+    }
+    return filters;
+  });
 
   const buildFilters = () => {
     const result = {};

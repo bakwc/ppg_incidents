@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { fetchDashboardStats } from '../api';
 
@@ -85,7 +85,19 @@ const BAR_FILTER_PACKS = [
   }
 ];
 
+const buildFilterUrl = (filterPack) => {
+  const params = new URLSearchParams();
+  Object.entries(filterPack.include || {}).forEach(([key, value]) => {
+    params.set(key, value);
+  });
+  Object.entries(filterPack.exclude || {}).forEach(([key, value]) => {
+    params.set(`exclude_${key}`, value);
+  });
+  return `/?${params.toString()}`;
+};
+
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -115,7 +127,7 @@ export default function Dashboard() {
   const pieTotal = pieStats['Total'] || 0;
   const pieChartData = PIE_FILTER_PACKS
     .filter(p => p.name !== 'Total')
-    .map(p => ({ name: p.name, value: pieStats[p.name] || 0 }));
+    .map(p => ({ name: p.name, value: pieStats[p.name] || 0, filterPack: p }));
 
   const barTotal = barStats['Total'] || 0;
   const barChartData = BAR_FILTER_PACKS
@@ -123,9 +135,22 @@ export default function Dashboard() {
     .map(p => ({
       name: p.name,
       value: barStats[p.name] || 0,
-      percent: barTotal > 0 ? ((barStats[p.name] || 0) / barTotal) * 100 : 0
+      percent: barTotal > 0 ? ((barStats[p.name] || 0) / barTotal) * 100 : 0,
+      filterPack: p
     }))
     .sort((a, b) => b.percent - a.percent);
+
+  const handlePieClick = (data) => {
+    if (data?.filterPack) {
+      navigate(buildFilterUrl(data.filterPack));
+    }
+  };
+
+  const handleBarClick = (data) => {
+    if (data?.filterPack) {
+      navigate(buildFilterUrl(data.filterPack));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
@@ -154,6 +179,8 @@ export default function Dashboard() {
                   label={({ name, value }) => `${name}: ${value} (${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%)`}
                   outerRadius={120}
                   dataKey="value"
+                  onClick={handlePieClick}
+                  style={{ cursor: 'pointer' }}
                 >
                   {pieChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -189,7 +216,7 @@ export default function Dashboard() {
                     color: '#f1f5f9'
                   }}
                 />
-                <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]}>
+                <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
                   <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
                 </Bar>
               </BarChart>
