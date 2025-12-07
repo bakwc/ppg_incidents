@@ -3,6 +3,11 @@ import uuid
 from django.db import models
 
 
+class VerifiedManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(verified=True)
+
+
 class Incident(models.Model):
 
     class FlightPhase(models.TextChoices):
@@ -162,6 +167,10 @@ class Incident(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Managers
+    objects = VerifiedManager()
+    all_objects = models.Manager()
 
     class Meta:
         ordering = ["-date", "-time"]
