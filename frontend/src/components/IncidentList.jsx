@@ -135,6 +135,9 @@ function IncidentList() {
   const [searchInput, setSearchInput] = useState('');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [filterMode, setFilterMode] = useState('include'); // 'include' or 'exclude'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [activeFilters, setActiveFilters] = useState(() => {
     const filters = [];
     for (const [key, value] of searchParams.entries()) {
@@ -170,10 +173,16 @@ function IncidentList() {
 
   useEffect(() => {
     setLoading(true);
-    fetchIncidents(searchQuery || null, buildFilters()).then(data => {
-      setIncidents(data);
+    fetchIncidents(searchQuery || null, buildFilters(), currentPage).then(data => {
+      setIncidents(data.results);
+      setTotalCount(data.count);
+      setTotalPages(Math.ceil(data.count / 15));
       setLoading(false);
     });
+  }, [searchQuery, activeFilters, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [searchQuery, activeFilters]);
 
   const isFilterActive = (key, value = null) => {
@@ -461,7 +470,7 @@ function IncidentList() {
         {/* Incident count */}
         {!loading && incidents.length > 0 && (
           <p className="text-slate-500 text-sm mb-4">
-            {incidents.length} incident{incidents.length !== 1 ? 's' : ''}
+            {totalCount} incident{totalCount !== 1 ? 's' : ''} (page {currentPage} of {totalPages})
           </p>
         )}
 
@@ -475,95 +484,158 @@ function IncidentList() {
         )}
 
         {!loading && incidents.length > 0 && (
-          <div className="grid gap-4">
-            {incidents.map((incident) => (
-              <div
-                key={incident.uuid}
-                className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    {/* Title & Date row */}
-                    <div className="flex items-center gap-4 mb-3">
-                      {incident.severity && (
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${severityColors[incident.severity] || 'bg-slate-600/20 text-slate-400 border-slate-600/30'}`}>
-                          {incident.severity.toUpperCase()}
-                        </span>
+          <>
+            <div className="grid gap-4">
+              {incidents.map((incident) => (
+                <div
+                  key={incident.uuid}
+                  className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      {/* Title & Date row */}
+                      <div className="flex items-center gap-4 mb-3">
+                        {incident.severity && (
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${severityColors[incident.severity] || 'bg-slate-600/20 text-slate-400 border-slate-600/30'}`}>
+                            {incident.severity.toUpperCase()}
+                          </span>
+                        )}
+                        {incident.date && (
+                          <span className="text-slate-400 text-sm font-medium">
+                            {new Date(incident.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        )}
+                        {incident.flight_phase && (
+                          <span className="text-lg" title={incident.flight_phase}>
+                            {flightPhaseIcons[incident.flight_phase]}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Title */}
+                      <Link to={`/view/${incident.uuid}`} className="block">
+                        <h3 className="text-xl font-semibold text-white mb-2 truncate hover:text-orange-400 transition-colors">
+                          {incident.title || 'Untitled Incident'}
+                        </h3>
+                      </Link>
+
+                      {/* Location */}
+                      {(incident.country || incident.city_or_site) && (
+                        <p className="text-slate-400 flex items-center gap-2 mb-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {[incident.city_or_site, incident.country].filter(Boolean).join(', ')}
+                        </p>
                       )}
-                      {incident.date && (
-                        <span className="text-slate-400 text-sm font-medium">
-                          {new Date(incident.date).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
+
+                      {/* Summary */}
+                      {incident.summary && (
+                        <p className="text-slate-500 text-sm line-clamp-2">
+                          {incident.summary}
+                        </p>
                       )}
-                      {incident.flight_phase && (
-                        <span className="text-lg" title={incident.flight_phase}>
-                          {flightPhaseIcons[incident.flight_phase]}
-                        </span>
-                      )}
+
+                      {/* Equipment badges */}
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {incident.wing_manufacturer && (
+                          <span className="px-2.5 py-1 bg-slate-700/50 text-slate-300 rounded-lg text-xs">
+                            🪂 {incident.wing_manufacturer} {incident.wing_model || ''}
+                          </span>
+                        )}
+                        {incident.paramotor_frame && (
+                          <span className="px-2.5 py-1 bg-slate-700/50 text-slate-300 rounded-lg text-xs">
+                            ⚙️ {incident.paramotor_frame}
+                          </span>
+                        )}
+                        {incident.paramotor_type === 'trike' && (
+                          <span className="px-2.5 py-1 bg-slate-700/50 text-slate-300 rounded-lg text-xs">
+                            🛞 Trike
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Title */}
-                    <Link to={`/view/${incident.uuid}`} className="block">
-                      <h3 className="text-xl font-semibold text-white mb-2 truncate hover:text-orange-400 transition-colors">
-                        {incident.title || 'Untitled Incident'}
-                      </h3>
+                    {/* Edit button */}
+                    <Link
+                      to={`/edit/${incident.uuid}`}
+                      className="flex-shrink-0 p-3 rounded-xl bg-slate-700/50 text-slate-400 hover:bg-orange-500/20 hover:text-orange-400 transition-all duration-200"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
                     </Link>
-
-                    {/* Location */}
-                    {(incident.country || incident.city_or_site) && (
-                      <p className="text-slate-400 flex items-center gap-2 mb-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {[incident.city_or_site, incident.country].filter(Boolean).join(', ')}
-                      </p>
-                    )}
-
-                    {/* Summary */}
-                    {incident.summary && (
-                      <p className="text-slate-500 text-sm line-clamp-2">
-                        {incident.summary}
-                      </p>
-                    )}
-
-                    {/* Equipment badges */}
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {incident.wing_manufacturer && (
-                        <span className="px-2.5 py-1 bg-slate-700/50 text-slate-300 rounded-lg text-xs">
-                          🪂 {incident.wing_manufacturer} {incident.wing_model || ''}
-                        </span>
-                      )}
-                      {incident.paramotor_frame && (
-                        <span className="px-2.5 py-1 bg-slate-700/50 text-slate-300 rounded-lg text-xs">
-                          ⚙️ {incident.paramotor_frame}
-                        </span>
-                      )}
-                      {incident.paramotor_type === 'trike' && (
-                        <span className="px-2.5 py-1 bg-slate-700/50 text-slate-300 rounded-lg text-xs">
-                          🛞 Trike
-                        </span>
-                      )}
-                    </div>
                   </div>
-
-                  {/* Edit button */}
-                  <Link
-                    to={`/edit/${incident.uuid}`}
-                    className="flex-shrink-0 p-3 rounded-xl bg-slate-700/50 text-slate-400 hover:bg-orange-500/20 hover:text-orange-400 transition-all duration-200"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </Link>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  ««
+                </button>
+                <button
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  «
+                </button>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        currentPage === pageNum
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:bg-slate-700'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  »
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  »»
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

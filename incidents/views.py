@@ -2,6 +2,7 @@ import logging
 
 from django.db.models import Case, Q, When
 from rest_framework import generics
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,6 +12,12 @@ from ppg_incidents.ai_communication import ai_communicator
 from ppg_incidents.vector_store import upsert_embedding, search_similar, init_vector_table
 
 logger = logging.getLogger(__name__)
+
+
+class IncidentPagination(PageNumberPagination):
+    page_size = 15
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 # Boolean fields that can be filtered
@@ -111,6 +118,7 @@ class UnverifiedIncidentListView(generics.ListAPIView):
 
 class IncidentListView(generics.ListAPIView):
     serializer_class = IncidentSerializer
+    pagination_class = IncidentPagination
 
     def get_queryset(self):
         semantic_search = self.request.query_params.get("semantic_search")
