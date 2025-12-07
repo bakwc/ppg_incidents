@@ -156,6 +156,9 @@ class Incident(models.Model):
     meteorological_conditions = models.TextField(null=True, blank=True)
     thermal_conditions = models.TextField(null=True, blank=True)
 
+    # Status
+    verified = models.BooleanField(default=False, help_text="Incident has been reviewed and verified")
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
