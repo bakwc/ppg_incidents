@@ -159,6 +159,7 @@ class Incident(models.Model):
 
     # Weather conditions
     wind_speed = models.TextField(null=True, blank=True, help_text="Wind speed / gusts")
+    wind_speed_ms = models.FloatField(null=True, blank=True, help_text="Wind speed in m/s")
     meteorological_conditions = models.TextField(null=True, blank=True)
     thermal_conditions = models.TextField(null=True, blank=True)
 
@@ -301,6 +302,8 @@ class Incident(models.Model):
         # Weather
         if self.wind_speed:
             parts.append(f"Wind: {self.wind_speed}")
+        if self.wind_speed_ms:
+            parts.append(f"Wind speed: {self.wind_speed_ms} m/s")
         if self.meteorological_conditions:
             parts.append(f"Weather: {self.meteorological_conditions}")
         if self.thermal_conditions:

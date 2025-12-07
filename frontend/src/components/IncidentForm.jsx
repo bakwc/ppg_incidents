@@ -135,6 +135,7 @@ function IncidentForm() {
     media_links: '',
     report_raw: '',
     wind_speed: '',
+    wind_speed_ms: '',
     meteorological_conditions: '',
     thermal_conditions: '',
     collapse_types: [],
@@ -662,6 +663,7 @@ function IncidentForm() {
               {/* Weather */}
               <Section title="Weather Conditions">
                 <Input label="Wind Speed" name="wind_speed" value={formData.wind_speed} onChange={handleChange} placeholder="e.g., 10-15 km/h, gusts to 25" highlighted={highlightedFields.has('wind_speed')} />
+                <Input label="Wind Speed (m/s)" name="wind_speed_ms" type="number" value={formData.wind_speed_ms} onChange={handleChange} highlighted={highlightedFields.has('wind_speed_ms')} />
                 <Textarea label="Meteorological Conditions" name="meteorological_conditions" value={formData.meteorological_conditions} onChange={handleChange} rows={2} highlighted={highlightedFields.has('meteorological_conditions')} />
                 <Textarea label="Thermal Conditions" name="thermal_conditions" value={formData.thermal_conditions} onChange={handleChange} rows={2} highlighted={highlightedFields.has('thermal_conditions')} />
               </Section>

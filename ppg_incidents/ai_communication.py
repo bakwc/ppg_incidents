@@ -64,6 +64,7 @@ The incident has the following fields:
 - media_links: Links to videos/photos/reports (one per line)
 - report_raw: Raw reports / analysis copied from source. If no link provided - just copy the text from the user message.
 - wind_speed: Wind speed and gusts description
+- wind_speed_ms: Wind speed in m/s (float)
 - meteorological_conditions: Weather conditions
 - thermal_conditions: Thermal activity description
 
