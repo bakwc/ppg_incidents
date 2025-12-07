@@ -46,7 +46,7 @@ The incident has the following fields:
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
 - cause_confidence: One of: "maximum", "high", "low", "minimal". If the reason is 100% known but a lot of fields missing - confidence should be "maximum". If all fields exists but reason not clear - confidence should be "low".
 - factor_low_altitude: Boolean - low flight altitude was a factor. Low altitude is <80 meters altitude.
-- factor_maneuvers: Boolean - performed maneuvers
+- factor_maneuvers: Boolean - performed maneuvers contributing to the incident, like aggressive maneuvers or turn in wrong place etc. Regular slow turn etc is not a maneuver.
 - factor_accelerator: One of: "released", "partially_engaged", "fully_engaged"
 - factor_thermal_weather: Boolean - thermally active weather
 - factor_rotor_turbulence: Boolean - entered rotor turbulence
