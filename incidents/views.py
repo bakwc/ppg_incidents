@@ -72,10 +72,10 @@ def apply_filters(queryset, filters, exclude=False):
         elif field == "collapse":
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 q = (
-                    Q(collapse_types__contains="asymmetric_small") |
-                    Q(collapse_types__contains="asymmetric_medium") |
-                    Q(collapse_types__contains="asymmetric_large") |
-                    Q(collapse_types__contains="frontal")
+                    Q(collapse_types__icontains="asymmetric_small") |
+                    Q(collapse_types__icontains="asymmetric_medium") |
+                    Q(collapse_types__icontains="asymmetric_large") |
+                    Q(collapse_types__icontains="frontal")
                 )
                 if exclude:
                     queryset = queryset.exclude(q)
@@ -84,21 +84,21 @@ def apply_filters(queryset, filters, exclude=False):
         elif field == "stall":
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 if exclude:
-                    queryset = queryset.exclude(collapse_types__contains="full_stall")
+                    queryset = queryset.exclude(collapse_types__icontains="full_stall")
                 else:
-                    queryset = queryset.filter(collapse_types__contains="full_stall")
+                    queryset = queryset.filter(collapse_types__icontains="full_stall")
         elif field == "spin":
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 if exclude:
-                    queryset = queryset.exclude(collapse_types__contains="spin")
+                    queryset = queryset.exclude(collapse_types__icontains="spin")
                 else:
-                    queryset = queryset.filter(collapse_types__contains="spin")
+                    queryset = queryset.filter(collapse_types__icontains="spin")
         elif field == "line_twist":
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 if exclude:
-                    queryset = queryset.exclude(collapse_types__contains="line_twist")
+                    queryset = queryset.exclude(collapse_types__icontains="line_twist")
                 else:
-                    queryset = queryset.filter(collapse_types__contains="line_twist")
+                    queryset = queryset.filter(collapse_types__icontains="line_twist")
     return queryset
 
 

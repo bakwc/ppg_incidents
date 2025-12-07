@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { fetchDashboardStats } from '../api';
 
-const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6'];
+const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6'];
 
 const PIE_FILTER_PACKS = [
   {
@@ -28,7 +28,13 @@ const PIE_FILTER_PACKS = [
   },
   {
     name: 'Powerline Collision',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_powerline_collision: true }
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_powerline_collision: true },
+    exclude: {}
+  },
+  {
+    name: 'Others',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    exclude: { pilot_actions: 'wrong_input_triggered', hardware_failure: true, factor_turbulent_conditions: true, factor_powerline_collision: true }
   }
 ];
 
@@ -51,7 +57,7 @@ const BAR_FILTER_PACKS = [
   {
     name: 'Turbulent Conditions',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
-    exclude: { }
+    exclude: { hardware_failure: true, pilot_actions: 'wrong_input_triggered', factor_powerline_collision: true }
   },
   {
     name: 'Powerline Collision',
@@ -68,6 +74,14 @@ const BAR_FILTER_PACKS = [
   {
     name: 'Water Landing',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_water_landing: true }
+  },
+  {
+    name: 'Wing Collapse',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', collapse: true }
+  },
+  {
+    name: 'Spiral',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_spiral_maneuver: true }
   }
 ];
 
@@ -161,11 +175,11 @@ export default function Dashboard() {
         <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
           <h2 className="text-xl font-semibold mb-6 text-center">Contributing Factors</h2>
           
-          <div className="h-[300px]">
+          <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData} layout="vertical">
                 <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
-                <YAxis type="category" dataKey="name" width={150} stroke="#64748b" />
+                <YAxis type="category" dataKey="name" width={150} stroke="#64748b" interval={0} />
                 <Tooltip
                   formatter={(value) => `${value.toFixed(1)}%`}
                   contentStyle={{

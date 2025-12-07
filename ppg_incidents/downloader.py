@@ -1,5 +1,6 @@
 import re
 import ssl
+import subprocess
 import urllib.error
 import urllib.request
 from logging import getLogger
@@ -96,7 +97,10 @@ def get_webpage_content(url: str) -> str:
                 return extract_pdf_text(content)
             else:
                 html = content.decode("utf-8")
-                article = simple_json_from_html_string(html, use_readability=True)
+                try:
+                    article = simple_json_from_html_string(html, use_readability=True)
+                except subprocess.CalledProcessError:
+                    article = simple_json_from_html_string(html, use_readability=False)
                 plain_text = article["plain_text"]
                 if plain_text:
                     if isinstance(plain_text, list):
