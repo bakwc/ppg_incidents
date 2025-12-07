@@ -137,6 +137,7 @@ function IncidentForm() {
     meteorological_conditions: '',
     thermal_conditions: '',
     collapse_types: [],
+    verified: false,
   });
 
   const [messages, setMessages] = useState([]);
@@ -192,14 +193,14 @@ function IncidentForm() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, verified) => {
     e.preventDefault();
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
     setHighlightedFields(new Set());
 
-    const dataToSave = { ...formData };
+    const dataToSave = { ...formData, verified };
     if (dataToSave.flight_altitude === '') {
       dataToSave.flight_altitude = null;
     }
@@ -224,6 +225,7 @@ function IncidentForm() {
     try {
       if (isEditing) {
         await updateIncident(uuid, dataToSave);
+        setFormData(prev => ({ ...prev, verified }));
         setSaveSuccess(true);
       } else {
         const result = await createIncident(dataToSave);
@@ -499,7 +501,24 @@ function IncidentForm() {
 
           {/* Form Panel - Right */}
           <div className="h-[calc(100vh-180px)] overflow-y-auto pr-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+              {/* Status Badge */}
+              {isEditing && (
+                <div className={`px-4 py-3 rounded-xl border flex items-center gap-3 ${
+                  formData.verified 
+                    ? 'bg-emerald-500/20 border-emerald-500/50' 
+                    : 'bg-amber-500/20 border-amber-500/50'
+                }`}>
+                  <div className={`w-3 h-3 rounded-full ${formData.verified ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className={`font-semibold ${formData.verified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {formData.verified ? 'Published' : 'Draft'}
+                  </span>
+                  <span className="text-slate-500 text-sm">
+                    {formData.verified ? '(verified)' : '(unverified)'}
+                  </span>
+                </div>
+              )}
+
               {/* Basic Info */}
               <Section title="Basic Information">
                 <Input label="Title" name="title" value={formData.title} onChange={handleChange} highlighted={highlightedFields.has('title')} />
@@ -767,11 +786,20 @@ function IncidentForm() {
                   )}
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={(e) => handleSubmit(e, false)}
                   disabled={saving}
-                  className="px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-xl font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {saving ? 'Saving...' : 'Save Incident'}
+                  {saving ? 'Saving...' : 'Save Draft'}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleSubmit(e, true)}
+                  disabled={saving}
+                  className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Publish'}
                 </button>
               </div>
             </form>

@@ -147,7 +147,7 @@ class IncidentListView(generics.ListAPIView):
 class IncidentDetailView(generics.RetrieveAPIView):
     serializer_class = IncidentSerializer
     lookup_field = "uuid"
-    queryset = Incident.objects.all()
+    queryset = Incident.all_objects.all()
 
 
 class IncidentChatView(APIView):
@@ -189,7 +189,7 @@ class IncidentSaveView(APIView):
 class IncidentUpdateView(APIView):
     def put(self, request, uuid):
         logger.info(f"Update request for {uuid}: {request.data}")
-        incident = Incident.objects.get(uuid=uuid)
+        incident = Incident.all_objects.get(uuid=uuid)
         incident_data = request.data.get("incident_data", {})
         logger.info(f"Incident data to update: {incident_data}")
 
@@ -211,7 +211,7 @@ class IncidentUpdateView(APIView):
 
 class IncidentDeleteView(APIView):
     def delete(self, request, uuid):
-        incident = Incident.objects.get(uuid=uuid)
+        incident = Incident.all_objects.get(uuid=uuid)
         incident.delete()
         return Response({"deleted": True})
 
