@@ -14,6 +14,7 @@ const COLLAPSE_LABELS = {
 };
 
 const FLIGHT_PHASE_LABELS = {
+  ground: 'Ground',
   takeoff: 'Takeoff',
   landing: 'Landing',
   flight: 'Flight',
@@ -265,9 +266,10 @@ function IncidentView() {
           )}
 
           {/* Weather */}
-          {(incident.wind_speed || incident.meteorological_conditions || incident.thermal_conditions) && (
+          {(incident.wind_speed || incident.wind_speed_ms || incident.meteorological_conditions || incident.thermal_conditions) && (
             <Section title="Weather Conditions">
-              {incident.wind_speed && <Field label="Wind Speed" value={incident.wind_speed} />}
+              {incident.wind_speed_ms && <Field label="Wind Speed" value={`${incident.wind_speed_ms} m/s`} />}
+              {incident.wind_speed && <Field label="Wind Description" value={incident.wind_speed} />}
               {incident.meteorological_conditions && <Field label="Meteorological Conditions" value={incident.meteorological_conditions} multiline />}
               {incident.thermal_conditions && <Field label="Thermal Conditions" value={incident.thermal_conditions} multiline />}
             </Section>
