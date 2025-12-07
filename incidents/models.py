@@ -11,6 +11,7 @@ class VerifiedManager(models.Manager):
 class Incident(models.Model):
 
     class FlightPhase(models.TextChoices):
+        GROUND = "ground", "Ground"
         TAKEOFF = "takeoff", "Takeoff"
         LANDING = "landing", "Landing"
         FLIGHT = "flight", "Flight"

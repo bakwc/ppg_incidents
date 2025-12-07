@@ -32,7 +32,7 @@ The incident has the following fields:
 - pilot_name: Pilot name. Only fill if real pilot name is known.
 - pilot_details: Pilot details (experience, certifications, etc.)
 - flight_altitude: Altitude in meters (integer)
-- flight_phase: One of: "takeoff", "landing", "flight"
+- flight_phase: One of: "ground" (pilot was not flying), "takeoff", "landing", "flight"
 - severity: One of: "fatal", "serious", "minor"
 - potentially_fatal: Boolean - could have resulted in death under different circumstances. Estimate yourself.
 - description: Detailed description of the incident

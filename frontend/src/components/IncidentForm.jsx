@@ -4,6 +4,7 @@ import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplica
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
+  { value: 'ground', label: 'Ground' },
   { value: 'takeoff', label: 'Takeoff' },
   { value: 'landing', label: 'Landing' },
   { value: 'flight', label: 'Flight' },
