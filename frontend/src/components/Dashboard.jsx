@@ -27,7 +27,7 @@ const PIE_FILTER_PACKS = [
     exclude: {}
   },
   {
-    name: 'Powerline Collision',
+    name: 'Powerline Collision / Near Miss',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'powerline_collision' },
     exclude: {}
   },
