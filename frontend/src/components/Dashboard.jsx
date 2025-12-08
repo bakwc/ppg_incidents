@@ -12,29 +12,29 @@ const PIE_FILTER_PACKS = [
     exclude: {}
   },
   {
-    name: 'Wrong Pilot Input',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', pilot_actions: 'wrong_input_triggered' },
+    name: 'Wrong Control Input',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'wrong_control_input' },
     exclude: {}
   },
   {
     name: 'Hardware Failure',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', hardware_failure: true },
-    exclude: { pilot_actions: 'wrong_input_triggered' }
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'hardware_failure' },
+    exclude: {}
   },
   {
-    name: 'Turbulent Conditions',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
-    exclude: { hardware_failure: true, pilot_actions: 'wrong_input_triggered', factor_powerline_collision: true },
+    name: 'Turbulence',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'turbulence' },
+    exclude: {}
   },
   {
     name: 'Powerline Collision',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_powerline_collision: true },
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'powerline_collision' },
     exclude: {}
   },
   {
     name: 'Others',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
-    exclude: { pilot_actions: 'wrong_input_triggered', hardware_failure: true, factor_turbulent_conditions: true, factor_powerline_collision: true }
+    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision' }
   }
 ];
 
