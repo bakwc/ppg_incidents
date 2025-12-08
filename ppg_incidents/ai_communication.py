@@ -51,6 +51,7 @@ The incident has the following fields:
 - factor_accelerator: One of: "released", "partially_engaged", "fully_engaged"
 - factor_thermal_weather: Boolean - thermally active weather
 - factor_rotor_turbulence: Boolean - entered rotor turbulence
+- factor_wake_turbulence: Boolean - entered wake turbulence from another aircraft or himself
 - factor_trimmer_position: One of: "closed", "partially_open", "fully_open"
 - factor_reflex_profile: Boolean - presence of reflex profile
 - factor_helmet_missing: Boolean - helmet was not worn

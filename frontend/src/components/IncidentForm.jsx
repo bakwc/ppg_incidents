@@ -134,6 +134,7 @@ function IncidentForm() {
     factor_accelerator: '',
     factor_thermal_weather: false,
     factor_rotor_turbulence: false,
+    factor_wake_turbulence: false,
     factor_trimmer_position: '',
     factor_reflex_profile: false,
     factor_helmet_missing: false,
@@ -663,6 +664,7 @@ function IncidentForm() {
                   <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} highlighted={highlightedFields.has('factor_maneuvers')} />
                   <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} highlighted={highlightedFields.has('factor_thermal_weather')} />
                   <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_rotor_turbulence')} />
+                  <Checkbox label="Wake turbulence" name="factor_wake_turbulence" checked={formData.factor_wake_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_wake_turbulence')} />
                   <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} highlighted={highlightedFields.has('factor_reflex_profile')} />
                   <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} highlighted={highlightedFields.has('factor_helmet_missing')} />
                   <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_tree_collision')} />

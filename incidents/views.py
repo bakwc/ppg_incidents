@@ -29,6 +29,7 @@ BOOLEAN_FILTER_FIELDS = [
     "factor_maneuvers",
     "factor_thermal_weather",
     "factor_rotor_turbulence",
+    "factor_wake_turbulence",
     "factor_reflex_profile",
     "factor_helmet_missing",
     "factor_tree_collision",
