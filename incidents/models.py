@@ -73,7 +73,7 @@ class Incident(models.Model):
 
     class PrimaryCause(models.TextChoices):
         TURBULENCE = "turbulence", "Turbulence"
-        WRONG_PILOT_INPUT = "wrong_pilot_input", "Wrong pilot input"
+        WRONG_CONTROL_INPUT = "wrong_control_input", "Wrong control input"
         HARDWARE_FAILURE = "hardware_failure", "Hardware failure"
         POWERLINE_COLLISION = "powerline_collision", "Powerline collision / Near Miss"
         MIDAIR_COLLISION = "midair_collision", "Midair collision / Near Miss"

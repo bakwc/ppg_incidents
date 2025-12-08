@@ -85,7 +85,7 @@ const MID_AIR_COLLISION = [
 const PRIMARY_CAUSES = [
   { value: '', label: 'Select...' },
   { value: 'turbulence', label: 'Turbulence' },
-  { value: 'wrong_pilot_input', label: 'Wrong pilot input' },
+  { value: 'wrong_control_input', label: 'Wrong control input' },
   { value: 'hardware_failure', label: 'Hardware failure' },
   { value: 'powerline_collision', label: 'Powerline collision / Near Miss' },
   { value: 'midair_collision', label: 'Midair collision / Near Miss' },

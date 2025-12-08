@@ -75,7 +75,7 @@ const MID_AIR_COLLISION_LABELS = {
 
 const PRIMARY_CAUSE_LABELS = {
   turbulence: 'Turbulence',
-  wrong_pilot_input: 'Wrong pilot input',
+  wrong_control_input: 'Wrong control input',
   hardware_failure: 'Hardware failure',
   powerline_collision: 'Powerline collision / Near Miss',
   midair_collision: 'Midair collision / Near Miss',

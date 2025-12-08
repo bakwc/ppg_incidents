@@ -107,7 +107,7 @@ const SELECT_FILTERS = [
     label: 'Primary Cause',
     options: [
       { value: 'turbulence', label: 'Turbulence' },
-      { value: 'wrong_pilot_input', label: 'Wrong pilot input' },
+      { value: 'wrong_control_input', label: 'Wrong control input' },
       { value: 'hardware_failure', label: 'Hardware failure' },
       { value: 'powerline_collision', label: 'Powerline collision' },
       { value: 'midair_collision', label: 'Midair collision' },
