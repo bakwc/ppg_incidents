@@ -82,6 +82,7 @@ const PRIMARY_CAUSE_LABELS = {
   lines_brakes_issues: 'Lines & Brakes Knots / Twists / Obstructions',
   water_landing: 'Water landing',
   preflight_error: 'Preflight Error',
+  ground_starting: 'Ground Starting',
 };
 
 const severityColors = {

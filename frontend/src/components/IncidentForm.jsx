@@ -92,6 +92,7 @@ const PRIMARY_CAUSES = [
   { value: 'lines_brakes_issues', label: 'Lines & Brakes Knots / Twists / Obstructions' },
   { value: 'water_landing', label: 'Water landing' },
   { value: 'preflight_error', label: 'Preflight Error' },
+  { value: 'ground_starting', label: 'Ground Starting' },
 ];
 
 function IncidentForm() {

@@ -114,6 +114,7 @@ const SELECT_FILTERS = [
       { value: 'lines_brakes_issues', label: 'Lines & Brakes issues' },
       { value: 'water_landing', label: 'Water landing' },
       { value: 'preflight_error', label: 'Preflight Error' },
+      { value: 'ground_starting', label: 'Ground Starting' },
     ],
   },
 ];

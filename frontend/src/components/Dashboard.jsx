@@ -47,9 +47,14 @@ const PIE_FILTER_PACKS = [
     exclude: {}
   },
   {
+    name: 'Ground Starting',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'ground_starting' },
+    exclude: {}
+  },
+  {
     name: 'Others',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
-    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues' }
+    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting' }
   }
 ];
 

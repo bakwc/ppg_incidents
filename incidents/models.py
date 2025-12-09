@@ -80,6 +80,7 @@ class Incident(models.Model):
         LINES_BRAKES_ISSUES = "lines_brakes_issues", "Lines & Brakes Knots / Twists / Obstructions"
         WATER_LANDING = "water_landing", "Water landing"
         PREFLIGHT_ERROR = "preflight_error", "Preflight Error"
+        GROUND_STARTING = "ground_starting", "Ground Starting"
 
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
