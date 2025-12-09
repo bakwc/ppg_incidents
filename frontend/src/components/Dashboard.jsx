@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { fetchDashboardStats } from '../api';
 
-const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6'];
+const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#84cc16', '#6366f1'];
 
 const PIE_FILTER_PACKS = [
   {
@@ -32,9 +32,24 @@ const PIE_FILTER_PACKS = [
     exclude: {}
   },
   {
+    name: 'Midair Collision / Near Miss',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'midair_collision' },
+    exclude: {}
+  },
+  {
+    name: 'Water Landing',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'water_landing' },
+    exclude: {}
+  },
+  {
+    name: 'Lines & Brakes Issues',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'lines_brakes_issues' },
+    exclude: {}
+  },
+  {
     name: 'Others',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
-    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision' }
+    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues' }
   }
 ];
 

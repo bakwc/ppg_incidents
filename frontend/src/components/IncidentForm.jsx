@@ -91,6 +91,7 @@ const PRIMARY_CAUSES = [
   { value: 'midair_collision', label: 'Midair collision / Near Miss' },
   { value: 'lines_brakes_issues', label: 'Lines & Brakes Knots / Twists / Obstructions' },
   { value: 'water_landing', label: 'Water landing' },
+  { value: 'preflight_error', label: 'Preflight Error' },
 ];
 
 function IncidentForm() {
@@ -133,6 +134,7 @@ function IncidentForm() {
     factor_maneuvers: false,
     factor_accelerator: '',
     factor_thermal_weather: false,
+    factor_rain: false,
     factor_rotor_turbulence: false,
     factor_wake_turbulence: false,
     factor_trimmer_position: '',
@@ -663,6 +665,7 @@ function IncidentForm() {
                   <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} highlighted={highlightedFields.has('factor_low_altitude')} />
                   <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} highlighted={highlightedFields.has('factor_maneuvers')} />
                   <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} highlighted={highlightedFields.has('factor_thermal_weather')} />
+                  <Checkbox label="Rain" name="factor_rain" checked={formData.factor_rain} onChange={handleChange} highlighted={highlightedFields.has('factor_rain')} />
                   <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_rotor_turbulence')} />
                   <Checkbox label="Wake turbulence" name="factor_wake_turbulence" checked={formData.factor_wake_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_wake_turbulence')} />
                   <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} highlighted={highlightedFields.has('factor_reflex_profile')} />

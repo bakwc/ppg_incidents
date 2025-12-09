@@ -81,6 +81,7 @@ const PRIMARY_CAUSE_LABELS = {
   midair_collision: 'Midair collision / Near Miss',
   lines_brakes_issues: 'Lines & Brakes Knots / Twists / Obstructions',
   water_landing: 'Water landing',
+  preflight_error: 'Preflight Error',
 };
 
 const severityColors = {
@@ -253,7 +254,7 @@ function IncidentView() {
           )}
 
           {/* Contributing Factors */}
-          {(incident.factor_trimmer_position || incident.factor_accelerator || incident.factor_mid_air_collision || incident.factor_low_altitude || incident.factor_maneuvers || incident.factor_thermal_weather || incident.factor_rotor_turbulence || incident.factor_wake_turbulence || incident.factor_reflex_profile || incident.factor_helmet_missing || incident.factor_tree_collision || incident.factor_water_landing || incident.factor_ground_starting || incident.factor_powerline_collision || incident.factor_turbulent_conditions || incident.factor_spiral_maneuver) && (
+          {(incident.factor_trimmer_position || incident.factor_accelerator || incident.factor_mid_air_collision || incident.factor_low_altitude || incident.factor_maneuvers || incident.factor_thermal_weather || incident.factor_rain || incident.factor_rotor_turbulence || incident.factor_wake_turbulence || incident.factor_reflex_profile || incident.factor_helmet_missing || incident.factor_tree_collision || incident.factor_water_landing || incident.factor_ground_starting || incident.factor_powerline_collision || incident.factor_turbulent_conditions || incident.factor_spiral_maneuver) && (
             <Section title="Contributing Factors">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 {incident.factor_trimmer_position && <Field label="Trimmer Position" value={TRIMMER_LABELS[incident.factor_trimmer_position] || incident.factor_trimmer_position} />}
@@ -264,6 +265,7 @@ function IncidentView() {
                 {incident.factor_low_altitude && <Badge label="Low flight altitude" />}
                 {incident.factor_maneuvers && <Badge label="Performed maneuvers" />}
                 {incident.factor_thermal_weather && <Badge label="Thermally active weather" />}
+                {incident.factor_rain && <Badge label="Rain" />}
                 {incident.factor_rotor_turbulence && <Badge label="Entered rotor turbulence" />}
                 {incident.factor_wake_turbulence && <Badge label="Wake turbulence" />}
                 {incident.factor_reflex_profile && <Badge label="Reflex profile wing" />}

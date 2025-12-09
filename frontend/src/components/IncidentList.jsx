@@ -113,6 +113,7 @@ const SELECT_FILTERS = [
       { value: 'midair_collision', label: 'Midair collision' },
       { value: 'lines_brakes_issues', label: 'Lines & Brakes issues' },
       { value: 'water_landing', label: 'Water landing' },
+      { value: 'preflight_error', label: 'Preflight Error' },
     ],
   },
 ];
@@ -124,6 +125,7 @@ const BOOLEAN_FILTERS = [
   { key: 'factor_low_altitude', label: 'Low altitude' },
   { key: 'factor_maneuvers', label: 'Maneuvers' },
   { key: 'factor_thermal_weather', label: 'Thermal weather' },
+  { key: 'factor_rain', label: 'Rain' },
   { key: 'factor_rotor_turbulence', label: 'Rotor turbulence' },
   { key: 'factor_wake_turbulence', label: 'Wake turbulence' },
   { key: 'factor_turbulent_conditions', label: 'Turbulent conditions' },

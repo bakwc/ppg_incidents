@@ -79,6 +79,7 @@ class Incident(models.Model):
         MIDAIR_COLLISION = "midair_collision", "Midair collision / Near Miss"
         LINES_BRAKES_ISSUES = "lines_brakes_issues", "Lines & Brakes Knots / Twists / Obstructions"
         WATER_LANDING = "water_landing", "Water landing"
+        PREFLIGHT_ERROR = "preflight_error", "Preflight Error"
 
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -151,6 +152,7 @@ class Incident(models.Model):
     factor_maneuvers = models.BooleanField(null=True, blank=True, verbose_name="Performed maneuvers")
     factor_accelerator = models.CharField(max_length=20, choices=AcceleratorPosition.choices, null=True, blank=True, verbose_name="Accelerator position")
     factor_thermal_weather = models.BooleanField(null=True, blank=True, verbose_name="Thermally active weather")
+    factor_rain = models.BooleanField(null=True, blank=True, verbose_name="Rain")
     factor_rotor_turbulence = models.BooleanField(null=True, blank=True, verbose_name="Entered rotor turbulence")
     factor_wake_turbulence = models.BooleanField(null=True, blank=True, verbose_name="Wake turbulence")
     factor_trimmer_position = models.CharField(max_length=20, choices=TrimmerPosition.choices, null=True, blank=True, verbose_name="Trimmer position")

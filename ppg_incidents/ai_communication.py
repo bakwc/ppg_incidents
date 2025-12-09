@@ -37,7 +37,7 @@ The incident has the following fields:
 - potentially_fatal: Boolean - could have resulted in death under different circumstances. Estimate yourself.
 - description: Detailed description of the incident
 - causes_description: Description of causes
-- primary_cause: One of: "turbulence", "wrong_control_input", "hardware_failure", "powerline_collision", "midair_collision", "lines_brakes_issues", "water_landing". Do not fill if not sure, leave empty.
+- primary_cause: One of: "turbulence", "wrong_control_input", "hardware_failure", "powerline_collision", "midair_collision", "lines_brakes_issues", "water_landing", "preflight_error". Do not fill if not sure, leave empty.
 - pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting). Focus on piloting actions, not the general decision making. If pilot himself triggered incident eg by agressive maneuvers - use "wrong_input_triggered".
 - injury_details: Details of pilot injuries (only fill if pilot was injured)
 - hardware_failure: Boolean - hardware failure occurred
@@ -50,6 +50,7 @@ The incident has the following fields:
 - factor_maneuvers: Boolean - performed maneuvers contributing to the incident, like aggressive maneuvers or turn in wrong place etc. Regular slow turn etc is not a maneuver.
 - factor_accelerator: One of: "released", "partially_engaged", "fully_engaged"
 - factor_thermal_weather: Boolean - thermally active weather
+- factor_rain: Boolean - rain during flight
 - factor_rotor_turbulence: Boolean - entered rotor turbulence
 - factor_wake_turbulence: Boolean - entered wake turbulence from another aircraft or himself
 - factor_trimmer_position: One of: "closed", "partially_open", "fully_open"
