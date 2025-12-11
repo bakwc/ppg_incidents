@@ -37,7 +37,7 @@ The incident has the following fields:
 - potentially_fatal: Boolean - could have resulted in death under different circumstances. Estimate yourself.
 - description: Detailed description of the incident
 - causes_description: Description of causes
-- primary_cause: One of: "turbulence", "wrong_control_input", "hardware_failure", "powerline_collision", "midair_collision", "lines_brakes_issues", "water_landing", "preflight_error", "ground_starting". Do not fill if not sure, leave empty.
+- primary_cause: One of: "turbulence", "wrong_control_input", "hardware_failure", "powerline_collision", "midair_collision", "lines_brakes_issues", "water_landing", "preflight_error", "ground_starting", "ground_object_collision". Do not fill if not sure, leave empty.
 - pilot_actions: One of: "wrong_input_triggered" (wrong input triggered incident), "mostly_wrong" (mostly wrong inputs while reacting), "mixed" (some correct and some wrong), "mostly_correct" (mostly correct inputs while reacting). Focus on piloting actions, not the general decision making. If pilot himself triggered incident eg by agressive maneuvers - use "wrong_input_triggered".
 - injury_details: Details of pilot injuries (only fill if pilot was injured)
 - hardware_failure: Boolean - hardware failure occurred
@@ -63,6 +63,7 @@ The incident has the following fields:
 - factor_turbulent_conditions: Boolean - turbulent conditions (thermals, rotor, wind gusts, etc.)
 - factor_spiral_maneuver: Boolean - spiral maneuver (spiral dive, SAT, etc.)
 - factor_mid_air_collision: One of: "fly_nearby", "got_in_wake_turbulence", "almost_collided", "collided".
+- factor_ground_object_collision: Boolean - collision with ground object
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
 - report_raw: Raw reports / analysis copied from source. If no link provided - just copy the text from the user message.

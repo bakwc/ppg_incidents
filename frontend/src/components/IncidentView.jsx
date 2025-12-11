@@ -83,6 +83,7 @@ const PRIMARY_CAUSE_LABELS = {
   water_landing: 'Water landing',
   preflight_error: 'Preflight Error',
   ground_starting: 'Ground Starting',
+  ground_object_collision: 'Ground Object Collision / Near Miss',
 };
 
 const severityColors = {
@@ -255,7 +256,7 @@ function IncidentView() {
           )}
 
           {/* Contributing Factors */}
-          {(incident.factor_trimmer_position || incident.factor_accelerator || incident.factor_mid_air_collision || incident.factor_low_altitude || incident.factor_maneuvers || incident.factor_thermal_weather || incident.factor_rain || incident.factor_rotor_turbulence || incident.factor_wake_turbulence || incident.factor_reflex_profile || incident.factor_helmet_missing || incident.factor_tree_collision || incident.factor_water_landing || incident.factor_ground_starting || incident.factor_powerline_collision || incident.factor_turbulent_conditions || incident.factor_spiral_maneuver) && (
+          {(incident.factor_trimmer_position || incident.factor_accelerator || incident.factor_mid_air_collision || incident.factor_low_altitude || incident.factor_maneuvers || incident.factor_thermal_weather || incident.factor_rain || incident.factor_rotor_turbulence || incident.factor_wake_turbulence || incident.factor_reflex_profile || incident.factor_helmet_missing || incident.factor_tree_collision || incident.factor_water_landing || incident.factor_ground_starting || incident.factor_powerline_collision || incident.factor_turbulent_conditions || incident.factor_spiral_maneuver || incident.factor_ground_object_collision) && (
             <Section title="Contributing Factors">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 {incident.factor_trimmer_position && <Field label="Trimmer Position" value={TRIMMER_LABELS[incident.factor_trimmer_position] || incident.factor_trimmer_position} />}
@@ -277,6 +278,7 @@ function IncidentView() {
                 {incident.factor_powerline_collision && <Badge label="Powerline collision" />}
                 {incident.factor_turbulent_conditions && <Badge label="Turbulent conditions" />}
                 {incident.factor_spiral_maneuver && <Badge label="Spiral maneuver" />}
+                {incident.factor_ground_object_collision && <Badge label="Ground object collision" />}
               </div>
             </Section>
           )}

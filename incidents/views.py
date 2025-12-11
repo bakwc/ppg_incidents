@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from incidents.models import Incident
 from incidents.serializers import IncidentSerializer
 from ppg_incidents.ai_communication import ai_communicator
+from ppg_incidents.fts_store import search_fts, upsert_fts
 from ppg_incidents.vector_store import upsert_embedding, search_similar, init_vector_table
 
 logger = logging.getLogger(__name__)
@@ -132,11 +133,16 @@ class IncidentListView(generics.ListAPIView):
 
     def get_queryset(self):
         semantic_search = self.request.query_params.get("semantic_search")
+        text_search = self.request.query_params.get("text_search")
         
         if semantic_search:
             embedding = ai_communicator.get_embedding(semantic_search)
             results = search_similar(embedding, limit=100)
             incident_ids = [r[0] for r in results]
+            preserved_order = Case(*[When(id=id, then=pos) for pos, id in enumerate(incident_ids)])
+            queryset = Incident.objects.filter(id__in=incident_ids).order_by(preserved_order)
+        elif text_search:
+            incident_ids = search_fts(text_search, limit=100)
             preserved_order = Case(*[When(id=id, then=pos) for pos, id in enumerate(incident_ids)])
             queryset = Incident.objects.filter(id__in=incident_ids).order_by(preserved_order)
         else:
@@ -205,6 +211,9 @@ class IncidentSaveView(APIView):
         embedding = ai_communicator.get_embedding(incident.to_text())
         upsert_embedding(incident.id, embedding)
 
+        # Update FTS index
+        upsert_fts(incident.id, incident.to_text())
+
         return Response({
             "incident": IncidentSerializer(incident).data,
             "saved": True,
@@ -227,6 +236,9 @@ class IncidentUpdateView(APIView):
         # Regenerate and store embedding
         embedding = ai_communicator.get_embedding(incident.to_text())
         upsert_embedding(incident.id, embedding)
+
+        # Update FTS index
+        upsert_fts(incident.id, incident.to_text())
 
         return Response({
             "incident": IncidentSerializer(incident).data,

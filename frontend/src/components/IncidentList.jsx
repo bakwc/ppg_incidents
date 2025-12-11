@@ -115,6 +115,7 @@ const SELECT_FILTERS = [
       { value: 'water_landing', label: 'Water landing' },
       { value: 'preflight_error', label: 'Preflight Error' },
       { value: 'ground_starting', label: 'Ground Starting' },
+      { value: 'ground_object_collision', label: 'Ground Object Collision / Near Miss' },
     ],
   },
 ];
@@ -137,6 +138,7 @@ const BOOLEAN_FILTERS = [
   { key: 'factor_ground_starting', label: 'Ground starting' },
   { key: 'factor_spiral_maneuver', label: 'Spiral maneuver' },
   { key: 'factor_helmet_missing', label: 'Helmet missing' },
+  { key: 'factor_ground_object_collision', label: 'Ground object collision' },
 ];
 
 const COLLAPSE_FILTERS = [

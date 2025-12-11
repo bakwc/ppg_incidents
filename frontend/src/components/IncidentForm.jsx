@@ -93,6 +93,7 @@ const PRIMARY_CAUSES = [
   { value: 'water_landing', label: 'Water landing' },
   { value: 'preflight_error', label: 'Preflight Error' },
   { value: 'ground_starting', label: 'Ground Starting' },
+  { value: 'ground_object_collision', label: 'Ground Object Collision / Near Miss' },
 ];
 
 function IncidentForm() {
@@ -148,6 +149,7 @@ function IncidentForm() {
     factor_turbulent_conditions: false,
     factor_spiral_maneuver: false,
     factor_mid_air_collision: '',
+    factor_ground_object_collision: false,
     source_links: '',
     media_links: '',
     report_raw: '',
@@ -677,6 +679,7 @@ function IncidentForm() {
                   <Checkbox label="Powerline collision" name="factor_powerline_collision" checked={formData.factor_powerline_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_powerline_collision')} />
                   <Checkbox label="Turbulent conditions" name="factor_turbulent_conditions" checked={formData.factor_turbulent_conditions} onChange={handleChange} highlighted={highlightedFields.has('factor_turbulent_conditions')} />
                   <Checkbox label="Spiral maneuver" name="factor_spiral_maneuver" checked={formData.factor_spiral_maneuver} onChange={handleChange} highlighted={highlightedFields.has('factor_spiral_maneuver')} />
+                  <Checkbox label="Ground object collision" name="factor_ground_object_collision" checked={formData.factor_ground_object_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_object_collision')} />
                 </div>
               </Section>
 

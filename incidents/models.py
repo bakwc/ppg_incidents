@@ -81,6 +81,7 @@ class Incident(models.Model):
         WATER_LANDING = "water_landing", "Water landing"
         PREFLIGHT_ERROR = "preflight_error", "Preflight Error"
         GROUND_STARTING = "ground_starting", "Ground Starting"
+        GROUND_OBJECT_COLLISION = "ground_object_collision", "Ground Object Collision / Near Miss"
 
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -166,6 +167,7 @@ class Incident(models.Model):
     factor_turbulent_conditions = models.BooleanField(null=True, blank=True, verbose_name="Turbulent conditions")
     factor_spiral_maneuver = models.BooleanField(null=True, blank=True, verbose_name="Spiral maneuver")
     factor_mid_air_collision = models.CharField(max_length=30, choices=MidAirCollision.choices, null=True, blank=True, verbose_name="Mid-air collision")
+    factor_ground_object_collision = models.BooleanField(null=True, blank=True, verbose_name="Ground object collision")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
@@ -311,6 +313,8 @@ class Incident(models.Model):
             factors.append("spiral maneuver")
         if self.factor_mid_air_collision:
             factors.append(f"mid-air collision: {self.get_factor_mid_air_collision_display()}")
+        if self.factor_ground_object_collision:
+            factors.append("ground object collision")
         if factors:
             parts.append(f"Factors: {', '.join(factors)}")
 
