@@ -3,7 +3,7 @@ const API_BASE = '/api';
 export async function fetchIncidents(searchQuery = null, filters = {}, page = 1) {
   const params = new URLSearchParams();
   if (searchQuery) {
-    params.set('semantic_search', searchQuery);
+    params.set('text_search', searchQuery);
   }
   params.set('page', page);
   // Add all filters to params
