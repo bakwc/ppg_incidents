@@ -40,6 +40,7 @@ BOOLEAN_FILTER_FIELDS = [
     "factor_powerline_collision",
     "factor_turbulent_conditions",
     "factor_spiral_maneuver",
+    "factor_ground_object_collision",
 ]
 
 # Choice fields that can be filtered

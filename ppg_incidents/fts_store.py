@@ -75,8 +75,8 @@ def search_fts(query: str, limit: int = 100) -> list[int]:
     conn = _get_raw_connection()
     cursor = conn.cursor()
 
-    # Lowercase query for case-insensitive matching
-    query_lower = query.lower()
+    # Lowercase and wrap in quotes to escape special chars like colons
+    query_escaped = '"' + query.lower().replace('"', '""') + '"'
 
     cursor.execute("""
         SELECT incident_id, bm25(fts_incidents)
@@ -84,7 +84,7 @@ def search_fts(query: str, limit: int = 100) -> list[int]:
         WHERE content MATCH ?
         ORDER BY bm25(fts_incidents)
         LIMIT ?
-    """, (query_lower, limit))
+    """, (query_escaped, limit))
 
     results = cursor.fetchall()
     return [int(row[0]) for row in results]

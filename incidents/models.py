@@ -216,6 +216,8 @@ class Incident(models.Model):
         # Date and location
         if self.date:
             parts.append(f"Date: {self.date}")
+        if self.time:
+            parts.append(f"Time: {self.time}")
         if self.country:
             parts.append(f"Country: {self.country}")
         if self.city_or_site:
@@ -254,6 +256,8 @@ class Incident(models.Model):
             parts.append(f"Potentially fatal: {'yes' if self.potentially_fatal else 'no'}")
         if self.pilot_actions:
             parts.append(f"Pilot actions: {self.get_pilot_actions_display()}")
+        if self.primary_cause:
+            parts.append(f"Primary cause: {self.get_primary_cause_display()}")
 
         # Hardware
         if self.hardware_failure is not None:
@@ -291,8 +295,12 @@ class Incident(models.Model):
             factors.append(f"accelerator {self.get_factor_accelerator_display()}")
         if self.factor_thermal_weather:
             factors.append("thermal weather")
+        if self.factor_rain:
+            factors.append("rain")
         if self.factor_rotor_turbulence:
             factors.append("rotor turbulence")
+        if self.factor_wake_turbulence:
+            factors.append("wake turbulence")
         if self.factor_trimmer_position:
             factors.append(f"trimmer {self.get_factor_trimmer_position_display()}")
         if self.factor_reflex_profile:
@@ -327,5 +335,13 @@ class Incident(models.Model):
             parts.append(f"Weather: {self.meteorological_conditions}")
         if self.thermal_conditions:
             parts.append(f"Thermals: {self.thermal_conditions}")
+
+        # Links and raw reports
+        if self.source_links:
+            parts.append(f"Source links: {self.source_links}")
+        if self.media_links:
+            parts.append(f"Media links: {self.media_links}")
+        if self.report_raw:
+            parts.append(f"Raw report: {self.report_raw}")
 
         return "\n".join(parts)
