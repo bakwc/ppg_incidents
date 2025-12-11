@@ -29,6 +29,48 @@ At least one API key must be set.
 poetry run pytest
 ```
 
+## Management Commands
+
+### create_from_url
+
+Create incident from URL using LLM. Supports single URLs or bulk import from USPPA incidents list.
+
+```bash
+python manage.py create_from_url <url> [--model MODEL] [--force]
+```
+
+### fill_report_raw
+
+Fetch content from source_links and populate report_raw field for incidents missing it.
+
+```bash
+python manage.py fill_report_raw
+```
+
+### generate_embeddings
+
+Generate vector embeddings for semantic search. Skips incidents with existing embeddings unless --force.
+
+```bash
+python manage.py generate_embeddings [--force]
+```
+
+### generate_fts_index
+
+Build/rebuild FTS5 full-text search index for all incidents.
+
+```bash
+python manage.py generate_fts_index
+```
+
+### show_incident_text
+
+Display to_text() output for an incident (useful for debugging search indexing).
+
+```bash
+python manage.py show_incident_text <uuid>
+```
+
 ## API Endpoints
 
 ### GET /api/incidents
