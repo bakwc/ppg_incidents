@@ -4,9 +4,14 @@ from incidents.models import Incident
 
 
 class IncidentSerializer(serializers.ModelSerializer):
+    text_content = serializers.SerializerMethodField()
+
     class Meta:
         model = Incident
         fields = "__all__"
+
+    def get_text_content(self, obj):
+        return obj.to_text()
 
     def to_internal_value(self, data):
         data = dict(data)

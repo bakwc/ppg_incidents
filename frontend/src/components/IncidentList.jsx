@@ -149,6 +149,28 @@ const COLLAPSE_FILTERS = [
   { key: 'unknown_collapse', label: 'Unknown collapse' },
 ];
 
+function getHighlightedFragment(textContent, query, contextChars = 150) {
+  if (!textContent || !query) return null;
+  
+  const lowerText = textContent.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const matchIndex = lowerText.indexOf(lowerQuery);
+  
+  if (matchIndex === -1) return null;
+  
+  const start = Math.max(0, matchIndex - contextChars);
+  const end = Math.min(textContent.length, matchIndex + query.length + contextChars);
+  
+  const before = textContent.slice(start, matchIndex);
+  const match = textContent.slice(matchIndex, matchIndex + query.length);
+  const after = textContent.slice(matchIndex + query.length, end);
+  
+  const prefix = start > 0 ? '...' : '';
+  const suffix = end < textContent.length ? '...' : '';
+  
+  return { prefix, before, match, after, suffix };
+}
+
 function IncidentList() {
   const [searchParams] = useSearchParams();
   const [incidents, setIncidents] = useState([]);
@@ -586,12 +608,33 @@ function IncidentList() {
                         </p>
                       )}
 
-                      {/* Summary */}
-                      {incident.summary && (
-                        <p className="text-slate-500 text-sm line-clamp-2">
-                          {incident.summary}
-                        </p>
-                      )}
+                      {/* Summary or Search match highlight */}
+                      {(() => {
+                        if (searchQuery && incident.text_content) {
+                          const fragment = getHighlightedFragment(incident.text_content, searchQuery);
+                          if (fragment) {
+                            return (
+                              <p className="text-slate-500 text-sm">
+                                {fragment.prefix}
+                                {fragment.before}
+                                <mark className="bg-orange-500/40 text-orange-300 px-0.5 rounded">
+                                  {fragment.match}
+                                </mark>
+                                {fragment.after}
+                                {fragment.suffix}
+                              </p>
+                            );
+                          }
+                        }
+                        if (incident.summary) {
+                          return (
+                            <p className="text-slate-500 text-sm line-clamp-2">
+                              {incident.summary}
+                            </p>
+                          );
+                        }
+                        return null;
+                      })()}
 
                       {/* Equipment badges */}
                       <div className="flex flex-wrap gap-2 mt-4">
