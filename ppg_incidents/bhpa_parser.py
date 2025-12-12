@@ -1,4 +1,3 @@
-import hashlib
 import re
 from dataclasses import dataclass
 from datetime import datetime
@@ -8,6 +7,60 @@ from bs4 import BeautifulSoup
 COUNTRY_NORMALIZATION = {
     "UK": "United Kingdom",
 }
+
+
+@dataclass
+class BHPAFormalIncident:
+    date: str
+    title: str
+    pdf_url: str
+
+    def get_date_iso(self) -> str:
+        parsed = datetime.strptime(self.date, "%d.%m.%Y")
+        return parsed.strftime("%Y-%m-%d")
+
+
+def parse_bhpa_formal_html(html: str) -> list[BHPAFormalIncident]:
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table", id="tbl_fit1")
+    if not table:
+        return []
+
+    incidents = []
+    rows = table.find_all("tr", class_=["tr1", "tr2"])
+
+    for row in rows:
+        cells = row.find_all("td", class_="td_collapse")
+        if len(cells) < 2:
+            continue
+
+        date_cell = cells[0].get_text(strip=True)
+        date_match = re.search(r"(\d{2}\.\d{2}\.\d{4})", date_cell)
+        date = date_match.group(1) if date_match else ""
+
+        report_cell = cells[1]
+        link = report_cell.find("a")
+        if not link:
+            continue
+
+        title = link.get_text(strip=True)
+        href = link.get("href", "")
+
+        if "(PPG)" not in title:
+            continue
+
+        if href.startswith("/"):
+            pdf_url = f"https://www.bhpa.co.uk{href}"
+        else:
+            pdf_url = href
+
+        incidents.append(BHPAFormalIncident(
+            date=date,
+            title=title,
+            pdf_url=pdf_url,
+        ))
+
+    return incidents
 
 
 @dataclass

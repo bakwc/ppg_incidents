@@ -9,12 +9,14 @@ from django.core.management.base import BaseCommand
 from incidents.models import Incident
 from incidents.serializers import IncidentSerializer
 from ppg_incidents.ai_communication import ai_communicator
-from ppg_incidents.bhpa_parser import parse_bhpa_html
+from ppg_incidents.bhpa_parser import parse_bhpa_formal_html, parse_bhpa_html
+from ppg_incidents.downloader import get_webpage_content
 from ppg_incidents.vector_store import upsert_embedding
 
 USPPA_LIST_PATTERN = re.compile(r"^https?://usppa\.org/incidents/(\?.*)?$")
 USPPA_ENTRY_PATTERN = re.compile(r"https://usppa\.org/incidents/entry/\d+")
 BHPA_LIST_PATTERN = re.compile(r"^https?://(?:www\.)?bhpa\.co\.uk/safety/incidents/")
+BHPA_FORMAL_LIST_PATTERN = re.compile(r"^https?://(?:www\.)?bhpa\.co\.uk/safety/investigations/")
 
 
 class Command(BaseCommand):
@@ -31,6 +33,8 @@ class Command(BaseCommand):
 
         if USPPA_LIST_PATTERN.match(url):
             self.handle_usppa_list(url, model, options["force"])
+        elif BHPA_FORMAL_LIST_PATTERN.match(url):
+            self.handle_bhpa_formal_list(url, model, options["force"])
         elif BHPA_LIST_PATTERN.match(url):
             self.handle_bhpa_list(url, model, options["force"])
         else:
@@ -56,6 +60,61 @@ class Command(BaseCommand):
         for i, incident_url in enumerate(incident_urls, 1):
             self.stdout.write(f"\n[{i}/{len(incident_urls)}] {incident_url}")
             self.process_single_url(incident_url, model, force, auto_skip=True)
+
+    def handle_bhpa_formal_list(self, url, model, force):
+        self.stdout.write(f"Detected BHPA formal investigations page: {url}")
+        self.stdout.write("Fetching and parsing incidents...")
+
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        request = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        )
+        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+            html = response.read().decode("utf-8")
+
+        incidents = parse_bhpa_formal_html(html)
+        self.stdout.write(f"Found {len(incidents)} PPG incidents on page")
+
+        for i, bhpa_incident in enumerate(incidents, 1):
+            self.stdout.write(f"\n[{i}/{len(incidents)}] {bhpa_incident.date} - {bhpa_incident.title}")
+
+            incident_date = bhpa_incident.get_date_iso()
+
+            if not force:
+                duplicates = Incident.all_objects.filter(
+                    date=incident_date,
+                    country="United Kingdom"
+                )
+                if duplicates.exists():
+                    self.stdout.write(self.style.WARNING(f"Duplicate found (date={incident_date}, country=United Kingdom)"))
+                    self.stdout.write("Skipped.")
+                    continue
+
+            self.stdout.write(f"Downloading PDF: {bhpa_incident.pdf_url}")
+            pdf_content = get_webpage_content(bhpa_incident.pdf_url)
+
+            ai_text = f"BHPA Formal Investigation Report:\nDate: {bhpa_incident.date}\nTitle: {bhpa_incident.title}\nCountry: United Kingdom\n\nReport content:\n{pdf_content}"
+            self.stdout.write(f"Sending to AI (content length: {len(ai_text)} chars)")
+
+            messages = [{"role": "user", "content": ai_text}]
+            incident_data = {}
+
+            result = ai_communicator.incident_chat(messages, incident_data, model=model)
+            incident_data.update(result.get("incident_data", {}))
+
+            self.stdout.write(f"\nAI response: {result.get('response')}")
+            self.stdout.write(f"\nExtracted data: {incident_data}")
+
+            incident_data["verified"] = False
+            serializer = IncidentSerializer(data=incident_data)
+            serializer.is_valid(raise_exception=True)
+            incident = serializer.save()
+
+            embedding = ai_communicator.get_embedding(incident.to_text())
+            upsert_embedding(incident.id, embedding)
+
+            self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
 
     def handle_bhpa_list(self, url, model, force):
         self.stdout.write(f"Detected BHPA incidents list page: {url}")
