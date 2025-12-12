@@ -81,15 +81,26 @@ class Command(BaseCommand):
 
             incident_date = bhpa_incident.get_date_iso()
 
-            if not force:
-                duplicates = Incident.all_objects.filter(
-                    date=incident_date,
-                    country="United Kingdom"
-                )
-                if duplicates.exists():
-                    self.stdout.write(self.style.WARNING(f"Duplicate found (date={incident_date}, country=United Kingdom)"))
+            duplicates = Incident.all_objects.filter(
+                date=incident_date,
+                country="United Kingdom"
+            )
+            if duplicates.exists():
+                existing = duplicates.first()
+                if existing.source_links and existing.report_raw:
+                    self.stdout.write(self.style.WARNING(f"Duplicate found with source and report (date={incident_date})"))
                     self.stdout.write("Skipped.")
                     continue
+
+                self.stdout.write(self.style.WARNING(f"Duplicate found but missing source/report, updating..."))
+                self.stdout.write(f"Downloading PDF: {bhpa_incident.pdf_url}")
+                pdf_content = get_webpage_content(bhpa_incident.pdf_url)
+
+                existing.source_links = bhpa_incident.pdf_url
+                existing.report_raw = pdf_content
+                existing.save()
+                self.stdout.write(self.style.SUCCESS(f"Updated incident: {existing.uuid}"))
+                continue
 
             self.stdout.write(f"Downloading PDF: {bhpa_incident.pdf_url}")
             pdf_content = get_webpage_content(bhpa_incident.pdf_url)
@@ -107,6 +118,8 @@ class Command(BaseCommand):
             self.stdout.write(f"\nExtracted data: {incident_data}")
 
             incident_data["verified"] = False
+            incident_data["source_links"] = bhpa_incident.pdf_url
+            incident_data["report_raw"] = pdf_content
             serializer = IncidentSerializer(data=incident_data)
             serializer.is_valid(raise_exception=True)
             incident = serializer.save()
