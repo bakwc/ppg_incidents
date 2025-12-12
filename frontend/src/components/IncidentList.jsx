@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { fetchIncidents } from '../api';
+import { fetchIncidents, fetchCountries } from '../api';
 
 const severityColors = {
   fatal: 'bg-red-500/20 text-red-300 border-red-500/30',
@@ -160,6 +160,7 @@ function IncidentList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [countries, setCountries] = useState([]);
   const [activeFilters, setActiveFilters] = useState(() => {
     const filters = [];
     for (const [key, value] of searchParams.entries()) {
@@ -192,6 +193,10 @@ function IncidentList() {
     });
     return result;
   };
+
+  useEffect(() => {
+    fetchCountries().then(setCountries);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -405,6 +410,31 @@ function IncidentList() {
                 ? 'bg-emerald-500/5 border-emerald-500/20'
                 : 'bg-red-500/5 border-red-500/20'
             }`}>
+
+              {/* Country Filter */}
+              {countries.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-xs text-slate-500 mb-1.5">Country</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {countries.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => toggleFilter('country', c, c, 'Country')}
+                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                          isFilterActive('country', c)
+                            ? filterMode === 'include'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Select Filters */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">

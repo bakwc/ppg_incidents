@@ -1,6 +1,6 @@
 import logging
 
-from django.db.models import Case, Q, When
+from django.db.models import Case, Count, Q, When
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -172,6 +172,11 @@ class IncidentListView(generics.ListAPIView):
 
         queryset = apply_filters(queryset, include_filters, exclude=False)
         queryset = apply_filters(queryset, exclude_filters, exclude=True)
+
+        # Country filter
+        country = self.request.query_params.get("country")
+        if country:
+            queryset = queryset.filter(country=country)
 
         return queryset
 
@@ -407,3 +412,17 @@ class DashboardStatsView(APIView):
             results[name] = queryset.count()
         
         return Response(results)
+
+
+class CountriesView(APIView):
+    def get(self, request):
+        countries = (
+            Incident.objects
+            .exclude(country__isnull=True)
+            .exclude(country="")
+            .values("country")
+            .annotate(count=Count("id"))
+            .order_by("-count")
+            .values_list("country", flat=True)
+        )
+        return Response(list(countries))

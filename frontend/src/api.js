@@ -97,3 +97,8 @@ export async function fetchUnverifiedIncidents() {
   return response.json();
 }
 
+export async function fetchCountries() {
+  const response = await fetch(`${API_BASE}/countries`);
+  return response.json();
+}
+
