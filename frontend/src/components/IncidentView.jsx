@@ -28,6 +28,7 @@ const SEVERITY_LABELS = {
 };
 
 const RESERVE_USE_LABELS = {
+  not_installed: 'Not installed',
   not_deployed: 'Not deployed',
   no_time: 'Did not have time to open',
   tangled: 'Became tangled',

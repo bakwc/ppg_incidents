@@ -75,6 +75,7 @@ const SELECT_FILTERS = [
     key: 'reserve_use',
     label: 'Reserve Use',
     options: [
+      { value: 'not_installed', label: 'Not installed' },
       { value: 'not_deployed', label: 'Not deployed' },
       { value: 'no_time', label: 'No time to open' },
       { value: 'tangled', label: 'Became tangled' },

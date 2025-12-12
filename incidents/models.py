@@ -22,6 +22,7 @@ class Incident(models.Model):
         MINOR = "minor", "Minor"
 
     class ReserveUse(models.TextChoices):
+        NOT_INSTALLED = "not_installed", "Not installed"
         NOT_DEPLOYED = "not_deployed", "Not deployed"
         NO_TIME = "no_time", "Did not have time to open"
         TANGLED = "tangled", "Became tangled"

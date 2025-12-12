@@ -19,6 +19,7 @@ const SEVERITIES = [
 
 const RESERVE_USE = [
   { value: '', label: 'Select...' },
+  { value: 'not_installed', label: 'Not installed' },
   { value: 'not_deployed', label: 'Not deployed' },
   { value: 'no_time', label: 'Did not have time to open' },
   { value: 'tangled', label: 'Became tangled' },

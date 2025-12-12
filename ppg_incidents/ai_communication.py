@@ -43,7 +43,7 @@ The incident has the following fields:
 - hardware_failure: Boolean - hardware failure occurred
 - bad_hardware_preflight: Boolean - hardware issue could have been found on preflight but pilot missed it
 - collapse_types: Array of collapse types in sequence. Values: "asymmetric_small" (<30%), "asymmetric_medium" (30-50%), "asymmetric_large" (>50%), "frontal", "full_stall", "spin", "line_twist", "cravatte", "unknown". Unknown means the collapse HAPPENED but type is not known.
-- reserve_use: One of: "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened". no_time means he deployed but it didnt have time to open! DO NOT USE "no_time" if there was NO DEPLOY ATTEMPT!!!
+- reserve_use: One of: "not_installed", "not_deployed", "no_time", "tangled", "partially_opened", "fully_opened". not_installed means pilot had no reserve parachute at all. no_time means he deployed but it didnt have time to open! DO NOT USE "no_time" if there was NO DEPLOY ATTEMPT!!!
 - surface_type: Type of surface (water, forest, rocks, mountains, etc.)
 - cause_confidence: One of: "maximum", "high", "low", "minimal". If the reason is 100% known but a lot of fields missing - confidence should be "maximum". If all fields exists but reason not clear - confidence should be "low".
 - factor_low_altitude: Boolean - low flight altitude was a factor. Low altitude is <80 meters altitude.
