@@ -15,6 +15,34 @@ const flightPhaseIcons = {
   flight: '✈️',
 };
 
+const COUNTRY_TO_CODE = {
+  'Afghanistan': 'AF', 'Albania': 'AL', 'Algeria': 'DZ', 'Argentina': 'AR',
+  'Australia': 'AU', 'Austria': 'AT', 'Belgium': 'BE', 'Brazil': 'BR',
+  'Bulgaria': 'BG', 'Canada': 'CA', 'Chile': 'CL', 'China': 'CN',
+  'Colombia': 'CO', 'Croatia': 'HR', 'Czech Republic': 'CZ', 'Czechia': 'CZ',
+  'Denmark': 'DK', 'Egypt': 'EG', 'Estonia': 'EE', 'Finland': 'FI',
+  'France': 'FR', 'Germany': 'DE', 'Greece': 'GR', 'Hungary': 'HU',
+  'Iceland': 'IS', 'India': 'IN', 'Indonesia': 'ID', 'Ireland': 'IE',
+  'Israel': 'IL', 'Italy': 'IT', 'Japan': 'JP', 'Kenya': 'KE',
+  'Latvia': 'LV', 'Lithuania': 'LT', 'Luxembourg': 'LU', 'Malaysia': 'MY',
+  'Mexico': 'MX', 'Morocco': 'MA', 'Netherlands': 'NL', 'New Zealand': 'NZ',
+  'Norway': 'NO', 'Pakistan': 'PK', 'Peru': 'PE', 'Philippines': 'PH',
+  'Poland': 'PL', 'Portugal': 'PT', 'Romania': 'RO', 'Russia': 'RU',
+  'Saudi Arabia': 'SA', 'Serbia': 'RS', 'Singapore': 'SG', 'Slovakia': 'SK',
+  'Slovenia': 'SI', 'South Africa': 'ZA', 'South Korea': 'KR', 'Spain': 'ES',
+  'Sweden': 'SE', 'Switzerland': 'CH', 'Taiwan': 'TW', 'Thailand': 'TH',
+  'Turkey': 'TR', 'Ukraine': 'UA', 'United Arab Emirates': 'AE',
+  'United Kingdom': 'GB', 'United States': 'US', 'USA': 'US', 'UK': 'GB',
+  'Venezuela': 'VE', 'Vietnam': 'VN',
+};
+
+const getCountryFlag = (countryName) => {
+  if (!countryName) return null;
+  const code = COUNTRY_TO_CODE[countryName];
+  if (!code) return null;
+  return String.fromCodePoint(...[...code].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+};
+
 const SELECT_FILTERS = [
   {
     key: 'severity',
@@ -600,10 +628,14 @@ function IncidentList() {
                       {/* Location */}
                       {(incident.country || incident.city_or_site) && (
                         <p className="text-slate-400 flex items-center gap-2 mb-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
+                          {getCountryFlag(incident.country) ? (
+                            <span className="mr-1">{getCountryFlag(incident.country)}</span>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                          )}
                           {[incident.city_or_site, incident.country].filter(Boolean).join(', ')}
                         </p>
                       )}
