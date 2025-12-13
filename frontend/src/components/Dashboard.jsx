@@ -189,9 +189,14 @@ export default function Dashboard() {
   const [activeSection, setActiveSection] = useState('primary-causes');
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
@@ -669,7 +674,7 @@ export default function Dashboard() {
               <div className="h-[250px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={yearChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
-                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={0} style={{ fontSize: '10px' }} />
+                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={isMobile ? 'preserveStartEnd' : 0} tickFormatter={(value, index) => isMobile && index % 5 !== 0 ? '' : value} style={{ fontSize: '10px' }} />
                     <YAxis type="number" stroke="#64748b" style={{ fontSize: '10px' }} />
                     <Tooltip
                       trigger={isTouchDevice ? 'click' : 'hover'}
