@@ -454,3 +454,25 @@ class CountriesView(APIView):
             .values_list("country", flat=True)
         )
         return Response(list(countries))
+
+
+class CountryStatsView(APIView):
+    def post(self, request):
+        include_filters = request.data.get("include", {})
+        exclude_filters = request.data.get("exclude", {})
+        limit = request.data.get("limit", 10)
+        
+        queryset = Incident.objects.all()
+        queryset = apply_filters(queryset, include_filters, exclude=False)
+        queryset = apply_filters(queryset, exclude_filters, exclude=True)
+        
+        country_counts = (
+            queryset
+            .exclude(country__isnull=True)
+            .exclude(country="")
+            .values("country")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:limit]
+        )
+        
+        return Response(list(country_counts))

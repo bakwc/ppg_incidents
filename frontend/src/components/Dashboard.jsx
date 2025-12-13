@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
-import { fetchDashboardStats } from '../api';
+import { fetchDashboardStats, fetchCountryStats } from '../api';
+import { getCountryCode, getFlag } from '../countryUtils';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#84cc16', '#6366f1'];
 
@@ -173,20 +174,23 @@ export default function Dashboard() {
   const [barStats, setBarStats] = useState(null);
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
+  const [countryStats, setCountryStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
-      const [pieData, barData, reserveData, trimData] = await Promise.all([
+      const [pieData, barData, reserveData, trimData, countryData] = await Promise.all([
         fetchDashboardStats(PIE_FILTER_PACKS),
         fetchDashboardStats(BAR_FILTER_PACKS),
         fetchDashboardStats(RESERVE_FILTER_PACKS),
-        fetchDashboardStats(TRIM_FILTER_PACKS)
+        fetchDashboardStats(TRIM_FILTER_PACKS),
+        fetchCountryStats({ potentially_fatal: true, cause_confidence: 'maximum,high' }, {}, 10)
       ]);
       setPieStats(pieData);
       setBarStats(barData);
       setReserveStats(reserveData);
       setTrimStats(trimData);
+      setCountryStats(countryData);
       setLoading(false);
     };
 
@@ -408,6 +412,56 @@ export default function Dashboard() {
                     Based on <span className="text-violet-400 font-bold">{knownPercent}%</span> incidents with known trim position. Unknown: <span className="text-slate-300">{unknownPercent}%</span>
                   </span>
                 </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+          <h2 className="text-xl font-semibold mb-6 text-center">Incidents by Country</h2>
+          
+          {(() => {
+            const total = countryStats?.reduce((sum, c) => sum + c.count, 0) || 0;
+            const countryChartData = (countryStats || []).map(c => {
+              const code = getCountryCode(c.country);
+              return {
+                name: `${getFlag(code)} ${code}`,
+                fullName: c.country,
+                count: c.count,
+                percent: total > 0 ? (c.count / total * 100) : 0
+              };
+            });
+
+            const handleCountryClick = (data) => {
+              if (data?.fullName) {
+                const params = new URLSearchParams();
+                params.set('potentially_fatal', 'true');
+                params.set('cause_confidence', 'maximum,high');
+                params.set('country', data.fullName);
+                navigate(`/?${params.toString()}`);
+              }
+            };
+
+            return (
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={countryChartData}>
+                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} />
+                    <YAxis type="number" stroke="#64748b" />
+                    <Tooltip
+                      formatter={(value, name, props) => [value, props.payload.fullName]}
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '8px',
+                        color: '#f1f5f9'
+                      }}
+                    />
+                    <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} onClick={handleCountryClick} style={{ cursor: 'pointer' }}>
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             );
           })()}

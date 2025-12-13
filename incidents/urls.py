@@ -3,6 +3,7 @@ from django.urls import path
 from incidents.views import (
     CheckDuplicateView,
     CountriesView,
+    CountryStatsView,
     DashboardStatsView,
     IncidentChatView,
     IncidentDeleteView,
@@ -28,5 +29,6 @@ urlpatterns = [
     path("incidents/duplicates", IncidentDuplicatesView.as_view(), name="incident-duplicates"),
     path("dashboard_stats", DashboardStatsView.as_view(), name="dashboard-stats"),
     path("countries", CountriesView.as_view(), name="countries"),
+    path("country_stats", CountryStatsView.as_view(), name="country-stats"),
 ]
 
