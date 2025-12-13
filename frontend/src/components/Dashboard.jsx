@@ -365,11 +365,14 @@ export default function Dashboard() {
             const partiallyOpen = trimStats?.['PartiallyOpen'] || 0;
             const trimIn = trimStats?.['TrimIn'] || 0;
 
+            const knownTotal = trimOut + partiallyOpen + trimIn;
+            const knownPercent = total > 0 ? (knownTotal / total * 100).toFixed(0) : 0;
+            const unknownPercent = total > 0 ? (unknown / total * 100).toFixed(0) : 0;
+
             const trimChartData = [
-              { name: 'Unknown', percent: total > 0 ? (unknown / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'Unknown') },
-              { name: 'Trim-out (open)', percent: total > 0 ? (trimOut / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimOut') },
-              { name: 'Partially open', percent: total > 0 ? (partiallyOpen / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'PartiallyOpen') },
-              { name: 'Trim-in (closed)', percent: total > 0 ? (trimIn / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimIn') }
+              { name: 'Trim-out (open)', percent: knownTotal > 0 ? (trimOut / knownTotal * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimOut') },
+              { name: 'Partially open', percent: knownTotal > 0 ? (partiallyOpen / knownTotal * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'PartiallyOpen') },
+              { name: 'Trim-in (closed)', percent: knownTotal > 0 ? (trimIn / knownTotal * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimIn') }
             ];
 
             const handleTrimClick = (data) => {
@@ -378,14 +381,9 @@ export default function Dashboard() {
               }
             };
 
-            const knownTotal = trimOut + partiallyOpen + trimIn;
-            const openPercent = knownTotal > 0 ? (trimOut / knownTotal * 100).toFixed(0) : 0;
-            const partialPercent = knownTotal > 0 ? (partiallyOpen / knownTotal * 100).toFixed(0) : 0;
-            const closedPercent = knownTotal > 0 ? (trimIn / knownTotal * 100).toFixed(0) : 0;
-
             return (
               <div>
-                <div className="h-[250px]">
+                <div className="h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={trimChartData} layout="vertical">
                       <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
@@ -407,7 +405,7 @@ export default function Dashboard() {
                 </div>
                 <div className="mt-6 pt-6 border-t border-slate-700 text-center">
                   <span className="text-lg text-slate-400">
-                    For known positions: <span className="text-violet-400 font-bold">{openPercent}%</span> open, <span className="text-violet-400 font-bold">{partialPercent}%</span> partial, <span className="text-violet-400 font-bold">{closedPercent}%</span> closed
+                    Based on <span className="text-violet-400 font-bold">{knownPercent}%</span> incidents with known trim position. Unknown: <span className="text-slate-300">{unknownPercent}%</span>
                   </span>
                 </div>
               </div>
