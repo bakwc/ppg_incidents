@@ -188,6 +188,39 @@ const FLIGHT_PHASE_FILTER_PACKS = [
   }
 ];
 
+const ALTITUDE_FILTER_PACKS = [
+  {
+    name: 'Total',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_not_null: true },
+    exclude: {}
+  },
+  {
+    name: '0-50',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 0, altitude_max: 50 },
+    exclude: {}
+  },
+  {
+    name: '50-100',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 50, altitude_max: 100 },
+    exclude: {}
+  },
+  {
+    name: '100-200',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 100, altitude_max: 200 },
+    exclude: {}
+  },
+  {
+    name: '200-500',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 200, altitude_max: 500 },
+    exclude: {}
+  },
+  {
+    name: '500+',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 500},
+    exclude: {}
+  },
+];
+
 const TURBULENCE_FILTER_PACKS = [
   {
     name: 'Total',
@@ -236,6 +269,7 @@ const SECTIONS = [
   { id: 'primary-causes', label: 'Primary Causes' },
   { id: 'contributing-factors', label: 'Contributing Factors' },
   { id: 'flight-phase', label: 'Flight Phase' },
+  { id: 'flight-altitude', label: 'Flight Altitude' },
   { id: 'turbulence-type', label: 'Turbulence Type' },
   { id: 'reserve-usage', label: 'Reserve Usage' },
   { id: 'trim-position', label: 'Trim Position' },
@@ -248,6 +282,7 @@ export default function Dashboard() {
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
   const [flightPhaseStats, setFlightPhaseStats] = useState(null);
+  const [altitudeStats, setAltitudeStats] = useState(null);
   const [turbulenceStats, setTurbulenceStats] = useState(null);
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
@@ -269,10 +304,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadStats = async () => {
-      const [pieData, barData, flightPhaseData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
+      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(PIE_FILTER_PACKS),
         fetchDashboardStats(BAR_FILTER_PACKS),
         fetchDashboardStats(FLIGHT_PHASE_FILTER_PACKS),
+        fetchDashboardStats(ALTITUDE_FILTER_PACKS),
         fetchDashboardStats(TURBULENCE_FILTER_PACKS),
         fetchDashboardStats(RESERVE_FILTER_PACKS),
         fetchDashboardStats(TRIM_FILTER_PACKS),
@@ -282,6 +318,7 @@ export default function Dashboard() {
       setPieStats(pieData);
       setBarStats(barData);
       setFlightPhaseStats(flightPhaseData);
+      setAltitudeStats(altitudeData);
       setTurbulenceStats(turbulenceData);
       setReserveStats(reserveData);
       setTrimStats(trimData);
@@ -541,7 +578,7 @@ export default function Dashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={flightPhaseChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
                     <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '10px' : '12px' }} />
-                    <YAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                    <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                     <Tooltip
                       trigger={isTouchDevice ? 'click' : 'hover'}
                       formatter={(value) => `${value.toFixed(1)}%`}
@@ -557,6 +594,100 @@ export default function Dashboard() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div id="flight-altitude" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Flight Altitude</h2>
+          
+          {(() => {
+            const altitudeTotal = altitudeStats?.['Total'] || 0;
+            
+            const altitudeLabels = {
+              '0-50': { meters: '0-50 m', feet: '0-160 ft' },
+              '50-100': { meters: '50-100 m', feet: '160-330 ft' },
+              '100-200': { meters: '100-200 m', feet: '330-660 ft' },
+              '200-500': { meters: '200-500 m', feet: '660-1640 ft' },
+              '500+': { meters: '500+ m', feet: '1640+ ft' }
+            };
+            
+            const altitudeChartData = ALTITUDE_FILTER_PACKS
+              .filter(p => p.name !== 'Total')
+              .map(p => ({
+                name: p.name,
+                displayName: altitudeLabels[p.name]?.meters || p.name,
+                count: altitudeStats?.[p.name] || 0,
+                percent: altitudeTotal > 0 ? ((altitudeStats?.[p.name] || 0) / altitudeTotal) * 100 : 0,
+                filterPack: p
+              }));
+
+            const handleAltitudeClick = (data) => {
+              if (isTouchDevice) {
+                if (activeTooltip === `altitude-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`altitude-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
+              }
+            };
+
+            const CustomXAxisTick = ({ x, y, payload }) => {
+              const labels = altitudeLabels[payload.value];
+              if (!labels) return null;
+              
+              return (
+                <g transform={`translate(${x},${y})`}>
+                  <text x={0} y={0} dy={10} textAnchor="middle" fill="#64748b" fontSize={isMobile ? 9 : 11}>
+                    {labels.meters}
+                  </text>
+                  <text x={0} y={0} dy={22} textAnchor="middle" fill="#64748b" fontSize={isMobile ? 8 : 10}>
+                    {labels.feet}
+                  </text>
+                </g>
+              );
+            };
+
+            const allIncidentsTotal = barStats?.['Total'] || 0;
+            const knownAltitudePercent = allIncidentsTotal > 0 ? ((altitudeTotal / allIncidentsTotal) * 100).toFixed(0) : 0;
+            const unknownAltitudePercent = allIncidentsTotal > 0 ? (((allIncidentsTotal - altitudeTotal) / allIncidentsTotal) * 100).toFixed(0) : 0;
+
+            return (
+              <div>
+                <div className="h-[320px] md:h-[370px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={altitudeChartData} margin={{ left: 0, right: 0, top: 20, bottom: 35 }}>
+                      <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} tick={<CustomXAxisTick />} />
+                      <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
+                        formatter={(value) => `${value.toFixed(1)}%`}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Bar dataKey="percent" fill="#a855f7" radius={[4, 4, 0, 0]} onClick={handleAltitudeClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                        <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
+                  <span className="text-base md:text-lg text-slate-400">
+                    Based on <span className="text-purple-400 font-bold text-lg md:text-xl">{knownAltitudePercent}%</span> incidents with known altitude ({unknownAltitudePercent}% reports missing altitude)
+                  </span>
+                </div>
               </div>
             );
           })()}

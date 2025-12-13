@@ -67,6 +67,22 @@ def apply_filters(queryset, filters, exclude=False):
                 queryset = queryset.filter(wind_speed_ms__gte=float(value))
             else:
                 queryset = queryset.exclude(wind_speed_ms__gte=float(value))
+        elif field == "altitude_min":
+            if not exclude:
+                queryset = queryset.filter(flight_altitude__gte=int(value))
+            else:
+                queryset = queryset.exclude(flight_altitude__gte=int(value))
+        elif field == "altitude_max":
+            if not exclude:
+                queryset = queryset.filter(flight_altitude__lt=int(value))
+            else:
+                queryset = queryset.exclude(flight_altitude__lt=int(value))
+        elif field == "altitude_not_null":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                if not exclude:
+                    queryset = queryset.filter(flight_altitude__isnull=False)
+                else:
+                    queryset = queryset.exclude(flight_altitude__isnull=False)
         elif field in BOOLEAN_FILTER_FIELDS:
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 if exclude:
