@@ -423,6 +423,7 @@ export default function Dashboard() {
                   dataKey="value"
                   onClick={handlePieClick}
                   style={{ cursor: 'pointer' }}
+                  isAnimationActive={false}
                 >
                   {pieChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -461,7 +462,7 @@ export default function Dashboard() {
                     color: '#f1f5f9'
                   }}
                 />
-                <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
+                <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
                   <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
                 </Bar>
               </BarChart>
@@ -526,6 +527,7 @@ export default function Dashboard() {
                         dataKey="value"
                         onClick={handleTurbulenceClick}
                         style={{ cursor: 'pointer' }}
+                        isAnimationActive={false}
                       >
                         {turbulenceChartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -604,7 +606,7 @@ export default function Dashboard() {
                           color: '#f1f5f9'
                         }}
                       />
-                      <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }}>
+                      <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
                         <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
                       </Bar>
                     </BarChart>
@@ -674,7 +676,7 @@ export default function Dashboard() {
                           color: '#f1f5f9'
                         }}
                       />
-                      <Bar dataKey="percent" fill="#8b5cf6" radius={[0, 4, 4, 0]} onClick={handleTrimClick} style={{ cursor: 'pointer' }}>
+                      <Bar dataKey="percent" fill="#8b5cf6" radius={[0, 4, 4, 0]} onClick={handleTrimClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
                         <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
                       </Bar>
                     </BarChart>
@@ -746,7 +748,7 @@ export default function Dashboard() {
                         color: '#f1f5f9'
                       }}
                     />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} onClick={handleCountryClick} style={{ cursor: 'pointer' }}>
+                    <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} onClick={handleCountryClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
                       <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                     </Bar>
                   </BarChart>
@@ -808,7 +810,7 @@ export default function Dashboard() {
                         color: '#f1f5f9'
                       }}
                     />
-                    <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]} onClick={handleYearClick} style={{ cursor: 'pointer' }}>
+                    <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]} onClick={handleYearClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
                       <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                     </Bar>
                   </BarChart>
