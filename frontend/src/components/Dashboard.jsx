@@ -168,6 +168,15 @@ const buildFilterUrl = (filterPack) => {
   return `/?${params.toString()}`;
 };
 
+const SECTIONS = [
+  { id: 'primary-causes', label: 'Primary Causes' },
+  { id: 'contributing-factors', label: 'Contributing Factors' },
+  { id: 'reserve-usage', label: 'Reserve Usage' },
+  { id: 'trim-position', label: 'Trim Position' },
+  { id: 'by-country', label: 'By Country' },
+  { id: 'by-year', label: 'By Year' }
+];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [pieStats, setPieStats] = useState(null);
@@ -177,6 +186,7 @@ export default function Dashboard() {
   const [countryStats, setCountryStats] = useState(null);
   const [yearStats, setYearStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState('primary-causes');
 
   useEffect(() => {
     const loadStats = async () => {
@@ -199,6 +209,31 @@ export default function Dashboard() {
 
     loadStats();
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = SECTIONS.map(s => document.getElementById(s.id));
+      const scrollPosition = window.scrollY + 100;
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(SECTIONS[i].id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   if (loading) {
     return (
@@ -237,20 +272,46 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-amber-400">Potentially Fatal Incidents</h1>
-          <Link
-            to="/"
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
-          >
-            ← Back to List
-          </Link>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="flex">
+        {/* Table of Contents */}
+        <div className="fixed left-0 top-0 h-screen w-64 bg-slate-900 border-r border-slate-800 p-6 overflow-y-auto">
+          <div className="mb-8">
+            <Link
+              to="/"
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors inline-block"
+            >
+              ← Back to List
+            </Link>
+          </div>
+          
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Contents</h2>
+          <nav className="space-y-2">
+            {SECTIONS.map(section => (
+              <button
+                key={section.id}
+                onClick={() => scrollToSection(section.id)}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  activeSection === section.id
+                    ? 'bg-amber-500/20 text-amber-400 font-medium'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
+                }`}
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800">
-          <h2 className="text-xl font-semibold mb-6 text-center">Primary Causes</h2>
+        {/* Main Content */}
+        <div className="ml-64 flex-1 p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-amber-400">Potentially Fatal Incidents</h1>
+            </div>
+
+            <div id="primary-causes" className="bg-slate-900 rounded-xl p-8 border border-slate-800 scroll-mt-8">
+              <h2 className="text-xl font-semibold mb-6 text-center">Primary Causes</h2>
           
           <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -283,7 +344,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+        <div id="contributing-factors" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
           <h2 className="text-xl font-semibold mb-6 text-center">Contributing Factors</h2>
           
           <div className="h-[400px]">
@@ -308,7 +369,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+        <div id="reserve-usage" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
           <h2 className="text-xl font-semibold mb-6 text-center">Reserve Usage</h2>
           
           {(() => {
@@ -362,7 +423,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+        <div id="trim-position" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
           <h2 className="text-xl font-semibold mb-6 text-center">Trim Position</h2>
           
           {(() => {
@@ -420,7 +481,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+        <div id="by-country" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
           <h2 className="text-xl font-semibold mb-6 text-center">Incidents by Country</h2>
           
           {(() => {
@@ -470,7 +531,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+        <div id="by-year" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
           <h2 className="text-xl font-semibold mb-6 text-center">Incidents by Year</h2>
           
           {(() => {
@@ -513,6 +574,8 @@ export default function Dashboard() {
               </div>
             );
           })()}
+        </div>
+          </div>
         </div>
       </div>
     </div>
