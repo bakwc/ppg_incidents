@@ -282,45 +282,8 @@ function IncidentList() {
   };
 
   return (
-    <div className="min-h-screen py-4 md:py-12 px-3 md:px-4">
+    <div className="min-h-screen py-4 md:py-6 px-3 md:px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 md:mb-12">
-          <div className="mb-4">
-            <h1 className="font-display text-3xl md:text-4xl text-gradient mb-2">
-              PPG Incidents
-            </h1>
-            <p className="text-slate-400 text-base md:text-lg">
-              Paramotor incident tracking database
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-            <Link
-              to="/dashboard"
-              className="px-4 py-2.5 md:px-5 md:py-3 bg-slate-800/70 hover:bg-slate-700 border border-slate-700/50 rounded-xl font-medium text-slate-300 transition-all text-center"
-            >
-              📊 Dashboard
-            </Link>
-            <Link
-              to="/unverified"
-              className="px-4 py-2.5 md:px-5 md:py-3 bg-slate-800/70 hover:bg-slate-700 border border-amber-500/50 rounded-xl font-medium text-amber-400 transition-all text-center"
-            >
-              📝 Unverified
-            </Link>
-            <Link
-              to="/create"
-              className="group relative px-4 py-2.5 md:px-6 md:py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
-            >
-              <span className="flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create
-              </span>
-            </Link>
-          </div>
-        </div>
-
         {/* Search bar */}
         <form onSubmit={handleSearch} className="mb-4">
           <div className="relative flex gap-2">

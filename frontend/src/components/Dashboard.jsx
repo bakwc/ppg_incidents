@@ -424,16 +424,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="flex">
         {/* Table of Contents - Hidden on mobile */}
-        <div className="hidden lg:block fixed left-0 top-0 h-screen w-48 xl:w-64 bg-slate-900 border-r border-slate-800 p-4 xl:p-6 overflow-y-auto">
-          <div className="mb-6 xl:mb-8">
-            <Link
-              to="/"
-              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors inline-block text-sm"
-            >
-              ← Back
-            </Link>
-          </div>
-          
+        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-48 xl:w-64 bg-slate-900 border-r border-slate-800 p-4 xl:p-6 overflow-y-auto">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Contents</h2>
           <nav className="space-y-1.5">
             {SECTIONS.map(section => (
@@ -454,16 +445,6 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <div className="lg:ml-48 xl:ml-64 flex-1 p-4 md:p-6 xl:p-8">
-          {/* Mobile header with back button */}
-          <div className="lg:hidden mb-4">
-            <Link
-              to="/"
-              className="inline-block px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors text-sm"
-            >
-              ← Back to List
-            </Link>
-          </div>
-          
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 md:mb-8">
               <h1 className="text-2xl md:text-3xl font-bold text-amber-400">Potentially Fatal Incidents</h1>

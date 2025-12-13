@@ -38,14 +38,6 @@ function UnverifiedList() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Link
-            to="/"
-            className="p-2 rounded-xl bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </Link>
           <h1 className="font-display text-3xl text-gradient">Unverified Incidents</h1>
           <span className="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-full text-sm font-medium">
             {incidents.length} draft{incidents.length !== 1 ? 's' : ''}
