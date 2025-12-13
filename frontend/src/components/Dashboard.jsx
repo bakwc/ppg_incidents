@@ -274,24 +274,24 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="flex">
-        {/* Table of Contents */}
-        <div className="fixed left-0 top-0 h-screen w-64 bg-slate-900 border-r border-slate-800 p-6 overflow-y-auto">
-          <div className="mb-8">
+        {/* Table of Contents - Hidden on mobile */}
+        <div className="hidden lg:block fixed left-0 top-0 h-screen w-48 xl:w-64 bg-slate-900 border-r border-slate-800 p-4 xl:p-6 overflow-y-auto">
+          <div className="mb-6 xl:mb-8">
             <Link
               to="/"
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors inline-block"
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors inline-block text-sm"
             >
-              ← Back to List
+              ← Back
             </Link>
           </div>
           
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Contents</h2>
-          <nav className="space-y-2">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Contents</h2>
+          <nav className="space-y-1.5">
             {SECTIONS.map(section => (
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-sm ${
                   activeSection === section.id
                     ? 'bg-amber-500/20 text-amber-400 font-medium'
                     : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
@@ -304,16 +304,26 @@ export default function Dashboard() {
         </div>
 
         {/* Main Content */}
-        <div className="ml-64 flex-1 p-8">
+        <div className="lg:ml-48 xl:ml-64 flex-1 p-4 md:p-6 xl:p-8">
+          {/* Mobile header with back button */}
+          <div className="lg:hidden mb-4">
+            <Link
+              to="/"
+              className="inline-block px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors text-sm"
+            >
+              ← Back to List
+            </Link>
+          </div>
+          
           <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-amber-400">Potentially Fatal Incidents</h1>
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-amber-400">Potentially Fatal Incidents</h1>
             </div>
 
-            <div id="primary-causes" className="bg-slate-900 rounded-xl p-8 border border-slate-800 scroll-mt-8">
-              <h2 className="text-xl font-semibold mb-6 text-center">Primary Causes</h2>
+            <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8">
+              <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Primary Causes</h2>
           
-          <div className="h-[400px]">
+          <div className="h-[350px] md:h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -344,14 +354,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div id="contributing-factors" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
-          <h2 className="text-xl font-semibold mb-6 text-center">Contributing Factors</h2>
+        <div id="contributing-factors" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Contributing Factors</h2>
           
-          <div className="h-[400px]">
+          <div className="h-[350px] md:h-[400px] overflow-x-auto">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData} layout="vertical">
-                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
-                <YAxis type="category" dataKey="name" width={150} stroke="#64748b" interval={0} />
+                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '12px' }} />
+                <YAxis type="category" dataKey="name" width={120} stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
                 <Tooltip
                   formatter={(value) => `${value.toFixed(1)}%`}
                   contentStyle={{
@@ -362,15 +372,15 @@ export default function Dashboard() {
                   }}
                 />
                 <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
-                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
+                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '11px' }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div id="reserve-usage" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
-          <h2 className="text-xl font-semibold mb-6 text-center">Reserve Usage</h2>
+        <div id="reserve-usage" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Reserve Usage</h2>
           
           {(() => {
             const total = reserveStats?.['Total'] || 0;
@@ -393,11 +403,11 @@ export default function Dashboard() {
 
             return (
               <div>
-                <div className="h-[200px]">
+                <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={reserveChartData} layout="vertical">
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
-                      <YAxis type="category" dataKey="name" width={150} stroke="#64748b" interval={0} />
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '12px' }} />
+                      <YAxis type="category" dataKey="name" width={130} stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
                       <Tooltip
                         formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{
@@ -408,14 +418,14 @@ export default function Dashboard() {
                         }}
                       />
                       <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }}>
-                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '11px' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-6 pt-6 border-t border-slate-700 text-center">
-                  <span className="text-lg text-slate-400">
-                    <span className="text-emerald-400 font-bold text-xl">{successRate}%</span> of all throws were successful
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
+                  <span className="text-base md:text-lg text-slate-400">
+                    <span className="text-emerald-400 font-bold text-lg md:text-xl">{successRate}%</span> of all throws were successful
                   </span>
                 </div>
               </div>
@@ -423,8 +433,8 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="trim-position" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
-          <h2 className="text-xl font-semibold mb-6 text-center">Trim Position</h2>
+        <div id="trim-position" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Trim Position</h2>
           
           {(() => {
             const total = trimStats?.['Total'] || 0;
@@ -451,11 +461,11 @@ export default function Dashboard() {
 
             return (
               <div>
-                <div className="h-[200px]">
+                <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={trimChartData} layout="vertical">
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
-                      <YAxis type="category" dataKey="name" width={150} stroke="#64748b" interval={0} />
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '12px' }} />
+                      <YAxis type="category" dataKey="name" width={130} stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
                       <Tooltip
                         formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{
@@ -466,13 +476,13 @@ export default function Dashboard() {
                         }}
                       />
                       <Bar dataKey="percent" fill="#8b5cf6" radius={[0, 4, 4, 0]} onClick={handleTrimClick} style={{ cursor: 'pointer' }}>
-                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '11px' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-6 pt-6 border-t border-slate-700 text-center">
-                  <span className="text-lg text-slate-400">
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
+                  <span className="text-sm md:text-base lg:text-lg text-slate-400">
                     Based on <span className="text-violet-400 font-bold">{knownPercent}%</span> incidents with known trim position. Unknown: <span className="text-slate-300">{unknownPercent}%</span>
                   </span>
                 </div>
@@ -481,8 +491,8 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="by-country" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
-          <h2 className="text-xl font-semibold mb-6 text-center">Incidents by Country</h2>
+        <div id="by-country" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Incidents by Country</h2>
           
           {(() => {
             const total = countryStats?.reduce((sum, c) => sum + c.count, 0) || 0;
@@ -507,11 +517,11 @@ export default function Dashboard() {
             };
 
             return (
-              <div className="h-[300px]">
+              <div className="h-[250px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={countryChartData}>
-                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} />
-                    <YAxis type="number" stroke="#64748b" />
+                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
+                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '11px' }} />
                     <Tooltip
                       formatter={(value, name, props) => [value, props.payload.fullName]}
                       contentStyle={{
@@ -522,7 +532,7 @@ export default function Dashboard() {
                       }}
                     />
                     <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} onClick={handleCountryClick} style={{ cursor: 'pointer' }}>
-                      <LabelList dataKey="count" position="top" fill="#f1f5f9" />
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '11px' }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -531,8 +541,8 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="by-year" className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8 scroll-mt-8">
-          <h2 className="text-xl font-semibold mb-6 text-center">Incidents by Year</h2>
+        <div id="by-year" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Incidents by Year</h2>
           
           {(() => {
             const yearChartData = (yearStats || []).map(y => ({
@@ -552,11 +562,11 @@ export default function Dashboard() {
             };
 
             return (
-              <div className="h-[300px]">
+              <div className="h-[250px] md:h-[300px] overflow-x-auto">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={yearChartData}>
-                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={0} />
-                    <YAxis type="number" stroke="#64748b" />
+                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
+                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '11px' }} />
                     <Tooltip
                       formatter={(value) => [value, 'Incidents']}
                       contentStyle={{
@@ -567,7 +577,7 @@ export default function Dashboard() {
                       }}
                     />
                     <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]} onClick={handleYearClick} style={{ cursor: 'pointer' }}>
-                      <LabelList dataKey="count" position="top" fill="#f1f5f9" />
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '11px' }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
