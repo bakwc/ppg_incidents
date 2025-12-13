@@ -282,40 +282,40 @@ function IncidentList() {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4">
+    <div className="min-h-screen py-4 md:py-12 px-3 md:px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-12">
-          <div>
-            <h1 className="font-display text-4xl text-gradient mb-2">
+        <div className="mb-8 md:mb-12">
+          <div className="mb-4">
+            <h1 className="font-display text-3xl md:text-4xl text-gradient mb-2">
               PPG Incidents
             </h1>
-            <p className="text-slate-400 text-lg">
+            <p className="text-slate-400 text-base md:text-lg">
               Paramotor incident tracking database
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <Link
               to="/dashboard"
-              className="px-5 py-3 bg-slate-800/70 hover:bg-slate-700 border border-slate-700/50 rounded-xl font-medium text-slate-300 transition-all"
+              className="px-4 py-2.5 md:px-5 md:py-3 bg-slate-800/70 hover:bg-slate-700 border border-slate-700/50 rounded-xl font-medium text-slate-300 transition-all text-center"
             >
               📊 Dashboard
             </Link>
             <Link
               to="/unverified"
-              className="px-5 py-3 bg-slate-800/70 hover:bg-slate-700 border border-amber-500/50 rounded-xl font-medium text-amber-400 transition-all"
+              className="px-4 py-2.5 md:px-5 md:py-3 bg-slate-800/70 hover:bg-slate-700 border border-amber-500/50 rounded-xl font-medium text-amber-400 transition-all text-center"
             >
-              📝 Unverified Incidents
+              📝 Unverified
             </Link>
             <Link
               to="/create"
-              className="group relative px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
+              className="group relative px-4 py-2.5 md:px-6 md:py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Create Incident
+                Create
               </span>
             </Link>
           </div>
@@ -323,9 +323,9 @@ function IncidentList() {
 
         {/* Search bar */}
         <form onSubmit={handleSearch} className="mb-4">
-          <div className="relative flex gap-3">
+          <div className="relative flex gap-2">
             <div className="relative flex-1">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -333,12 +333,12 @@ function IncidentList() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search incidents..."
-                className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all"
+                className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all text-sm md:text-base"
               />
             </div>
             <button
               type="submit"
-              className="px-6 py-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-xl text-slate-300 font-medium transition-all"
+              className="px-4 md:px-6 py-2.5 md:py-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-xl text-slate-300 font-medium transition-all text-sm md:text-base whitespace-nowrap"
             >
               Search
             </button>
@@ -346,16 +346,16 @@ function IncidentList() {
               <button
                 type="button"
                 onClick={clearSearch}
-                className="px-4 py-3 bg-slate-700/50 hover:bg-red-500/20 border border-slate-600/50 hover:border-red-500/30 rounded-xl text-slate-400 hover:text-red-400 transition-all"
+                className="px-3 md:px-4 py-2.5 md:py-3 bg-slate-700/50 hover:bg-red-500/20 border border-slate-600/50 hover:border-red-500/30 rounded-xl text-slate-400 hover:text-red-400 transition-all"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}
           </div>
           {searchQuery && (
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-xs md:text-sm text-slate-500">
               Showing results for: <span className="text-orange-400">"{searchQuery}"</span>
             </p>
           )}
@@ -397,7 +397,7 @@ function IncidentList() {
         )}
 
         {/* Filter buttons + expandable panel */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <div className="flex gap-2">
             <button
               type="button"
@@ -409,14 +409,14 @@ function IncidentList() {
                   setFiltersExpanded(true);
                 }
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+              className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-xl transition-all text-sm md:text-base ${
                 filtersExpanded && filterMode === 'include'
                   ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
                   : 'bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800'
               }`}
             >
               <span className="text-sm">+</span>
-              <span>Include filter</span>
+              <span>Include</span>
             </button>
             <button
               type="button"
@@ -428,19 +428,19 @@ function IncidentList() {
                   setFiltersExpanded(true);
                 }
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+              className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-xl transition-all text-sm md:text-base ${
                 filtersExpanded && filterMode === 'exclude'
                   ? 'bg-red-500/20 border border-red-500/30 text-red-400'
                   : 'bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800'
               }`}
             >
               <span className="text-sm">−</span>
-              <span>Exclude filter</span>
+              <span>Exclude</span>
             </button>
           </div>
 
           {filtersExpanded && (
-            <div className={`mt-4 p-6 border rounded-2xl ${
+            <div className={`mt-4 p-4 md:p-6 border rounded-2xl ${
               filterMode === 'include'
                 ? 'bg-emerald-500/5 border-emerald-500/20'
                 : 'bg-red-500/5 border-red-500/20'
@@ -449,13 +449,13 @@ function IncidentList() {
               {/* Date Range Filter */}
               <div className="mb-6">
                 <label className="block text-xs text-slate-500 mb-1.5">Date Range</label>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500">From:</span>
+                    <span className="text-xs text-slate-500 w-10">From:</span>
                     <select
                       value={yearFrom}
                       onChange={(e) => setYearFrom(e.target.value)}
-                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
                     >
                       <option value="">Year</option>
                       {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
@@ -465,7 +465,7 @@ function IncidentList() {
                     <select
                       value={monthFrom}
                       onChange={(e) => setMonthFrom(e.target.value)}
-                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
                     >
                       <option value="">Month</option>
                       {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
@@ -474,11 +474,11 @@ function IncidentList() {
                     </select>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500">To:</span>
+                    <span className="text-xs text-slate-500 w-10">To:</span>
                     <select
                       value={yearTo}
                       onChange={(e) => setYearTo(e.target.value)}
-                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
                     >
                       <option value="">Year</option>
                       {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
@@ -488,7 +488,7 @@ function IncidentList() {
                     <select
                       value={monthTo}
                       onChange={(e) => setMonthTo(e.target.value)}
-                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
                     >
                       <option value="">Month</option>
                       {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
@@ -500,7 +500,7 @@ function IncidentList() {
                     <button
                       type="button"
                       onClick={() => { setYearFrom(''); setMonthFrom(''); setYearTo(''); setMonthTo(''); }}
-                      className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                      className="text-xs text-slate-500 hover:text-red-400 transition-colors self-start sm:self-center"
                     >
                       Clear
                     </button>
@@ -534,7 +534,7 @@ function IncidentList() {
               )}
 
               {/* Select Filters */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                 {SELECT_FILTERS.map(filter => (
                   <div key={filter.key}>
                     <label className="block text-xs text-slate-500 mb-1.5">{filter.label}</label>
@@ -638,24 +638,24 @@ function IncidentList() {
               {incidents.map((incident) => (
                 <div
                   key={incident.uuid}
-                  className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300"
+                  className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 md:p-6 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300"
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       {/* Title & Date row */}
-                      <div className="flex items-center gap-4 mb-3">
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
                         {incident.severity && (
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${severityColors[incident.severity] || 'bg-slate-600/20 text-slate-400 border-slate-600/30'}`}>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${severityColors[incident.severity] || 'bg-slate-600/20 text-slate-400 border-slate-600/30'}`}>
                             {incident.severity === 'fatal' ? '⚠️ ' : ''}{incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)}
                           </span>
                         )}
                         {incident.potentially_fatal && incident.severity !== 'fatal' && (
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-red-500/10 text-red-400 border-red-500/30">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold border bg-red-500/10 text-red-400 border-red-500/30">
                             ⚠️ Potentially Fatal
                           </span>
                         )}
                         {incident.date && (
-                          <span className="text-slate-400 text-sm font-medium">
+                          <span className="text-slate-400 text-xs md:text-sm font-medium">
                             {new Date(incident.date).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'short',
@@ -664,7 +664,7 @@ function IncidentList() {
                           </span>
                         )}
                         {incident.flight_phase && (
-                          <span className="text-lg" title={incident.flight_phase}>
+                          <span className="text-base md:text-lg" title={incident.flight_phase}>
                             {flightPhaseIcons[incident.flight_phase]}
                           </span>
                         )}
@@ -672,7 +672,7 @@ function IncidentList() {
 
                       {/* Title */}
                       <Link to={`/view/${incident.uuid}`} className="block">
-                        <h3 className="text-xl font-semibold text-white mb-2 truncate hover:text-orange-400 transition-colors">
+                        <h3 className="text-lg md:text-xl font-semibold text-white mb-2 line-clamp-2 hover:text-orange-400 transition-colors">
                           {incident.title || 'Untitled Incident'}
                         </h3>
                       </Link>
@@ -743,9 +743,9 @@ function IncidentList() {
                     {/* Edit button */}
                     <Link
                       to={`/edit/${incident.uuid}`}
-                      className="flex-shrink-0 p-3 rounded-xl bg-slate-700/50 text-slate-400 hover:bg-orange-500/20 hover:text-orange-400 transition-all duration-200"
+                      className="flex-shrink-0 p-2 md:p-3 rounded-xl bg-slate-700/50 text-slate-400 hover:bg-orange-500/20 hover:text-orange-400 transition-all duration-200"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </Link>
@@ -756,18 +756,18 @@ function IncidentList() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
+              <div className="flex items-center justify-center gap-1.5 md:gap-2 mt-8">
                 <button
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
                 >
                   ««
                 </button>
                 <button
                   onClick={() => setCurrentPage(p => p - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
                 >
                   «
                 </button>
@@ -787,7 +787,7 @@ function IncidentList() {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all text-sm md:text-base ${
                         currentPage === pageNum
                           ? 'bg-orange-500 text-white'
                           : 'bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:bg-slate-700'
@@ -801,14 +801,14 @@ function IncidentList() {
                 <button
                   onClick={() => setCurrentPage(p => p + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
                 >
                   »
                 </button>
                 <button
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
                 >
                   »»
                 </button>
