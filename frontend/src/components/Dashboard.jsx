@@ -377,7 +377,7 @@ export default function Dashboard() {
                       'Others': 'Others'
                     };
                     return (
-                      <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={11} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                      <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={isMobile ? 11 : 13} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
                         {`${shortNames[name] || name} ${(percent * 100).toFixed(0)}%`}
                       </text>
                     );
@@ -412,8 +412,8 @@ export default function Dashboard() {
           <div className="h-[350px] md:h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
-                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
-                <YAxis type="category" dataKey="name" width={80} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 80 }} />
+                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                <YAxis type="category" dataKey="name" width={80} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 80 }} />
                 <Tooltip
                   trigger={isTouchDevice ? 'click' : 'hover'}
                   formatter={(value) => `${value.toFixed(1)}%`}
@@ -425,7 +425,7 @@ export default function Dashboard() {
                   }}
                 />
                 <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
-                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '9px' }} />
+                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -470,8 +470,8 @@ export default function Dashboard() {
                 <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={reserveChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
-                      <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 100 }} />
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 100 }} />
                       <Tooltip
                         trigger={isTouchDevice ? 'click' : 'hover'}
                         formatter={(value) => `${value.toFixed(1)}%`}
@@ -483,7 +483,7 @@ export default function Dashboard() {
                         }}
                       />
                       <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }}>
-                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '9px' }} />
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -540,8 +540,8 @@ export default function Dashboard() {
                 <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={trimChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
-                      <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 100 }} />
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 100 }} />
                       <Tooltip
                         trigger={isTouchDevice ? 'click' : 'hover'}
                         formatter={(value) => `${value.toFixed(1)}%`}
@@ -553,7 +553,7 @@ export default function Dashboard() {
                         }}
                       />
                       <Bar dataKey="percent" fill="#8b5cf6" radius={[0, 4, 4, 0]} onClick={handleTrimClick} style={{ cursor: 'pointer' }}>
-                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '9px' }} />
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -612,8 +612,8 @@ export default function Dashboard() {
               <div className="h-[250px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={countryChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
-                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: '10px' }} />
-                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '10px' }} />
+                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                    <YAxis type="number" stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                     <Tooltip
                       trigger={isTouchDevice ? 'click' : 'hover'}
                       formatter={(value, name, props) => [value, props.payload.fullName]}
@@ -625,7 +625,7 @@ export default function Dashboard() {
                       }}
                     />
                     <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} onClick={handleCountryClick} style={{ cursor: 'pointer' }}>
-                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '10px' }} />
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -674,8 +674,8 @@ export default function Dashboard() {
               <div className="h-[250px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={yearChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
-                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={isMobile ? 'preserveStartEnd' : 0} tickFormatter={(value, index) => isMobile && index % 5 !== 0 ? '' : value} style={{ fontSize: '10px' }} />
-                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '10px' }} />
+                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={isMobile ? 'preserveStartEnd' : 0} tickFormatter={(value, index) => isMobile && index % 5 !== 0 ? '' : value} style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                    <YAxis type="number" stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                     <Tooltip
                       trigger={isTouchDevice ? 'click' : 'hover'}
                       formatter={(value) => [value, 'Incidents']}
@@ -687,7 +687,7 @@ export default function Dashboard() {
                       }}
                     />
                     <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]} onClick={handleYearClick} style={{ cursor: 'pointer' }}>
-                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '10px' }} />
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
