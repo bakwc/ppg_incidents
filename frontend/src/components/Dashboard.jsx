@@ -153,6 +153,10 @@ const BAR_FILTER_PACKS = [
   {
     name: 'Spiral',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_spiral_maneuver: true }
+  },
+  {
+    name: 'Accelerator Engaged',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_accelerator: 'partially_engaged,fully_engaged' }
   }
 ];
 
