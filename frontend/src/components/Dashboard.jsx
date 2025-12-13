@@ -567,6 +567,7 @@ export default function Dashboard() {
             const attempted = reserveStats?.['Attempted'] || 0;
             const fullyOpened = reserveStats?.['FullyOpened'] || 0;
             const notOpened = reserveStats?.['NotOpened'] || 0;
+            const attemptedRate = total > 0 ? (attempted / total * 100).toFixed(0) : 0;
             const successRate = attempted > 0 ? (fullyOpened / attempted * 100).toFixed(0) : 0;
 
             const reserveChartData = [
@@ -615,10 +616,13 @@ export default function Dashboard() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
-                  <span className="text-base md:text-lg text-slate-400">
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center space-y-2">
+                  <div className="text-base md:text-lg text-slate-400">
+                    Only <span className="text-emerald-400 font-bold text-lg md:text-xl">{attemptedRate}%</span> attempted to throw
+                  </div>
+                  <div className="text-base md:text-lg text-slate-400">
                     <span className="text-emerald-400 font-bold text-lg md:text-xl">{successRate}%</span> of all throws were successful
-                  </span>
+                  </div>
                 </div>
               </div>
             );
