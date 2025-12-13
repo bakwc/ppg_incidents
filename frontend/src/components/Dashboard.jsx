@@ -63,22 +63,22 @@ const RESERVE_FILTER_PACKS = [
   {
     name: 'Total',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
-    exclude: {}
+    exclude: { flight_phase: 'ground' }
   },
   {
     name: 'Attempted',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'no_time,tangled,partially_opened,fully_opened' },
-    exclude: {}
+    exclude: { flight_phase: 'ground' }
   },
   {
     name: 'FullyOpened',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'fully_opened' },
-    exclude: {}
+    exclude: { flight_phase: 'ground' }
   },
   {
     name: 'NotOpened',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'no_time,tangled,partially_opened' },
-    exclude: {}
+    exclude: { flight_phase: 'ground' }
   }
 ];
 
