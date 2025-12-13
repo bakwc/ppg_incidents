@@ -515,10 +515,10 @@ export default function Dashboard() {
                         cx="50%"
                         cy="50%"
                         labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
-                        label={({ name, percent, index, x, y, cx }) => {
+                        label={({ name, index, x, y, cx, payload }) => {
                           return (
                             <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={isMobile ? 11 : 13} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-                              {`${name} ${(percent * 100).toFixed(0)}%`}
+                              {`${name} ${payload.percent.toFixed(0)}%`}
                             </text>
                           );
                         }}
