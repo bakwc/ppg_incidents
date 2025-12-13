@@ -325,13 +325,13 @@ export default function Dashboard() {
           
           <div className="h-[380px] md:h-[450px]">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ left: 40, right: 20, top: 10, bottom: 10 }}>
                 <Pie
                   data={pieChartData}
                   cx="50%"
                   cy="50%"
                   labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
-                  label={({ name, percent, index, x, y }) => {
+                  label={({ name, percent, index, x, y, cx }) => {
                     const shortNames = {
                       'Wrong Control Input': 'Wrong Input',
                       'Hardware Failure': 'Hardware',
@@ -344,7 +344,7 @@ export default function Dashboard() {
                       'Others': 'Others'
                     };
                     return (
-                      <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={11} textAnchor={x > 200 ? 'start' : 'end'} dominantBaseline="central">
+                      <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={11} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
                         {`${shortNames[name] || name} ${(percent * 100).toFixed(0)}%`}
                       </text>
                     );
