@@ -129,7 +129,6 @@ const BAR_FILTER_PACKS = [
   {
     name: 'Turbulent Conditions',
     include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
-    exclude: { hardware_failure: true, pilot_actions: 'wrong_input_triggered', factor_powerline_collision: true }
   },
   {
     name: 'Powerline Collision',
