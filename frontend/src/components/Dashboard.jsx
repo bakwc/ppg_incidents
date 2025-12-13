@@ -58,6 +58,29 @@ const PIE_FILTER_PACKS = [
   }
 ];
 
+const RESERVE_FILTER_PACKS = [
+  {
+    name: 'Total',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    exclude: {}
+  },
+  {
+    name: 'Attempted',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'no_time,tangled,partially_opened,fully_opened' },
+    exclude: {}
+  },
+  {
+    name: 'FullyOpened',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'fully_opened' },
+    exclude: {}
+  },
+  {
+    name: 'NotOpened',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'no_time,tangled,partially_opened' },
+    exclude: {}
+  }
+];
+
 const BAR_FILTER_PACKS = [
   {
     name: 'Total',
@@ -120,16 +143,19 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
+  const [reserveStats, setReserveStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
-      const [pieData, barData] = await Promise.all([
+      const [pieData, barData, reserveData] = await Promise.all([
         fetchDashboardStats(PIE_FILTER_PACKS),
-        fetchDashboardStats(BAR_FILTER_PACKS)
+        fetchDashboardStats(BAR_FILTER_PACKS),
+        fetchDashboardStats(RESERVE_FILTER_PACKS)
       ]);
       setPieStats(pieData);
       setBarStats(barData);
+      setReserveStats(reserveData);
       setLoading(false);
     };
 
@@ -242,6 +268,54 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+          <h2 className="text-xl font-semibold mb-6 text-center">Reserve Usage</h2>
+          
+          {(() => {
+            const total = reserveStats?.['Total'] || 0;
+            const attempted = reserveStats?.['Attempted'] || 0;
+            const fullyOpened = reserveStats?.['FullyOpened'] || 0;
+            const notOpened = reserveStats?.['NotOpened'] || 0;
+            const successRate = attempted > 0 ? (fullyOpened / attempted * 100).toFixed(0) : 0;
+
+            const reserveChartData = [
+              { name: 'Attempted to throw', percent: total > 0 ? (attempted / total * 100) : 0 },
+              { name: 'Fully opened', percent: total > 0 ? (fullyOpened / total * 100) : 0 },
+              { name: 'Not opened', percent: total > 0 ? (notOpened / total * 100) : 0 }
+            ];
+
+            return (
+              <div>
+                <div className="h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={reserveChartData} layout="vertical">
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
+                      <YAxis type="category" dataKey="name" width={150} stroke="#64748b" interval={0} />
+                      <Tooltip
+                        formatter={(value) => `${value.toFixed(1)}%`}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]}>
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-6 pt-6 border-t border-slate-700 text-center">
+                  <span className="text-lg text-slate-400">
+                    <span className="text-emerald-400 font-bold text-xl">{successRate}%</span> of all throws were successful
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
