@@ -366,7 +366,14 @@ export default function Dashboard() {
   const pieTotal = pieStats['Total'] || 0;
   const pieChartData = PIE_FILTER_PACKS
     .filter(p => p.name !== 'Total')
-    .map(p => ({ name: p.name, value: pieStats[p.name] || 0, filterPack: p }));
+    .map((p, index) => ({ 
+      name: p.name, 
+      value: pieStats[p.name] || 0, 
+      percent: pieTotal > 0 ? ((pieStats[p.name] || 0) / pieTotal) * 100 : 0,
+      filterPack: p,
+      colorIndex: index
+    }))
+    .sort((a, b) => b.percent - a.percent);
 
   const barTotal = barStats['Total'] || 0;
   const barChartData = BAR_FILTER_PACKS
@@ -465,15 +472,18 @@ export default function Dashboard() {
             <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8">
               <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Primary Causes</h2>
           
-          <div className="h-[380px] md:h-[450px]">
+          <div className="h-[400px] md:h-[480px]">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart margin={{ left: 40, right: 20, top: 10, bottom: 10 }}>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
-                  label={({ name, percent, index, x, y, cx }) => {
+              <BarChart data={pieChartData} margin={{ left: 0, right: 0, top: 20, bottom: 80 }}>
+                <XAxis 
+                  type="category" 
+                  dataKey="name" 
+                  stroke="#64748b" 
+                  interval={0} 
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  tick={({ x, y, payload }) => {
                     const shortNames = {
                       'Wrong Control Input': 'Wrong Input',
                       'Hardware Failure': 'Hardware',
@@ -486,24 +496,16 @@ export default function Dashboard() {
                       'Others': 'Others'
                     };
                     return (
-                      <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={isMobile ? 11 : 13} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-                        {`${shortNames[name] || name} ${(percent * 100).toFixed(0)}%`}
+                      <text x={x} y={y} fill="#e2e8f0" fontSize={isMobile ? 9 : 11} textAnchor="end" transform={`rotate(-45 ${x} ${y})`}>
+                        {shortNames[payload.value] || payload.value}
                       </text>
                     );
                   }}
-                  outerRadius="55%"
-                  dataKey="value"
-                  onClick={handlePieClick}
-                  style={{ cursor: 'pointer' }}
-                  isAnimationActive={false}
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
+                />
+                <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                 <Tooltip
                   trigger={isTouchDevice ? 'click' : 'hover'}
-                  formatter={(value, name) => [`${value} (${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%)`, name]}
+                  formatter={(value) => `${value.toFixed(1)}%`}
                   contentStyle={{
                     backgroundColor: '#1e293b',
                     border: '1px solid #334155',
@@ -511,7 +513,13 @@ export default function Dashboard() {
                     color: '#f1f5f9'
                   }}
                 />
-              </PieChart>
+                <Bar dataKey="percent" radius={[4, 4, 0, 0]} onClick={handlePieClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                  {pieChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[entry.colorIndex % COLORS.length]} />
+                  ))}
+                  <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
