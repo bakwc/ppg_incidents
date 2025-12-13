@@ -148,10 +148,10 @@ function IncidentView() {
           <div className="flex flex-wrap items-center gap-3 mb-4">
             {incident.severity && (
               <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${severityColors[incident.severity]}`}>
-                {SEVERITY_LABELS[incident.severity] || incident.severity}
+                {incident.severity === 'fatal' ? '⚠️ ' : ''}{SEVERITY_LABELS[incident.severity] || incident.severity}
               </span>
             )}
-            {incident.potentially_fatal && (
+            {incident.potentially_fatal && incident.severity !== 'fatal' && (
               <span className="px-3 py-1 rounded-full text-sm font-semibold border bg-red-500/10 text-red-400 border-red-500/30">
                 ⚠️ Potentially Fatal
               </span>

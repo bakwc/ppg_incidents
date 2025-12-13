@@ -601,7 +601,12 @@ function IncidentList() {
                       <div className="flex items-center gap-4 mb-3">
                         {incident.severity && (
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${severityColors[incident.severity] || 'bg-slate-600/20 text-slate-400 border-slate-600/30'}`}>
-                            {incident.severity.toUpperCase()}
+                            {incident.severity === 'fatal' ? '⚠️ ' : ''}{incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)}
+                          </span>
+                        )}
+                        {incident.potentially_fatal && incident.severity !== 'fatal' && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-red-500/10 text-red-400 border-red-500/30">
+                            ⚠️ Potentially Fatal
                           </span>
                         )}
                         {incident.date && (
