@@ -157,6 +157,39 @@ const BAR_FILTER_PACKS = [
   }
 ];
 
+const TURBULENCE_FILTER_PACKS = [
+  {
+    name: 'Total',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
+    exclude: {}
+  },
+  {
+    name: 'Rotor',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, factor_rotor_turbulence: true },
+    exclude: {}
+  },
+  {
+    name: 'Thermal Activity',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, factor_thermal_weather: true },
+    exclude: {}
+  },
+  // {
+  //   name: 'Wake Turbulence',
+  //   include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, factor_wake_turbulence: true },
+  //   exclude: {}
+  // },
+  {
+    name: 'Wind',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, wind_speed_ms_min: 3 },
+    exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true }
+  },
+  {
+    name: 'Other',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
+    exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true, wind_speed_ms_min: 3 }
+  }
+];
+
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
   Object.entries(filterPack.include || {}).forEach(([key, value]) => {
@@ -171,6 +204,7 @@ const buildFilterUrl = (filterPack) => {
 const SECTIONS = [
   { id: 'primary-causes', label: 'Primary Causes' },
   { id: 'contributing-factors', label: 'Contributing Factors' },
+  { id: 'turbulence-type', label: 'Turbulence Type' },
   { id: 'reserve-usage', label: 'Reserve Usage' },
   { id: 'trim-position', label: 'Trim Position' },
   { id: 'by-country', label: 'By Country' },
@@ -181,6 +215,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
+  const [turbulenceStats, setTurbulenceStats] = useState(null);
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
   const [countryStats, setCountryStats] = useState(null);
@@ -201,9 +236,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadStats = async () => {
-      const [pieData, barData, reserveData, trimData, countryData, yearData] = await Promise.all([
+      const [pieData, barData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(PIE_FILTER_PACKS),
         fetchDashboardStats(BAR_FILTER_PACKS),
+        fetchDashboardStats(TURBULENCE_FILTER_PACKS),
         fetchDashboardStats(RESERVE_FILTER_PACKS),
         fetchDashboardStats(TRIM_FILTER_PACKS),
         fetchCountryStats({ potentially_fatal: true, cause_confidence: 'maximum,high' }, {}, 10),
@@ -211,6 +247,7 @@ export default function Dashboard() {
       ]);
       setPieStats(pieData);
       setBarStats(barData);
+      setTurbulenceStats(turbulenceData);
       setReserveStats(reserveData);
       setTrimStats(trimData);
       setCountryStats(countryData);
@@ -430,6 +467,91 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        <div id="turbulence-type" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Turbulence Type</h2>
+          
+          {(() => {
+            const turbulenceTotal = turbulenceStats?.['Total'] || 0;
+            const turbulenceChartData = TURBULENCE_FILTER_PACKS
+              .filter(p => p.name !== 'Total')
+              .map(p => ({
+                name: p.name,
+                value: turbulenceStats?.[p.name] || 0,
+                percent: turbulenceTotal > 0 ? ((turbulenceStats?.[p.name] || 0) / turbulenceTotal) * 100 : 0,
+                filterPack: p
+              }))
+              .sort((a, b) => b.percent - a.percent);
+
+            const handleTurbulenceClick = (data) => {
+              if (isTouchDevice) {
+                if (activeTooltip === `turbulence-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`turbulence-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
+              }
+            };
+
+            const allIncidentsTotal = barStats?.['Total'] || 0;
+            const turbulencePercentOfAll = allIncidentsTotal > 0 ? ((turbulenceTotal / allIncidentsTotal) * 100).toFixed(0) : 0;
+
+            return (
+              <div>
+                <div className="h-[350px] md:h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart margin={{ left: 40, right: 20, top: 10, bottom: 10 }}>
+                      <Pie
+                        data={turbulenceChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
+                        label={({ name, percent, index, x, y, cx }) => {
+                          return (
+                            <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={isMobile ? 11 : 13} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                              {`${name} ${(percent * 100).toFixed(0)}%`}
+                            </text>
+                          );
+                        }}
+                        outerRadius="55%"
+                        innerRadius="35%"
+                        dataKey="value"
+                        onClick={handleTurbulenceClick}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {turbulenceChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
+                        formatter={(value, name) => [`${value} (${turbulenceTotal > 0 ? ((value / turbulenceTotal) * 100).toFixed(0) : 0}%)`, name]}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
+                  <span className="text-base md:text-lg text-slate-400">
+                    Based on <span className="text-cyan-400 font-bold text-lg md:text-xl">{turbulencePercentOfAll}%</span> incidents happened in turbulent conditions
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div id="reserve-usage" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">

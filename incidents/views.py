@@ -62,7 +62,12 @@ CHOICE_FILTER_FIELDS = [
 def apply_filters(queryset, filters, exclude=False):
     """Apply include or exclude filters to a queryset."""
     for field, value in filters.items():
-        if field in BOOLEAN_FILTER_FIELDS:
+        if field == "wind_speed_ms_min":
+            if not exclude:
+                queryset = queryset.filter(wind_speed_ms__gte=float(value))
+            else:
+                queryset = queryset.exclude(wind_speed_ms__gte=float(value))
+        elif field in BOOLEAN_FILTER_FIELDS:
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 if exclude:
                     queryset = queryset.exclude(**{field: True})
