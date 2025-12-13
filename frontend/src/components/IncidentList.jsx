@@ -213,6 +213,10 @@ function IncidentList() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [countries, setCountries] = useState([]);
+  const [yearFrom, setYearFrom] = useState('');
+  const [monthFrom, setMonthFrom] = useState('');
+  const [yearTo, setYearTo] = useState('');
+  const [monthTo, setMonthTo] = useState('');
   const [activeFilters, setActiveFilters] = useState(() => {
     const filters = [];
     for (const [key, value] of searchParams.entries()) {
@@ -243,6 +247,12 @@ function IncidentList() {
         result[key] = val;
       }
     });
+    if (yearFrom && monthFrom) {
+      result.date_from = `${yearFrom}-${monthFrom}`;
+    }
+    if (yearTo && monthTo) {
+      result.date_to = `${yearTo}-${monthTo}`;
+    }
     return result;
   };
 
@@ -258,11 +268,11 @@ function IncidentList() {
       setTotalPages(Math.ceil(data.count / 15));
       setLoading(false);
     });
-  }, [searchQuery, activeFilters, currentPage]);
+  }, [searchQuery, activeFilters, currentPage, yearFrom, monthFrom, yearTo, monthTo]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, activeFilters]);
+  }, [searchQuery, activeFilters, yearFrom, monthFrom, yearTo, monthTo]);
 
   const isFilterActive = (key, value = null) => {
     return activeFilters.some(f => f.key === key && f.value === value && f.exclude === (filterMode === 'exclude'));
@@ -462,6 +472,68 @@ function IncidentList() {
                 ? 'bg-emerald-500/5 border-emerald-500/20'
                 : 'bg-red-500/5 border-red-500/20'
             }`}>
+
+              {/* Date Range Filter */}
+              <div className="mb-6">
+                <label className="block text-xs text-slate-500 mb-1.5">Date Range</label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">From:</span>
+                    <select
+                      value={yearFrom}
+                      onChange={(e) => setYearFrom(e.target.value)}
+                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                    >
+                      <option value="">Year</option>
+                      {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={monthFrom}
+                      onChange={(e) => setMonthFrom(e.target.value)}
+                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                    >
+                      <option value="">Month</option>
+                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+                        <option key={m} value={m}>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i]}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">To:</span>
+                    <select
+                      value={yearTo}
+                      onChange={(e) => setYearTo(e.target.value)}
+                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                    >
+                      <option value="">Year</option>
+                      {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={monthTo}
+                      onChange={(e) => setMonthTo(e.target.value)}
+                      className="px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                    >
+                      <option value="">Month</option>
+                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+                        <option key={m} value={m}>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i]}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {(yearFrom || monthFrom || yearTo || monthTo) && (
+                    <button
+                      type="button"
+                      onClick={() => { setYearFrom(''); setMonthFrom(''); setYearTo(''); setMonthTo(''); }}
+                      className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Country Filter */}
               {countries.length > 0 && (

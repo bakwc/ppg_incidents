@@ -178,6 +178,20 @@ class IncidentListView(generics.ListAPIView):
         if country:
             queryset = queryset.filter(country=country)
 
+        # Date range filter (YYYY-MM format)
+        date_from = self.request.query_params.get("date_from")
+        if date_from:
+            queryset = queryset.filter(date__gte=f"{date_from}-01")
+        
+        date_to = self.request.query_params.get("date_to")
+        if date_to:
+            year, month = map(int, date_to.split("-"))
+            if month == 12:
+                next_month = f"{year + 1}-01-01"
+            else:
+                next_month = f"{year}-{month + 1:02d}-01"
+            queryset = queryset.filter(date__lt=next_month)
+
         return queryset
 
 
