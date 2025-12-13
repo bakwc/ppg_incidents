@@ -527,11 +527,20 @@ export default function Dashboard() {
         <div id="contributing-factors" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Contributing Factors</h2>
           
-          <div className="h-[350px] md:h-[400px]">
+          <div className="h-[450px] md:h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
-                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
-                <YAxis type="category" dataKey="name" width={80} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 80 }} />
+              <BarChart data={barChartData} margin={{ left: 0, right: 0, top: 20, bottom: 100 }}>
+                <XAxis 
+                  type="category" 
+                  dataKey="name" 
+                  stroke="#64748b" 
+                  interval={0} 
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  style={{ fontSize: isMobile ? '9px' : '11px', fill: '#e2e8f0' }}
+                />
+                <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                 <Tooltip
                   trigger={isTouchDevice ? 'click' : 'hover'}
                   formatter={(value) => `${value.toFixed(1)}%`}
@@ -542,8 +551,8 @@ export default function Dashboard() {
                     color: '#f1f5f9'
                   }}
                 />
-                <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
-                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                <Bar dataKey="percent" fill="#f97316" radius={[4, 4, 0, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                  <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -708,11 +717,12 @@ export default function Dashboard() {
             const turbulenceTotal = turbulenceStats?.['Total'] || 0;
             const turbulenceChartData = TURBULENCE_FILTER_PACKS
               .filter(p => p.name !== 'Total')
-              .map(p => ({
+              .map((p, index) => ({
                 name: p.name,
                 value: turbulenceStats?.[p.name] || 0,
                 percent: turbulenceTotal > 0 ? ((turbulenceStats?.[p.name] || 0) / turbulenceTotal) * 100 : 0,
-                filterPack: p
+                filterPack: p,
+                colorIndex: index
               }))
               .sort((a, b) => b.percent - a.percent);
 
@@ -738,35 +748,23 @@ export default function Dashboard() {
 
             return (
               <div>
-                <div className="h-[350px] md:h-[400px]">
+                <div className="h-[300px] md:h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart margin={{ left: 40, right: 20, top: 10, bottom: 10 }}>
-                      <Pie
-                        data={turbulenceChartData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
-                        label={({ name, index, x, y, cx, payload }) => {
-                          return (
-                            <text x={x} y={y} fill={COLORS[index % COLORS.length]} fontSize={isMobile ? 11 : 13} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-                              {`${name} ${payload.percent.toFixed(0)}%`}
-                            </text>
-                          );
-                        }}
-                        outerRadius="55%"
-                        innerRadius="35%"
-                        dataKey="value"
-                        onClick={handleTurbulenceClick}
-                        style={{ cursor: 'pointer' }}
-                        isAnimationActive={false}
-                      >
-                        {turbulenceChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
+                    <BarChart data={turbulenceChartData} margin={{ left: 0, right: 0, top: 20, bottom: 60 }}>
+                      <XAxis 
+                        type="category" 
+                        dataKey="name" 
+                        stroke="#64748b" 
+                        interval={0} 
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        style={{ fontSize: isMobile ? '9px' : '11px', fill: '#e2e8f0' }}
+                      />
+                      <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                       <Tooltip
                         trigger={isTouchDevice ? 'click' : 'hover'}
-                        formatter={(value, name) => [`${value} (${turbulenceTotal > 0 ? ((value / turbulenceTotal) * 100).toFixed(0) : 0}%)`, name]}
+                        formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{
                           backgroundColor: '#1e293b',
                           border: '1px solid #334155',
@@ -774,7 +772,13 @@ export default function Dashboard() {
                           color: '#f1f5f9'
                         }}
                       />
-                    </PieChart>
+                      <Bar dataKey="percent" radius={[4, 4, 0, 0]} onClick={handleTurbulenceClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                        {turbulenceChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.colorIndex % COLORS.length]} />
+                        ))}
+                        <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
@@ -826,7 +830,7 @@ export default function Dashboard() {
                 <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={reserveChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <XAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                       <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 100 }} />
                       <Tooltip
                         trigger={isTouchDevice ? 'click' : 'hover'}
@@ -899,7 +903,7 @@ export default function Dashboard() {
                 <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={trimChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <XAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                       <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 100 }} />
                       <Tooltip
                         trigger={isTouchDevice ? 'click' : 'hover'}
