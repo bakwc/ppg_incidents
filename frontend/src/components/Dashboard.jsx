@@ -187,6 +187,12 @@ export default function Dashboard() {
   const [yearStats, setYearStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('primary-causes');
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState(null);
+
+  useEffect(() => {
+    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  }, []);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -260,14 +266,36 @@ export default function Dashboard() {
     .sort((a, b) => b.percent - a.percent);
 
   const handlePieClick = (data) => {
-    if (data?.filterPack) {
-      navigate(buildFilterUrl(data.filterPack));
+    if (isTouchDevice) {
+      if (activeTooltip === `pie-${data?.name}`) {
+        if (data?.filterPack) {
+          navigate(buildFilterUrl(data.filterPack));
+        }
+      } else {
+        setActiveTooltip(`pie-${data?.name}`);
+        setTimeout(() => setActiveTooltip(null), 3000);
+      }
+    } else {
+      if (data?.filterPack) {
+        navigate(buildFilterUrl(data.filterPack));
+      }
     }
   };
 
   const handleBarClick = (data) => {
-    if (data?.filterPack) {
-      navigate(buildFilterUrl(data.filterPack));
+    if (isTouchDevice) {
+      if (activeTooltip === `bar-${data?.name}`) {
+        if (data?.filterPack) {
+          navigate(buildFilterUrl(data.filterPack));
+        }
+      } else {
+        setActiveTooltip(`bar-${data?.name}`);
+        setTimeout(() => setActiveTooltip(null), 3000);
+      }
+    } else {
+      if (data?.filterPack) {
+        navigate(buildFilterUrl(data.filterPack));
+      }
     }
   };
 
@@ -359,6 +387,7 @@ export default function Dashboard() {
                   ))}
                 </Pie>
                 <Tooltip
+                  trigger={isTouchDevice ? 'click' : 'hover'}
                   formatter={(value, name) => [`${value} (${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%)`, name]}
                   contentStyle={{
                     backgroundColor: '#1e293b',
@@ -381,6 +410,7 @@ export default function Dashboard() {
                 <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
                 <YAxis type="category" dataKey="name" width={80} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 80 }} />
                 <Tooltip
+                  trigger={isTouchDevice ? 'click' : 'hover'}
                   formatter={(value) => `${value.toFixed(1)}%`}
                   contentStyle={{
                     backgroundColor: '#1e293b',
@@ -414,8 +444,19 @@ export default function Dashboard() {
             ];
 
             const handleReserveClick = (data) => {
-              if (data?.filterPack) {
-                navigate(buildFilterUrl(data.filterPack));
+              if (isTouchDevice) {
+                if (activeTooltip === `reserve-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`reserve-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
               }
             };
 
@@ -427,6 +468,7 @@ export default function Dashboard() {
                       <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
                       <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 100 }} />
                       <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
                         formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{
                           backgroundColor: '#1e293b',
@@ -472,8 +514,19 @@ export default function Dashboard() {
             ];
 
             const handleTrimClick = (data) => {
-              if (data?.filterPack) {
-                navigate(buildFilterUrl(data.filterPack));
+              if (isTouchDevice) {
+                if (activeTooltip === `trim-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`trim-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
               }
             };
 
@@ -485,6 +538,7 @@ export default function Dashboard() {
                       <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
                       <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 100 }} />
                       <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
                         formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{
                           backgroundColor: '#1e293b',
@@ -525,12 +579,27 @@ export default function Dashboard() {
             });
 
             const handleCountryClick = (data) => {
-              if (data?.fullName) {
-                const params = new URLSearchParams();
-                params.set('potentially_fatal', 'true');
-                params.set('cause_confidence', 'maximum,high');
-                params.set('country', data.fullName);
-                navigate(`/?${params.toString()}`);
+              if (isTouchDevice) {
+                if (activeTooltip === `country-${data?.name}`) {
+                  if (data?.fullName) {
+                    const params = new URLSearchParams();
+                    params.set('potentially_fatal', 'true');
+                    params.set('cause_confidence', 'maximum,high');
+                    params.set('country', data.fullName);
+                    navigate(`/?${params.toString()}`);
+                  }
+                } else {
+                  setActiveTooltip(`country-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.fullName) {
+                  const params = new URLSearchParams();
+                  params.set('potentially_fatal', 'true');
+                  params.set('cause_confidence', 'maximum,high');
+                  params.set('country', data.fullName);
+                  navigate(`/?${params.toString()}`);
+                }
               }
             };
 
@@ -541,6 +610,7 @@ export default function Dashboard() {
                     <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: '10px' }} />
                     <YAxis type="number" stroke="#64748b" style={{ fontSize: '10px' }} />
                     <Tooltip
+                      trigger={isTouchDevice ? 'click' : 'hover'}
                       formatter={(value, name, props) => [value, props.payload.fullName]}
                       contentStyle={{
                         backgroundColor: '#1e293b',
@@ -569,13 +639,29 @@ export default function Dashboard() {
             }));
 
             const handleYearClick = (data) => {
-              if (data?.year) {
-                const params = new URLSearchParams();
-                params.set('potentially_fatal', 'true');
-                params.set('cause_confidence', 'maximum,high');
-                params.set('date_from', `${data.year}-01`);
-                params.set('date_to', `${data.year}-12`);
-                navigate(`/?${params.toString()}`);
+              if (isTouchDevice) {
+                if (activeTooltip === `year-${data?.year}`) {
+                  if (data?.year) {
+                    const params = new URLSearchParams();
+                    params.set('potentially_fatal', 'true');
+                    params.set('cause_confidence', 'maximum,high');
+                    params.set('date_from', `${data.year}-01`);
+                    params.set('date_to', `${data.year}-12`);
+                    navigate(`/?${params.toString()}`);
+                  }
+                } else {
+                  setActiveTooltip(`year-${data?.year}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.year) {
+                  const params = new URLSearchParams();
+                  params.set('potentially_fatal', 'true');
+                  params.set('cause_confidence', 'maximum,high');
+                  params.set('date_from', `${data.year}-01`);
+                  params.set('date_to', `${data.year}-12`);
+                  navigate(`/?${params.toString()}`);
+                }
               }
             };
 
@@ -586,6 +672,7 @@ export default function Dashboard() {
                     <XAxis type="category" dataKey="year" stroke="#64748b" interval={0} style={{ fontSize: '10px' }} />
                     <YAxis type="number" stroke="#64748b" style={{ fontSize: '10px' }} />
                     <Tooltip
+                      trigger={isTouchDevice ? 'click' : 'hover'}
                       formatter={(value) => [value, 'Incidents']}
                       contentStyle={{
                         backgroundColor: '#1e293b',
