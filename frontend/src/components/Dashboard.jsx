@@ -479,6 +479,17 @@ export default function Dashboard() {
               count: y.count
             }));
 
+            const handleYearClick = (data) => {
+              if (data?.year) {
+                const params = new URLSearchParams();
+                params.set('potentially_fatal', 'true');
+                params.set('cause_confidence', 'maximum,high');
+                params.set('date_from', `${data.year}-01`);
+                params.set('date_to', `${data.year}-12`);
+                navigate(`/?${params.toString()}`);
+              }
+            };
+
             return (
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -494,7 +505,7 @@ export default function Dashboard() {
                         color: '#f1f5f9'
                       }}
                     />
-                    <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]} onClick={handleYearClick} style={{ cursor: 'pointer' }}>
                       <LabelList dataKey="count" position="top" fill="#f1f5f9" />
                     </Bar>
                   </BarChart>
