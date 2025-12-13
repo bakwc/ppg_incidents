@@ -160,6 +160,34 @@ const BAR_FILTER_PACKS = [
   }
 ];
 
+const FLIGHT_PHASE_FILTER_PACKS = [
+  {
+    name: 'Total',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    exclude: {}
+  },
+  {
+    name: 'Ground',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'ground' },
+    exclude: {}
+  },
+  {
+    name: 'Takeoff',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'takeoff' },
+    exclude: {}
+  },
+  {
+    name: 'Flight',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'flight' },
+    exclude: {}
+  },
+  {
+    name: 'Landing',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'landing' },
+    exclude: {}
+  }
+];
+
 const TURBULENCE_FILTER_PACKS = [
   {
     name: 'Total',
@@ -207,6 +235,7 @@ const buildFilterUrl = (filterPack) => {
 const SECTIONS = [
   { id: 'primary-causes', label: 'Primary Causes' },
   { id: 'contributing-factors', label: 'Contributing Factors' },
+  { id: 'flight-phase', label: 'Flight Phase' },
   { id: 'turbulence-type', label: 'Turbulence Type' },
   { id: 'reserve-usage', label: 'Reserve Usage' },
   { id: 'trim-position', label: 'Trim Position' },
@@ -218,6 +247,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
+  const [flightPhaseStats, setFlightPhaseStats] = useState(null);
   const [turbulenceStats, setTurbulenceStats] = useState(null);
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
@@ -239,9 +269,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadStats = async () => {
-      const [pieData, barData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
+      const [pieData, barData, flightPhaseData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(PIE_FILTER_PACKS),
         fetchDashboardStats(BAR_FILTER_PACKS),
+        fetchDashboardStats(FLIGHT_PHASE_FILTER_PACKS),
         fetchDashboardStats(TURBULENCE_FILTER_PACKS),
         fetchDashboardStats(RESERVE_FILTER_PACKS),
         fetchDashboardStats(TRIM_FILTER_PACKS),
@@ -250,6 +281,7 @@ export default function Dashboard() {
       ]);
       setPieStats(pieData);
       setBarStats(barData);
+      setFlightPhaseStats(flightPhaseData);
       setTurbulenceStats(turbulenceData);
       setReserveStats(reserveData);
       setTrimStats(trimData);
@@ -471,6 +503,63 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        <div id="flight-phase" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Flight Phase</h2>
+          
+          {(() => {
+            const flightPhaseTotal = flightPhaseStats?.['Total'] || 0;
+            const flightPhaseChartData = FLIGHT_PHASE_FILTER_PACKS
+              .filter(p => p.name !== 'Total')
+              .map(p => ({
+                name: p.name,
+                count: flightPhaseStats?.[p.name] || 0,
+                percent: flightPhaseTotal > 0 ? ((flightPhaseStats?.[p.name] || 0) / flightPhaseTotal) * 100 : 0,
+                filterPack: p
+              }));
+
+            const handleFlightPhaseClick = (data) => {
+              if (isTouchDevice) {
+                if (activeTooltip === `flightphase-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`flightphase-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
+              }
+            };
+
+            return (
+              <div className="h-[250px] md:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={flightPhaseChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
+                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                    <YAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                    <Tooltip
+                      trigger={isTouchDevice ? 'click' : 'hover'}
+                      formatter={(value) => `${value.toFixed(1)}%`}
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '8px',
+                        color: '#f1f5f9'
+                      }}
+                    />
+                    <Bar dataKey="percent" fill="#fbbf24" radius={[4, 4, 0, 0]} onClick={handleFlightPhaseClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                      <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            );
+          })()}
         </div>
 
         <div id="turbulence-type" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
