@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
-import { fetchDashboardStats, fetchCountryStats } from '../api';
+import { fetchDashboardStats, fetchCountryStats, fetchYearStats } from '../api';
 import { getCountryCode, getFlag } from '../countryUtils';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#84cc16', '#6366f1'];
@@ -175,22 +175,25 @@ export default function Dashboard() {
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
   const [countryStats, setCountryStats] = useState(null);
+  const [yearStats, setYearStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
-      const [pieData, barData, reserveData, trimData, countryData] = await Promise.all([
+      const [pieData, barData, reserveData, trimData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(PIE_FILTER_PACKS),
         fetchDashboardStats(BAR_FILTER_PACKS),
         fetchDashboardStats(RESERVE_FILTER_PACKS),
         fetchDashboardStats(TRIM_FILTER_PACKS),
-        fetchCountryStats({ potentially_fatal: true, cause_confidence: 'maximum,high' }, {}, 10)
+        fetchCountryStats({ potentially_fatal: true, cause_confidence: 'maximum,high' }, {}, 10),
+        fetchYearStats({ potentially_fatal: true, cause_confidence: 'maximum,high' }, {})
       ]);
       setPieStats(pieData);
       setBarStats(barData);
       setReserveStats(reserveData);
       setTrimStats(trimData);
       setCountryStats(countryData);
+      setYearStats(yearData);
       setLoading(false);
     };
 
@@ -458,6 +461,40 @@ export default function Dashboard() {
                       }}
                     />
                     <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} onClick={handleCountryClick} style={{ cursor: 'pointer' }}>
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+          <h2 className="text-xl font-semibold mb-6 text-center">Incidents by Year</h2>
+          
+          {(() => {
+            const yearChartData = (yearStats || []).map(y => ({
+              year: y.year,
+              count: y.count
+            }));
+
+            return (
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={yearChartData}>
+                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={0} />
+                    <YAxis type="number" stroke="#64748b" />
+                    <Tooltip
+                      formatter={(value) => [value, 'Incidents']}
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '8px',
+                        color: '#f1f5f9'
+                      }}
+                    />
+                    <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]}>
                       <LabelList dataKey="count" position="top" fill="#f1f5f9" />
                     </Bar>
                   </BarChart>

@@ -1,6 +1,7 @@
 import logging
 
 from django.db.models import Case, Count, Q, When
+from django.db.models.functions import ExtractYear
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -476,3 +477,24 @@ class CountryStatsView(APIView):
         )
         
         return Response(list(country_counts))
+
+
+class YearStatsView(APIView):
+    def post(self, request):
+        include_filters = request.data.get("include", {})
+        exclude_filters = request.data.get("exclude", {})
+        
+        queryset = Incident.objects.all()
+        queryset = apply_filters(queryset, include_filters, exclude=False)
+        queryset = apply_filters(queryset, exclude_filters, exclude=True)
+        
+        year_counts = (
+            queryset
+            .exclude(date__isnull=True)
+            .annotate(year=ExtractYear("date"))
+            .values("year")
+            .annotate(count=Count("id"))
+            .order_by("year")
+        )
+        
+        return Response(list(year_counts))

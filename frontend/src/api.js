@@ -113,3 +113,14 @@ export async function fetchCountryStats(include, exclude, limit = 10) {
   return response.json();
 }
 
+export async function fetchYearStats(include, exclude) {
+  const response = await fetch(`${API_BASE}/year_stats`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ include, exclude }),
+  });
+  return response.json();
+}
+

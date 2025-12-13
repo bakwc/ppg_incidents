@@ -14,6 +14,7 @@ from incidents.views import (
     IncidentSearchView,
     IncidentUpdateView,
     UnverifiedIncidentListView,
+    YearStatsView,
 )
 
 urlpatterns = [
@@ -30,5 +31,6 @@ urlpatterns = [
     path("dashboard_stats", DashboardStatsView.as_view(), name="dashboard-stats"),
     path("countries", CountriesView.as_view(), name="countries"),
     path("country_stats", CountryStatsView.as_view(), name="country-stats"),
+    path("year_stats", YearStatsView.as_view(), name="year-stats"),
 ]
 
