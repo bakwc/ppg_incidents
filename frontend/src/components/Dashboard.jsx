@@ -323,45 +323,65 @@ export default function Dashboard() {
             <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8">
               <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Primary Causes</h2>
           
-          <div className="h-[350px] md:h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value} (${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%)`}
-                  outerRadius={120}
-                  dataKey="value"
-                  onClick={handlePieClick}
-                  style={{ cursor: 'pointer' }}
+          <div className="flex flex-col lg:flex-row items-center gap-4">
+            <div className="h-[300px] w-full lg:w-1/2">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    outerRadius="85%"
+                    innerRadius="30%"
+                    dataKey="value"
+                    onClick={handlePieClick}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, name) => [`${value} (${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%)`, name]}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #334155',
+                      borderRadius: '8px',
+                      color: '#f1f5f9'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Legend */}
+            <div className="w-full lg:w-1/2 grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+              {pieChartData.map((entry, index) => (
+                <button
+                  key={entry.name}
+                  onClick={() => handlePieClick(entry)}
+                  className="flex items-center gap-2 p-1.5 md:p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer text-left"
                 >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1e293b',
-                    border: '1px solid #334155',
-                    borderRadius: '8px',
-                    color: '#f1f5f9'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  <span className="text-slate-300 text-xs md:text-sm truncate">
+                    {entry.name}: <span className="font-semibold">{entry.value}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         <div id="contributing-factors" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Contributing Factors</h2>
           
-          <div className="h-[350px] md:h-[400px] overflow-x-auto">
+          <div className="h-[350px] md:h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barChartData} layout="vertical">
-                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '12px' }} />
-                <YAxis type="category" dataKey="name" width={120} stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
+              <BarChart data={barChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
+                <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
+                <YAxis type="category" dataKey="name" width={80} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 80 }} />
                 <Tooltip
                   formatter={(value) => `${value.toFixed(1)}%`}
                   contentStyle={{
@@ -372,7 +392,7 @@ export default function Dashboard() {
                   }}
                 />
                 <Bar dataKey="percent" fill="#f97316" radius={[0, 4, 4, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
-                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '11px' }} />
+                  <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '9px' }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -405,9 +425,9 @@ export default function Dashboard() {
               <div>
                 <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={reserveChartData} layout="vertical">
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '12px' }} />
-                      <YAxis type="category" dataKey="name" width={130} stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
+                    <BarChart data={reserveChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
+                      <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 100 }} />
                       <Tooltip
                         formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{
@@ -418,7 +438,7 @@ export default function Dashboard() {
                         }}
                       />
                       <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }}>
-                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '11px' }} />
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '9px' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -463,9 +483,9 @@ export default function Dashboard() {
               <div>
                 <div className="h-[180px] md:h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={trimChartData} layout="vertical">
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '12px' }} />
-                      <YAxis type="category" dataKey="name" width={130} stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
+                    <BarChart data={trimChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: '10px' }} />
+                      <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: '9px' }} tick={{ width: 100 }} />
                       <Tooltip
                         formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{
@@ -476,7 +496,7 @@ export default function Dashboard() {
                         }}
                       />
                       <Bar dataKey="percent" fill="#8b5cf6" radius={[0, 4, 4, 0]} onClick={handleTrimClick} style={{ cursor: 'pointer' }}>
-                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '11px' }} />
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: '9px' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -519,9 +539,9 @@ export default function Dashboard() {
             return (
               <div className="h-[250px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={countryChartData}>
-                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
-                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '11px' }} />
+                  <BarChart data={countryChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
+                    <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: '10px' }} />
+                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '10px' }} />
                     <Tooltip
                       formatter={(value, name, props) => [value, props.payload.fullName]}
                       contentStyle={{
@@ -532,7 +552,7 @@ export default function Dashboard() {
                       }}
                     />
                     <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} onClick={handleCountryClick} style={{ cursor: 'pointer' }}>
-                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '11px' }} />
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '10px' }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -562,11 +582,11 @@ export default function Dashboard() {
             };
 
             return (
-              <div className="h-[250px] md:h-[300px] overflow-x-auto">
+              <div className="h-[250px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={yearChartData}>
-                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={0} style={{ fontSize: '11px' }} />
-                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '11px' }} />
+                  <BarChart data={yearChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
+                    <XAxis type="category" dataKey="year" stroke="#64748b" interval={0} style={{ fontSize: '10px' }} />
+                    <YAxis type="number" stroke="#64748b" style={{ fontSize: '10px' }} />
                     <Tooltip
                       formatter={(value) => [value, 'Incidents']}
                       contentStyle={{
@@ -577,7 +597,7 @@ export default function Dashboard() {
                       }}
                     />
                     <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]} onClick={handleYearClick} style={{ cursor: 'pointer' }}>
-                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '11px' }} />
+                      <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: '10px' }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
