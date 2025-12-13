@@ -281,10 +281,16 @@ export default function Dashboard() {
             const successRate = attempted > 0 ? (fullyOpened / attempted * 100).toFixed(0) : 0;
 
             const reserveChartData = [
-              { name: 'Attempted to throw', percent: total > 0 ? (attempted / total * 100) : 0 },
-              { name: 'Fully opened', percent: total > 0 ? (fullyOpened / total * 100) : 0 },
-              { name: 'Not opened', percent: total > 0 ? (notOpened / total * 100) : 0 }
+              { name: 'Attempted to throw', percent: total > 0 ? (attempted / total * 100) : 0, filterPack: RESERVE_FILTER_PACKS.find(p => p.name === 'Attempted') },
+              { name: 'Fully opened', percent: total > 0 ? (fullyOpened / total * 100) : 0, filterPack: RESERVE_FILTER_PACKS.find(p => p.name === 'FullyOpened') },
+              { name: 'Not opened', percent: total > 0 ? (notOpened / total * 100) : 0, filterPack: RESERVE_FILTER_PACKS.find(p => p.name === 'NotOpened') }
             ];
+
+            const handleReserveClick = (data) => {
+              if (data?.filterPack) {
+                navigate(buildFilterUrl(data.filterPack));
+              }
+            };
 
             return (
               <div>
@@ -302,7 +308,7 @@ export default function Dashboard() {
                           color: '#f1f5f9'
                         }}
                       />
-                      <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]}>
+                      <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }}>
                         <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
                       </Bar>
                     </BarChart>
