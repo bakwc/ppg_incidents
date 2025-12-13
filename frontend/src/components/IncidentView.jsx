@@ -55,6 +55,7 @@ const TRIMMER_LABELS = {
 };
 
 const ACCELERATOR_LABELS = {
+  not_used: 'Not used',
   released: 'Released',
   partially_engaged: 'Partially engaged',
   fully_engaged: 'Fully engaged',

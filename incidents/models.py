@@ -56,6 +56,7 @@ class Incident(models.Model):
         FULLY_OPEN = "fully_open", "Fully open"
 
     class AcceleratorPosition(models.TextChoices):
+        NOT_USED = "not_used", "Not used"
         RELEASED = "released", "Released"
         PARTIALLY_ENGAGED = "partially_engaged", "Partially engaged"
         FULLY_ENGAGED = "fully_engaged", "Fully engaged"

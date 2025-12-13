@@ -62,6 +62,7 @@ const TRIMMER_POSITIONS = [
 
 const ACCELERATOR_POSITIONS = [
   { value: '', label: 'Select...' },
+  { value: 'not_used', label: 'Not used' },
   { value: 'released', label: 'Released' },
   { value: 'partially_engaged', label: 'Partially engaged' },
   { value: 'fully_engaged', label: 'Fully engaged' },

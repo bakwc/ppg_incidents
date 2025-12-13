@@ -380,7 +380,9 @@ class CheckDuplicateView(APIView):
             })
         
         # Low confidence: semantic search top 3
-        temp_incident = Incident(**incident_data)
+        model_fields = {f.name for f in Incident._meta.get_fields()}
+        filtered_data = {k: v for k, v in incident_data.items() if k in model_fields}
+        temp_incident = Incident(**filtered_data)
         embedding = ai_communicator.get_embedding(temp_incident.to_text())
         results = search_similar(embedding, limit=3, exclude_id=exclude_id)
         

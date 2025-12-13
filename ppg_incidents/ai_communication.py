@@ -48,7 +48,7 @@ The incident has the following fields:
 - cause_confidence: One of: "maximum", "high", "low", "minimal". If the reason is 100% known but a lot of fields missing - confidence should be "maximum". If all fields exists but reason not clear - confidence should be "low".
 - factor_low_altitude: Boolean - low flight altitude was a factor. Low altitude is <80 meters altitude.
 - factor_maneuvers: Boolean - performed maneuvers contributing to the incident, like aggressive maneuvers or turn in wrong place etc. Regular slow turn etc is not a maneuver.
-- factor_accelerator: One of: "released", "partially_engaged", "fully_engaged"
+- factor_accelerator: One of: "not_used", "released", "partially_engaged", "fully_engaged"
 - factor_thermal_weather: Boolean - thermally active weather
 - factor_rain: Boolean - rain during flight
 - factor_rotor_turbulence: Boolean - entered rotor turbulence
@@ -120,6 +120,10 @@ class AiCommunicator:
 
     def get_embedding(self, text: str) -> list[float]:
         """Generate embedding for text using OpenAI text-embedding-3-large."""
+        # text-embedding-3-large has 8192 token limit, truncate to ~7000 tokens (~28000 chars)
+        max_chars = 28000
+        if len(text) > max_chars:
+            text = text[:max_chars]
         response = self.client.embeddings.create(
             model=EMBEDDING_MODEL,
             input=text

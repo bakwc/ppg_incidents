@@ -107,6 +107,7 @@ const SELECT_FILTERS = [
     key: 'factor_accelerator',
     label: 'Accelerator',
     options: [
+      { value: 'not_used', label: 'Not used' },
       { value: 'released', label: 'Released' },
       { value: 'partially_engaged', label: 'Partially engaged' },
       { value: 'fully_engaged', label: 'Fully engaged' },
