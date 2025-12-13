@@ -81,6 +81,34 @@ const RESERVE_FILTER_PACKS = [
   }
 ];
 
+const TRIM_FILTER_PACKS = [
+  {
+    name: 'Total',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    exclude: {}
+  },
+  {
+    name: 'Unknown',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'null' },
+    exclude: {}
+  },
+  {
+    name: 'TrimOut',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'fully_open' },
+    exclude: {}
+  },
+  {
+    name: 'PartiallyOpen',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'partially_open' },
+    exclude: {}
+  },
+  {
+    name: 'TrimIn',
+    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'closed' },
+    exclude: {}
+  }
+];
+
 const BAR_FILTER_PACKS = [
   {
     name: 'Total',
@@ -144,18 +172,21 @@ export default function Dashboard() {
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
   const [reserveStats, setReserveStats] = useState(null);
+  const [trimStats, setTrimStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
-      const [pieData, barData, reserveData] = await Promise.all([
+      const [pieData, barData, reserveData, trimData] = await Promise.all([
         fetchDashboardStats(PIE_FILTER_PACKS),
         fetchDashboardStats(BAR_FILTER_PACKS),
-        fetchDashboardStats(RESERVE_FILTER_PACKS)
+        fetchDashboardStats(RESERVE_FILTER_PACKS),
+        fetchDashboardStats(TRIM_FILTER_PACKS)
       ]);
       setPieStats(pieData);
       setBarStats(barData);
       setReserveStats(reserveData);
+      setTrimStats(trimData);
       setLoading(false);
     };
 
@@ -317,6 +348,66 @@ export default function Dashboard() {
                 <div className="mt-6 pt-6 border-t border-slate-700 text-center">
                   <span className="text-lg text-slate-400">
                     <span className="text-emerald-400 font-bold text-xl">{successRate}%</span> of all throws were successful
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800 mt-8">
+          <h2 className="text-xl font-semibold mb-6 text-center">Trim Position</h2>
+          
+          {(() => {
+            const total = trimStats?.['Total'] || 0;
+            const unknown = trimStats?.['Unknown'] || 0;
+            const trimOut = trimStats?.['TrimOut'] || 0;
+            const partiallyOpen = trimStats?.['PartiallyOpen'] || 0;
+            const trimIn = trimStats?.['TrimIn'] || 0;
+
+            const trimChartData = [
+              { name: 'Unknown', percent: total > 0 ? (unknown / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'Unknown') },
+              { name: 'Trim-out (open)', percent: total > 0 ? (trimOut / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimOut') },
+              { name: 'Partially open', percent: total > 0 ? (partiallyOpen / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'PartiallyOpen') },
+              { name: 'Trim-in (closed)', percent: total > 0 ? (trimIn / total * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimIn') }
+            ];
+
+            const handleTrimClick = (data) => {
+              if (data?.filterPack) {
+                navigate(buildFilterUrl(data.filterPack));
+              }
+            };
+
+            const knownTotal = trimOut + partiallyOpen + trimIn;
+            const openPercent = knownTotal > 0 ? (trimOut / knownTotal * 100).toFixed(0) : 0;
+            const partialPercent = knownTotal > 0 ? (partiallyOpen / knownTotal * 100).toFixed(0) : 0;
+            const closedPercent = knownTotal > 0 ? (trimIn / knownTotal * 100).toFixed(0) : 0;
+
+            return (
+              <div>
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={trimChartData} layout="vertical">
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="#64748b" />
+                      <YAxis type="category" dataKey="name" width={150} stroke="#64748b" interval={0} />
+                      <Tooltip
+                        formatter={(value) => `${value.toFixed(1)}%`}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Bar dataKey="percent" fill="#8b5cf6" radius={[0, 4, 4, 0]} onClick={handleTrimClick} style={{ cursor: 'pointer' }}>
+                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-6 pt-6 border-t border-slate-700 text-center">
+                  <span className="text-lg text-slate-400">
+                    For known positions: <span className="text-violet-400 font-bold">{openPercent}%</span> open, <span className="text-violet-400 font-bold">{partialPercent}%</span> partial, <span className="text-violet-400 font-bold">{closedPercent}%</span> closed
                   </span>
                 </div>
               </div>

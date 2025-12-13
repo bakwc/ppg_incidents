@@ -77,10 +77,22 @@ def apply_filters(queryset, filters, exclude=False):
                 values = value
             else:
                 values = [v.strip() for v in str(value).split(",")]
-            if exclude:
-                queryset = queryset.exclude(**{f"{field}__in": values})
+            if "null" in values:
+                values = [v for v in values if v != "null"]
+                if exclude:
+                    queryset = queryset.exclude(**{f"{field}__isnull": True})
+                    if values:
+                        queryset = queryset.exclude(**{f"{field}__in": values})
+                else:
+                    if values:
+                        queryset = queryset.filter(Q(**{f"{field}__isnull": True}) | Q(**{f"{field}__in": values}))
+                    else:
+                        queryset = queryset.filter(**{f"{field}__isnull": True})
             else:
-                queryset = queryset.filter(**{f"{field}__in": values})
+                if exclude:
+                    queryset = queryset.exclude(**{f"{field}__in": values})
+                else:
+                    queryset = queryset.filter(**{f"{field}__in": values})
         elif field == "collapse":
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 q = (
