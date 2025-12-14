@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident, fetchIncidentDrafts } from '../api';
+import { useAuth } from '../AuthContext';
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
@@ -102,6 +103,7 @@ function IncidentForm() {
   const { uuid } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { isAdmin } = useAuth();
   const isEditing = Boolean(uuid);
 
   const [loading, setLoading] = useState(isEditing);
@@ -944,7 +946,7 @@ function IncidentForm() {
               )}
 
               {/* Draft Review Actions */}
-              {selectedDraft && (
+              {isAdmin && selectedDraft && (
                 <div className="flex justify-end gap-4 pt-4 pb-8">
                   <button
                     type="button"
@@ -981,7 +983,7 @@ function IncidentForm() {
 
               {/* Submit */}
               {!selectedDraft && <div className="flex justify-end gap-4 pt-4 pb-8">
-                {isEditing && (
+                {isAdmin && isEditing && (
                   <button
                     type="button"
                     onClick={handleDelete}
@@ -1023,14 +1025,16 @@ function IncidentForm() {
                     </>
                   )}
                 </button>
-                <button
-                  type="button"
-                  onClick={(e) => handleSubmit(e, false)}
-                  disabled={saving}
-                  className="px-6 py-3 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-xl font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? 'Saving...' : 'Save Draft'}
-                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit(e, false)}
+                    disabled={saving}
+                    className="px-6 py-3 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-xl font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {saving ? 'Saving...' : 'Save Draft'}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleSubmitForReview}
@@ -1039,14 +1043,16 @@ function IncidentForm() {
                 >
                   {saving ? 'Saving...' : 'Submit for Review'}
                 </button>
-                <button
-                  type="button"
-                  onClick={(e) => handleSubmit(e, true)}
-                  disabled={saving}
-                  className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? 'Saving...' : 'Publish'}
-                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit(e, true)}
+                    disabled={saving}
+                    className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {saving ? 'Saving...' : 'Publish'}
+                  </button>
+                )}
               </div>}
             </form>
           </div>
