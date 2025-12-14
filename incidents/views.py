@@ -324,6 +324,9 @@ class IncidentSaveView(APIView):
         incident_data = request.data.get("incident_data", {})
         logger.info(f"Save request data: {incident_data}")
 
+        if not request.user.is_staff:
+            incident_data["verified"] = False
+
         serializer = IncidentSerializer(data=incident_data)
         if not serializer.is_valid():
             logger.error(f"Validation errors: {serializer.errors}")
