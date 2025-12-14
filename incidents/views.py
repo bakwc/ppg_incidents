@@ -370,6 +370,8 @@ class IncidentUpdateView(APIView):
 
 
 class IncidentDeleteView(APIView):
+    permission_classes = [IsAdminUser]
+
     def delete(self, request, uuid):
         incident = Incident.all_objects.get(uuid=uuid)
         incident.delete()
