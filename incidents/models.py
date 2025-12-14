@@ -87,6 +87,7 @@ class Incident(models.Model):
 
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    original_uuid = models.UUIDField(null=True, blank=True, help_text="Reference to original document when editing draft")
 
     # Title and summary
     title = models.CharField(max_length=300, null=True, blank=True)
