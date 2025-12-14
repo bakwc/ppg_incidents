@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
 from incidents.models import Incident
@@ -81,3 +82,29 @@ def test_incident_chat_flow():
     incident = Incident.objects.get(title="Wing collapse near Valencia")
     assert incident.country == "Spain"
     assert incident.severity == "serious"
+
+
+@pytest.mark.django_db
+def test_non_admin_cannot_delete_incident():
+    client = APIClient()
+
+    incident = Incident.objects.create(
+        title="Test incident",
+        country="Spain",
+        severity="minor",
+    )
+
+    non_admin_user = User.objects.create_user(username="regular", password="test123")
+    admin_user = User.objects.create_user(username="admin", password="admin123", is_staff=True)
+
+    response = client.delete(f"/api/incident/{incident.uuid}/delete")
+    assert response.status_code == 401
+
+    client.force_authenticate(user=non_admin_user)
+    response = client.delete(f"/api/incident/{incident.uuid}/delete")
+    assert response.status_code == 403
+
+    client.force_authenticate(user=admin_user)
+    response = client.delete(f"/api/incident/{incident.uuid}/delete")
+    assert response.status_code == 200
+    assert response.json()["deleted"] is True
