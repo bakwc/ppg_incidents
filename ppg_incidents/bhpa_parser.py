@@ -219,9 +219,16 @@ def parse_bhpa_html(html: str) -> list[BHPAIncident]:
         injury_lines = [l.strip() for l in injury_text.split("\n") if l.strip()]
         injury_level = ""
         injury_details = ""
+        pilot_label_found = False
         for line in injury_lines:
-            if "Pilot:" in line:
-                injury_level = line.replace("Pilot:", "").strip()
+            if "Pilot" in line and ":" in line:
+                pilot_label_found = True
+                after_colon = line.split(":")[-1].strip()
+                if after_colon and after_colon not in ("Unknown",):
+                    injury_level = after_colon
+            elif pilot_label_found and not injury_level:
+                injury_level = line
+                pilot_label_found = False
             elif line.startswith("_") or (injury_level and line not in ("Unknown",)):
                 injury_details = line.strip("_").strip()
         if not injury_level and injury_lines:
