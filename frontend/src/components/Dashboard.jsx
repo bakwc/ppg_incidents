@@ -6,253 +6,301 @@ import { getCountryCode, getFlag } from '../countryUtils';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#84cc16', '#6366f1'];
 
-const PIE_FILTER_PACKS = [
+const getBaseFilter = (severityFilter) => {
+  const baseFilter = { cause_confidence: 'maximum,high' };
+  
+  if (severityFilter === 'potentially_fatal') {
+    baseFilter.potentially_fatal = true;
+  } else if (severityFilter === 'fatal') {
+    baseFilter.severity = 'fatal';
+  }
+  // 'all' doesn't add any severity filter
+  
+  return baseFilter;
+};
+
+const getPieFilterPacks = (severityFilter) => {
+  const baseFilter = getBaseFilter(severityFilter);
+  return [
   {
     name: 'Total',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    include: { ...baseFilter },
     exclude: {}
   },
   {
     name: 'Wrong Control Input',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'wrong_control_input' },
+    include: { ...baseFilter, primary_cause: 'wrong_control_input' },
     exclude: {}
   },
   {
     name: 'Hardware Failure',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'hardware_failure' },
+    include: { ...baseFilter, primary_cause: 'hardware_failure' },
     exclude: {}
   },
   {
     name: 'Turbulence',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'turbulence' },
+    include: { ...baseFilter, primary_cause: 'turbulence' },
     exclude: {}
   },
   {
     name: 'Powerline Collision / Near Miss',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'powerline_collision' },
+    include: { ...baseFilter, primary_cause: 'powerline_collision' },
     exclude: {}
   },
   {
     name: 'Midair Collision / Near Miss',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'midair_collision' },
+    include: { ...baseFilter, primary_cause: 'midair_collision' },
     exclude: {}
   },
   {
     name: 'Water Landing',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'water_landing' },
+    include: { ...baseFilter, primary_cause: 'water_landing' },
     exclude: {}
   },
   {
     name: 'Lines & Brakes Issues',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'lines_brakes_issues' },
+    include: { ...baseFilter, primary_cause: 'lines_brakes_issues' },
     exclude: {}
   },
   {
     name: 'Ground Starting',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', primary_cause: 'ground_starting' },
+    include: { ...baseFilter, primary_cause: 'ground_starting' },
     exclude: {}
   },
   {
     name: 'Others',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    include: { ...baseFilter },
     exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting' }
   }
 ];
+};
 
-const RESERVE_FILTER_PACKS = [
+const PIE_FILTER_PACKS = getPieFilterPacks('potentially_fatal');
+
+const getReserveFilterPacks = (severityFilter) => {
+  const baseFilter = getBaseFilter(severityFilter);
+  return [
   {
     name: 'Total',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    include: { ...baseFilter },
     exclude: { flight_phase: 'ground' }
   },
   {
     name: 'Attempted',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'no_time,tangled,partially_opened,fully_opened' },
+    include: { ...baseFilter, reserve_use: 'no_time,tangled,partially_opened,fully_opened' },
     exclude: { flight_phase: 'ground' }
   },
   {
     name: 'FullyOpened',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'fully_opened' },
+    include: { ...baseFilter, reserve_use: 'fully_opened' },
     exclude: { flight_phase: 'ground' }
   },
   {
     name: 'NotOpened',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', reserve_use: 'no_time,tangled,partially_opened' },
+    include: { ...baseFilter, reserve_use: 'no_time,tangled,partially_opened' },
     exclude: { flight_phase: 'ground' }
   }
 ];
+};
 
-const TRIM_FILTER_PACKS = [
+const RESERVE_FILTER_PACKS = getReserveFilterPacks('potentially_fatal');
+
+const getTrimFilterPacks = (severityFilter) => {
+  const baseFilter = getBaseFilter(severityFilter);
+  return [
   {
     name: 'Total',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    include: { ...baseFilter },
     exclude: {}
   },
   {
     name: 'Unknown',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'null' },
+    include: { ...baseFilter, factor_trimmer_position: 'null' },
     exclude: {}
   },
   {
     name: 'TrimOut',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'fully_open' },
+    include: { ...baseFilter, factor_trimmer_position: 'fully_open' },
     exclude: {}
   },
   {
     name: 'PartiallyOpen',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'partially_open' },
+    include: { ...baseFilter, factor_trimmer_position: 'partially_open' },
     exclude: {}
   },
   {
     name: 'TrimIn',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_trimmer_position: 'closed' },
+    include: { ...baseFilter, factor_trimmer_position: 'closed' },
     exclude: {}
   }
 ];
+};
 
-const BAR_FILTER_PACKS = [
+const TRIM_FILTER_PACKS = getTrimFilterPacks('potentially_fatal');
+
+const getBarFilterPacks = (severityFilter) => {
+  const baseFilter = getBaseFilter(severityFilter);
+  return [
   {
     name: 'Total',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    include: { ...baseFilter },
     exclude: {}
   },
   {
     name: 'Wrong Pilot Input',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', pilot_actions: 'wrong_input_triggered' },
+    include: { ...baseFilter, pilot_actions: 'wrong_input_triggered' },
     exclude: {}
   },
   {
     name: 'Hardware Failure',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', hardware_failure: true },
+    include: { ...baseFilter, hardware_failure: true },
     exclude: { }
   },
   {
     name: 'Turbulent Conditions',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
+    include: { ...baseFilter, factor_turbulent_conditions: true },
   },
   {
     name: 'Powerline Collision',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_powerline_collision: true }
+    include: { ...baseFilter, factor_powerline_collision: true }
   },
   {
     name: 'Low Acro',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_low_altitude: true, factor_maneuvers: true }
+    include: { ...baseFilter, factor_low_altitude: true, factor_maneuvers: true }
   },
   {
     name: 'Performed Maneuvers',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_maneuvers: true }
+    include: { ...baseFilter, factor_maneuvers: true }
   },
   {
     name: 'Water Landing',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_water_landing: true }
+    include: { ...baseFilter, factor_water_landing: true }
   },
   {
     name: 'Wing Collapse',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', collapse: true }
+    include: { ...baseFilter, collapse: true }
   },
   {
     name: 'Spiral',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_spiral_maneuver: true }
+    include: { ...baseFilter, factor_spiral_maneuver: true }
   },
   {
     name: 'Accelerator Engaged',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_accelerator: 'partially_engaged,fully_engaged' }
+    include: { ...baseFilter, factor_accelerator: 'partially_engaged,fully_engaged' }
   }
 ];
+};
 
-const FLIGHT_PHASE_FILTER_PACKS = [
+const BAR_FILTER_PACKS = getBarFilterPacks('potentially_fatal');
+
+const getFlightPhaseFilterPacks = (severityFilter) => {
+  const baseFilter = getBaseFilter(severityFilter);
+  return [
   {
     name: 'Total',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high' },
+    include: { ...baseFilter },
     exclude: {}
   },
   {
     name: 'Ground',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'ground' },
+    include: { ...baseFilter, flight_phase: 'ground' },
     exclude: {}
   },
   {
     name: 'Takeoff',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'takeoff' },
+    include: { ...baseFilter, flight_phase: 'takeoff' },
     exclude: {}
   },
   {
     name: 'Flight',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'flight' },
+    include: { ...baseFilter, flight_phase: 'flight' },
     exclude: {}
   },
   {
     name: 'Landing',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', flight_phase: 'landing' },
+    include: { ...baseFilter, flight_phase: 'landing' },
     exclude: {}
   }
 ];
+};
 
-const ALTITUDE_FILTER_PACKS = [
+const FLIGHT_PHASE_FILTER_PACKS = getFlightPhaseFilterPacks('potentially_fatal');
+
+const getAltitudeFilterPacks = (severityFilter) => {
+  const baseFilter = getBaseFilter(severityFilter);
+  return [
   {
     name: 'Total',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_not_null: true },
+    include: { ...baseFilter, altitude_not_null: true },
     exclude: {}
   },
   {
     name: '0-50',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 0, altitude_max: 50 },
+    include: { ...baseFilter, altitude_min: 0, altitude_max: 50 },
     exclude: {}
   },
   {
     name: '50-100',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 50, altitude_max: 100 },
+    include: { ...baseFilter, altitude_min: 50, altitude_max: 100 },
     exclude: {}
   },
   {
     name: '100-200',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 100, altitude_max: 200 },
+    include: { ...baseFilter, altitude_min: 100, altitude_max: 200 },
     exclude: {}
   },
   {
     name: '200-500',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 200, altitude_max: 500 },
+    include: { ...baseFilter, altitude_min: 200, altitude_max: 500 },
     exclude: {}
   },
   {
     name: '500+',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', altitude_min: 500},
+    include: { ...baseFilter, altitude_min: 500},
     exclude: {}
   },
 ];
+};
 
-const TURBULENCE_FILTER_PACKS = [
+const ALTITUDE_FILTER_PACKS = getAltitudeFilterPacks('potentially_fatal');
+
+const getTurbulenceFilterPacks = (severityFilter) => {
+  const baseFilter = getBaseFilter(severityFilter);
+  return [
   {
     name: 'Total',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
+    include: { ...baseFilter, factor_turbulent_conditions: true },
     exclude: {}
   },
   {
     name: 'Rotor',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, factor_rotor_turbulence: true },
+    include: { ...baseFilter, factor_turbulent_conditions: true, factor_rotor_turbulence: true },
     exclude: {}
   },
   {
     name: 'Thermal Activity',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, factor_thermal_weather: true },
+    include: { ...baseFilter, factor_turbulent_conditions: true, factor_thermal_weather: true },
     exclude: {}
   },
   // {
   //   name: 'Wake Turbulence',
-  //   include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, factor_wake_turbulence: true },
+  //   include: { ...baseFilter, factor_turbulent_conditions: true, factor_wake_turbulence: true },
   //   exclude: {}
   // },
   {
     name: 'Wind',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true, wind_speed_ms_min: 3 },
+    include: { ...baseFilter, factor_turbulent_conditions: true, wind_speed_ms_min: 3 },
     exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true }
   },
   {
     name: 'Other',
-    include: { potentially_fatal: true, cause_confidence: 'maximum,high', factor_turbulent_conditions: true },
+    include: { ...baseFilter, factor_turbulent_conditions: true },
     exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true, wind_speed_ms_min: 3 }
   }
 ];
+};
+
+const TURBULENCE_FILTER_PACKS = getTurbulenceFilterPacks('potentially_fatal');
 
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
@@ -265,7 +313,7 @@ const buildFilterUrl = (filterPack) => {
   return `/?${params.toString()}`;
 };
 
-const SECTIONS = [
+const ALL_SECTIONS = [
   { id: 'primary-causes', label: 'Primary Causes' },
   { id: 'contributing-factors', label: 'Contributing Factors' },
   { id: 'flight-phase', label: 'Flight Phase' },
@@ -279,6 +327,7 @@ const SECTIONS = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [severityFilter, setSeverityFilter] = useState('potentially_fatal');
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
   const [flightPhaseStats, setFlightPhaseStats] = useState(null);
@@ -304,16 +353,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadStats = async () => {
+      setLoading(true);
+      const baseFilter = getBaseFilter(severityFilter);
       const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
-        fetchDashboardStats(PIE_FILTER_PACKS),
-        fetchDashboardStats(BAR_FILTER_PACKS),
-        fetchDashboardStats(FLIGHT_PHASE_FILTER_PACKS),
-        fetchDashboardStats(ALTITUDE_FILTER_PACKS),
-        fetchDashboardStats(TURBULENCE_FILTER_PACKS),
-        fetchDashboardStats(RESERVE_FILTER_PACKS),
-        fetchDashboardStats(TRIM_FILTER_PACKS),
-        fetchCountryStats({ potentially_fatal: true, cause_confidence: 'maximum,high' }, {}, 10),
-        fetchYearStats({ potentially_fatal: true, cause_confidence: 'maximum,high' }, {})
+        fetchDashboardStats(getPieFilterPacks(severityFilter)),
+        fetchDashboardStats(getBarFilterPacks(severityFilter)),
+        fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter)),
+        fetchDashboardStats(getAltitudeFilterPacks(severityFilter)),
+        fetchDashboardStats(getTurbulenceFilterPacks(severityFilter)),
+        fetchDashboardStats(getReserveFilterPacks(severityFilter)),
+        fetchDashboardStats(getTrimFilterPacks(severityFilter)),
+        fetchCountryStats(baseFilter, {}, 10),
+        fetchYearStats(baseFilter, {})
       ]);
       setPieStats(pieData);
       setBarStats(barData);
@@ -328,7 +379,7 @@ export default function Dashboard() {
     };
 
     loadStats();
-  }, []);
+  }, [severityFilter]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -363,8 +414,21 @@ export default function Dashboard() {
     );
   }
 
+  const pieFilterPacks = getPieFilterPacks(severityFilter);
+  const barFilterPacks = getBarFilterPacks(severityFilter);
+  const flightPhaseFilterPacks = getFlightPhaseFilterPacks(severityFilter);
+  const altitudeFilterPacks = getAltitudeFilterPacks(severityFilter);
+  const turbulenceFilterPacks = getTurbulenceFilterPacks(severityFilter);
+  const reserveFilterPacks = getReserveFilterPacks(severityFilter);
+  const trimFilterPacks = getTrimFilterPacks(severityFilter);
+
+  // Filter sections based on severity filter
+  const SECTIONS = severityFilter === 'fatal'
+    ? ALL_SECTIONS.filter(s => s.id !== 'reserve-usage')
+    : ALL_SECTIONS;
+
   const pieTotal = pieStats['Total'] || 0;
-  const pieChartData = PIE_FILTER_PACKS
+  const pieChartData = pieFilterPacks
     .filter(p => p.name !== 'Total')
     .map((p, index) => ({ 
       name: p.name, 
@@ -376,7 +440,7 @@ export default function Dashboard() {
     .sort((a, b) => b.percent - a.percent);
 
   const barTotal = barStats['Total'] || 0;
-  const barChartData = BAR_FILTER_PACKS
+  const barChartData = barFilterPacks
     .filter(p => p.name !== 'Total')
     .map(p => ({
       name: p.name,
@@ -446,8 +510,22 @@ export default function Dashboard() {
         {/* Main Content */}
         <div className="lg:ml-48 xl:ml-64 flex-1 p-4 md:p-6 xl:p-8">
           <div className="max-w-4xl mx-auto">
-            <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-amber-400">Potentially Fatal Incidents</h1>
+            <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h1 className="text-2xl md:text-3xl font-bold text-amber-400">
+                {severityFilter === 'potentially_fatal' ? 'Potentially Fatal Incidents' : severityFilter === 'fatal' ? 'Fatal Incidents' : 'All Incidents'}
+              </h1>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-400">Filter:</label>
+                <select
+                  value={severityFilter}
+                  onChange={(e) => setSeverityFilter(e.target.value)}
+                  className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/25"
+                >
+                  <option value="potentially_fatal">Potentially Fatal</option>
+                  <option value="fatal">Fatal</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
             </div>
 
             <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8">
@@ -545,7 +623,7 @@ export default function Dashboard() {
           
           {(() => {
             const flightPhaseTotal = flightPhaseStats?.['Total'] || 0;
-            const flightPhaseChartData = FLIGHT_PHASE_FILTER_PACKS
+            const flightPhaseChartData = flightPhaseFilterPacks
               .filter(p => p.name !== 'Total')
               .map(p => ({
                 name: p.name,
@@ -611,7 +689,7 @@ export default function Dashboard() {
               '500+': { meters: '500+ m', feet: '1640+ ft' }
             };
             
-            const altitudeChartData = ALTITUDE_FILTER_PACKS
+            const altitudeChartData = altitudeFilterPacks
               .filter(p => p.name !== 'Total')
               .map(p => ({
                 name: p.name,
@@ -696,7 +774,7 @@ export default function Dashboard() {
           
           {(() => {
             const turbulenceTotal = turbulenceStats?.['Total'] || 0;
-            const turbulenceChartData = TURBULENCE_FILTER_PACKS
+            const turbulenceChartData = turbulenceFilterPacks
               .filter(p => p.name !== 'Total')
               .map((p, index) => ({
                 name: p.name,
@@ -772,75 +850,77 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="reserve-usage" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
-          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Reserve Usage</h2>
-          
-          {(() => {
-            const total = reserveStats?.['Total'] || 0;
-            const attempted = reserveStats?.['Attempted'] || 0;
-            const fullyOpened = reserveStats?.['FullyOpened'] || 0;
-            const notOpened = reserveStats?.['NotOpened'] || 0;
-            const attemptedRate = total > 0 ? (attempted / total * 100).toFixed(0) : 0;
-            const successRate = attempted > 0 ? (fullyOpened / attempted * 100).toFixed(0) : 0;
+        {severityFilter !== 'fatal' && (
+          <div id="reserve-usage" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+            <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Reserve Usage</h2>
+            
+            {(() => {
+              const total = reserveStats?.['Total'] || 0;
+              const attempted = reserveStats?.['Attempted'] || 0;
+              const fullyOpened = reserveStats?.['FullyOpened'] || 0;
+              const notOpened = reserveStats?.['NotOpened'] || 0;
+              const attemptedRate = total > 0 ? (attempted / total * 100).toFixed(0) : 0;
+              const successRate = attempted > 0 ? (fullyOpened / attempted * 100).toFixed(0) : 0;
 
-            const reserveChartData = [
-              { name: 'Attempted to throw', percent: total > 0 ? (attempted / total * 100) : 0, filterPack: RESERVE_FILTER_PACKS.find(p => p.name === 'Attempted') },
-              { name: 'Fully opened', percent: total > 0 ? (fullyOpened / total * 100) : 0, filterPack: RESERVE_FILTER_PACKS.find(p => p.name === 'FullyOpened') },
-              { name: 'Not opened', percent: total > 0 ? (notOpened / total * 100) : 0, filterPack: RESERVE_FILTER_PACKS.find(p => p.name === 'NotOpened') }
-            ];
+              const reserveChartData = [
+                { name: 'Attempted to throw', percent: total > 0 ? (attempted / total * 100) : 0, filterPack: reserveFilterPacks.find(p => p.name === 'Attempted') },
+                { name: 'Fully opened', percent: total > 0 ? (fullyOpened / total * 100) : 0, filterPack: reserveFilterPacks.find(p => p.name === 'FullyOpened') },
+                { name: 'Not opened', percent: total > 0 ? (notOpened / total * 100) : 0, filterPack: reserveFilterPacks.find(p => p.name === 'NotOpened') }
+              ];
 
-            const handleReserveClick = (data) => {
-              if (isTouchDevice) {
-                if (activeTooltip === `reserve-${data?.name}`) {
+              const handleReserveClick = (data) => {
+                if (isTouchDevice) {
+                  if (activeTooltip === `reserve-${data?.name}`) {
+                    if (data?.filterPack) {
+                      navigate(buildFilterUrl(data.filterPack));
+                    }
+                  } else {
+                    setActiveTooltip(`reserve-${data?.name}`);
+                    setTimeout(() => setActiveTooltip(null), 3000);
+                  }
+                } else {
                   if (data?.filterPack) {
                     navigate(buildFilterUrl(data.filterPack));
                   }
-                } else {
-                  setActiveTooltip(`reserve-${data?.name}`);
-                  setTimeout(() => setActiveTooltip(null), 3000);
                 }
-              } else {
-                if (data?.filterPack) {
-                  navigate(buildFilterUrl(data.filterPack));
-                }
-              }
-            };
+              };
 
-            return (
-              <div>
-                <div className="h-[180px] md:h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={reserveChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
-                      <XAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
-                      <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 100 }} />
-                      <Tooltip
-                        trigger={isTouchDevice ? 'click' : 'hover'}
-                        formatter={(value) => `${value.toFixed(1)}%`}
-                        contentStyle={{
-                          backgroundColor: '#1e293b',
-                          border: '1px solid #334155',
-                          borderRadius: '8px',
-                          color: '#f1f5f9'
-                        }}
-                      />
-                      <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
-                        <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center space-y-2">
-                  <div className="text-base md:text-lg text-slate-400">
-                    Only <span className="text-emerald-400 font-bold text-lg md:text-xl">{attemptedRate}%</span> attempted to throw
+              return (
+                <div>
+                  <div className="h-[180px] md:h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={reserveChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
+                        <XAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                        <YAxis type="category" dataKey="name" width={100} stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '9px' : '11px' }} tick={{ width: 100 }} />
+                        <Tooltip
+                          trigger={isTouchDevice ? 'click' : 'hover'}
+                          formatter={(value) => `${value.toFixed(1)}%`}
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                            color: '#f1f5f9'
+                          }}
+                        />
+                        <Bar dataKey="percent" fill="#10b981" radius={[0, 4, 4, 0]} onClick={handleReserveClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                          <LabelList dataKey="percent" position="right" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="text-base md:text-lg text-slate-400">
-                    <span className="text-emerald-400 font-bold text-lg md:text-xl">{successRate}%</span> of all throws were successful
+                  <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center space-y-2">
+                    <div className="text-base md:text-lg text-slate-400">
+                      Only <span className="text-emerald-400 font-bold text-lg md:text-xl">{attemptedRate}%</span> attempted to throw
+                    </div>
+                    <div className="text-base md:text-lg text-slate-400">
+                      <span className="text-emerald-400 font-bold text-lg md:text-xl">{successRate}%</span> of all throws were successful
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
-        </div>
+              );
+            })()}
+          </div>
+        )}
 
         <div id="trim-position" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Trim Position</h2>
@@ -857,9 +937,9 @@ export default function Dashboard() {
             const unknownPercent = total > 0 ? (unknown / total * 100).toFixed(0) : 0;
 
             const trimChartData = [
-              { name: 'Trim-out (open)', percent: knownTotal > 0 ? (trimOut / knownTotal * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimOut') },
-              { name: 'Partially open', percent: knownTotal > 0 ? (partiallyOpen / knownTotal * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'PartiallyOpen') },
-              { name: 'Trim-in (closed)', percent: knownTotal > 0 ? (trimIn / knownTotal * 100) : 0, filterPack: TRIM_FILTER_PACKS.find(p => p.name === 'TrimIn') }
+              { name: 'Trim-out (open)', percent: knownTotal > 0 ? (trimOut / knownTotal * 100) : 0, filterPack: trimFilterPacks.find(p => p.name === 'TrimOut') },
+              { name: 'Partially open', percent: knownTotal > 0 ? (partiallyOpen / knownTotal * 100) : 0, filterPack: trimFilterPacks.find(p => p.name === 'PartiallyOpen') },
+              { name: 'Trim-in (closed)', percent: knownTotal > 0 ? (trimIn / knownTotal * 100) : 0, filterPack: trimFilterPacks.find(p => p.name === 'TrimIn') }
             ];
 
             const handleTrimClick = (data) => {
