@@ -1061,11 +1061,12 @@ export default function Dashboard() {
               if (isTouchDevice) {
                 if (activeTooltip === `country-${data?.name}`) {
                   if (data?.fullName) {
-                    const params = new URLSearchParams();
-                    params.set('potentially_fatal', 'true');
-                    params.set('cause_confidence', 'maximum,high');
-                    params.set('country', data.fullName);
-                    navigate(`/incidents?${params.toString()}`);
+                    const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
+                    const filterPack = {
+                      include: { ...baseFilter, country: data.fullName },
+                      exclude: {}
+                    };
+                    navigate(buildFilterUrl(filterPack));
                   }
                 } else {
                   setActiveTooltip(`country-${data?.name}`);
@@ -1073,11 +1074,12 @@ export default function Dashboard() {
                 }
               } else {
                 if (data?.fullName) {
-                  const params = new URLSearchParams();
-                  params.set('potentially_fatal', 'true');
-                  params.set('cause_confidence', 'maximum,high');
-                  params.set('country', data.fullName);
-                  navigate(`/incidents?${params.toString()}`);
+                  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
+                  const filterPack = {
+                    include: { ...baseFilter, country: data.fullName },
+                    exclude: {}
+                  };
+                  navigate(buildFilterUrl(filterPack));
                 }
               }
             };
@@ -1121,12 +1123,12 @@ export default function Dashboard() {
               if (isTouchDevice) {
                 if (activeTooltip === `year-${data?.year}`) {
                   if (data?.year) {
-                    const params = new URLSearchParams();
-                    params.set('potentially_fatal', 'true');
-                    params.set('cause_confidence', 'maximum,high');
-                    params.set('date_from', `${data.year}-01`);
-                    params.set('date_to', `${data.year}-12`);
-                    navigate(`/incidents?${params.toString()}`);
+                    const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
+                    const filterPack = {
+                      include: { ...baseFilter, date_from: `${data.year}-01`, date_to: `${data.year}-12` },
+                      exclude: {}
+                    };
+                    navigate(buildFilterUrl(filterPack));
                   }
                 } else {
                   setActiveTooltip(`year-${data?.year}`);
@@ -1134,12 +1136,12 @@ export default function Dashboard() {
                 }
               } else {
                 if (data?.year) {
-                  const params = new URLSearchParams();
-                  params.set('potentially_fatal', 'true');
-                  params.set('cause_confidence', 'maximum,high');
-                  params.set('date_from', `${data.year}-01`);
-                  params.set('date_to', `${data.year}-12`);
-                  navigate(`/incidents?${params.toString()}`);
+                  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
+                  const filterPack = {
+                    include: { ...baseFilter, date_from: `${data.year}-01`, date_to: `${data.year}-12` },
+                    exclude: {}
+                  };
+                  navigate(buildFilterUrl(filterPack));
                 }
               }
             };
