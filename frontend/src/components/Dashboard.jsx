@@ -466,14 +466,14 @@ export default function Dashboard() {
                   height={80}
                   tick={({ x, y, payload }) => {
                     const shortNames = {
-                      'Wrong Control Input': 'Wrong Input',
-                      'Hardware Failure': 'Hardware',
+                      'Wrong Control Input': 'Wrong Control Input',
+                      'Hardware Failure': 'Hardware Failure',
                       'Turbulence': 'Turbulence',
-                      'Powerline Collision / Near Miss': 'Powerline',
-                      'Midair Collision / Near Miss': 'Midair',
+                      'Powerline Collision / Near Miss': 'Powerline Collision / Near Miss',
+                      'Midair Collision / Near Miss': 'Midair Collision / Near Miss',
                       'Water Landing': 'Water',
-                      'Lines & Brakes Issues': 'Lines/Brakes',
-                      'Ground Starting': 'Ground Start',
+                      'Lines & Brakes Issues': 'Lines/Brakes Issues',
+                      'Ground Starting': 'Ground Starting',
                       'Others': 'Others'
                     };
                     return (
