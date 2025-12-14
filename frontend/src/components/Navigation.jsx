@@ -1,7 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 export default function Navigation() {
   const location = useLocation();
+  const { user, isAdmin, logout } = useAuth();
   
   const isActive = (path) => {
     if (path === '/') {
@@ -62,6 +64,26 @@ export default function Navigation() {
             >
               Report Incident
             </Link>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-slate-300 text-sm">
+                  {user.username} {isAdmin && <span className="text-amber-400">(admin)</span>}
+                </span>
+                <button
+                  onClick={logout}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-all text-sm"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-all text-sm"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </div>

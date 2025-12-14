@@ -4,8 +4,11 @@ from django.db.models import Case, Count, Q, When
 from django.db.models.functions import ExtractYear
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from incidents.models import Incident
 from incidents.serializers import IncidentSerializer
@@ -14,6 +17,50 @@ from ppg_incidents.fts_store import search_fts, upsert_fts
 from ppg_incidents.vector_store import upsert_embedding, search_similar, init_vector_table
 
 logger = logging.getLogger(__name__)
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['email'] = user.email
+        token['is_staff'] = user.is_staff
+        token['is_superuser'] = user.is_superuser
+        return token
+    
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['user'] = {
+            'id': self.user.id,
+            'username': self.user.username,
+            'email': self.user.email,
+            'is_staff': self.user.is_staff,
+            'is_superuser': self.user.is_superuser,
+        }
+        return data
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        return Response({"detail": "Successfully logged out"})
+
+
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        return Response({
+            'id': request.user.id,
+            'username': request.user.username,
+            'email': request.user.email,
+            'is_staff': request.user.is_staff,
+            'is_superuser': request.user.is_superuser
+        })
 
 
 class IncidentPagination(PageNumberPagination):

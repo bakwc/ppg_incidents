@@ -1,9 +1,12 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from incidents.views import (
     CheckDuplicateView,
     CountriesView,
     CountryStatsView,
+    CurrentUserView,
+    CustomTokenObtainPairView,
     DashboardStatsView,
     IncidentChatView,
     IncidentDeleteView,
@@ -13,11 +16,16 @@ from incidents.views import (
     IncidentSaveView,
     IncidentSearchView,
     IncidentUpdateView,
+    LogoutView,
     UnverifiedIncidentListView,
     YearStatsView,
 )
 
 urlpatterns = [
+    path("auth/login", CustomTokenObtainPairView.as_view(), name="token-obtain-pair"),
+    path("auth/refresh", TokenRefreshView.as_view(), name="token-refresh"),
+    path("auth/logout", LogoutView.as_view(), name="logout"),
+    path("auth/me", CurrentUserView.as_view(), name="current-user"),
     path("incidents", IncidentListView.as_view(), name="incident-list"),
     path("incidents/unverified", UnverifiedIncidentListView.as_view(), name="incident-unverified-list"),
     path("incident/<uuid:uuid>", IncidentDetailView.as_view(), name="incident-detail"),
