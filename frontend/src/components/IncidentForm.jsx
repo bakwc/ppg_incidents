@@ -180,6 +180,27 @@ function IncidentForm() {
   const [originalData, setOriginalData] = useState(null);
   const chatEndRef = useRef(null);
 
+  const hasChanges = (() => {
+    if (isEditing && originalData) {
+      for (const key of Object.keys(originalData)) {
+        const origValue = originalData[key];
+        const currentValue = formData[key];
+        const valuesEqual = Array.isArray(origValue) && Array.isArray(currentValue)
+          ? JSON.stringify(origValue) === JSON.stringify(currentValue)
+          : origValue === currentValue;
+        if (!valuesEqual) return true;
+      }
+      return false;
+    }
+    for (const [key, value] of Object.entries(formData)) {
+      if (key === 'verified') continue;
+      if (Array.isArray(value) && value.length > 0) return true;
+      if (typeof value === 'boolean' && value) return true;
+      if (typeof value === 'string' && value !== '') return true;
+    }
+    return false;
+  })();
+
   useEffect(() => {
     if (uuid) {
       fetchIncident(uuid).then(data => {
@@ -1038,7 +1059,7 @@ function IncidentForm() {
                 <button
                   type="button"
                   onClick={handleSubmitForReview}
-                  disabled={saving}
+                  disabled={saving || !hasChanges}
                   className="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl font-semibold text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Submit for Review'}
