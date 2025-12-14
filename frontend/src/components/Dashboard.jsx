@@ -523,10 +523,7 @@ export default function Dashboard() {
         {/* Main Content */}
         <div className="lg:ml-48 xl:ml-64 flex-1 p-4 md:p-6 xl:p-8">
           <div className="max-w-4xl mx-auto">
-            <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h1 className="text-2xl md:text-3xl font-bold text-amber-400">
-                {severityFilter === 'potentially_fatal' ? 'Potentially Fatal Incidents' : severityFilter === 'fatal' ? 'Fatal Incidents' : 'All Incidents'}
-              </h1>
+            <div className="mb-6 md:mb-8 flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-400">Severity:</label>
@@ -552,6 +549,14 @@ export default function Dashboard() {
                     <option value="last_5_years">Last 5 years</option>
                   </select>
                 </div>
+              </div>
+              <div className="text-base md:text-lg text-slate-300">
+                <span className="font-bold">{pieTotal}</span>
+                {' '}
+                {severityFilter === 'potentially_fatal' ? 'potentially fatal incidents' : severityFilter === 'fatal' ? 'fatal incidents' : 'incidents'}
+                {' '}
+                {yearFilter === 'all_time' ? '' : yearFilter === 'last_10_years' ? 'from the last 10 years ' : 'from the last 5 years '}
+                with high cause confidence
               </div>
             </div>
 
