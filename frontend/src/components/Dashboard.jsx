@@ -328,7 +328,7 @@ const buildFilterUrl = (filterPack) => {
   Object.entries(filterPack.exclude || {}).forEach(([key, value]) => {
     params.set(`exclude_${key}`, value);
   });
-  return `/?${params.toString()}`;
+  return `/incidents?${params.toString()}`;
 };
 
 const ALL_SECTIONS = [
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                     params.set('potentially_fatal', 'true');
                     params.set('cause_confidence', 'maximum,high');
                     params.set('country', data.fullName);
-                    navigate(`/?${params.toString()}`);
+                    navigate(`/incidents?${params.toString()}`);
                   }
                 } else {
                   setActiveTooltip(`country-${data?.name}`);
@@ -1077,7 +1077,7 @@ export default function Dashboard() {
                   params.set('potentially_fatal', 'true');
                   params.set('cause_confidence', 'maximum,high');
                   params.set('country', data.fullName);
-                  navigate(`/?${params.toString()}`);
+                  navigate(`/incidents?${params.toString()}`);
                 }
               }
             };
@@ -1126,7 +1126,7 @@ export default function Dashboard() {
                     params.set('cause_confidence', 'maximum,high');
                     params.set('date_from', `${data.year}-01`);
                     params.set('date_to', `${data.year}-12`);
-                    navigate(`/?${params.toString()}`);
+                    navigate(`/incidents?${params.toString()}`);
                   }
                 } else {
                   setActiveTooltip(`year-${data?.year}`);
@@ -1139,7 +1139,7 @@ export default function Dashboard() {
                   params.set('cause_confidence', 'maximum,high');
                   params.set('date_from', `${data.year}-01`);
                   params.set('date_to', `${data.year}-12`);
-                  navigate(`/?${params.toString()}`);
+                  navigate(`/incidents?${params.toString()}`);
                 }
               }
             };
