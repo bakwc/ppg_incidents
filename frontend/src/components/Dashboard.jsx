@@ -6,8 +6,14 @@ import { getCountryCode, getFlag } from '../countryUtils';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#84cc16', '#6366f1'];
 
-const getBaseFilter = (severityFilter, yearFilter) => {
-  const baseFilter = { cause_confidence: 'maximum,high' };
+const getBaseFilter = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = {};
+  
+  // Add confidence filtering
+  if (confidenceFilter === 'high') {
+    baseFilter.cause_confidence = 'maximum,high';
+  }
+  // 'any' doesn't add any confidence filter
   
   if (severityFilter === 'potentially_fatal') {
     baseFilter.potentially_fatal = true;
@@ -31,8 +37,8 @@ const getBaseFilter = (severityFilter, yearFilter) => {
   return baseFilter;
 };
 
-const getPieFilterPacks = (severityFilter, yearFilter) => {
-  const baseFilter = getBaseFilter(severityFilter, yearFilter);
+const getPieFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
   return [
   {
     name: 'Total',
@@ -80,17 +86,17 @@ const getPieFilterPacks = (severityFilter, yearFilter) => {
     exclude: {}
   },
   {
-    name: 'Others',
+    name: 'Others / Unknown',
     include: { ...baseFilter },
     exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting' }
   }
 ];
 };
 
-const PIE_FILTER_PACKS = getPieFilterPacks('potentially_fatal', 'all_time');
+const PIE_FILTER_PACKS = getPieFilterPacks('potentially_fatal', 'all_time', 'high');
 
-const getReserveFilterPacks = (severityFilter, yearFilter) => {
-  const baseFilter = getBaseFilter(severityFilter, yearFilter);
+const getReserveFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
   return [
   {
     name: 'Total',
@@ -115,10 +121,10 @@ const getReserveFilterPacks = (severityFilter, yearFilter) => {
 ];
 };
 
-const RESERVE_FILTER_PACKS = getReserveFilterPacks('potentially_fatal', 'all_time');
+const RESERVE_FILTER_PACKS = getReserveFilterPacks('potentially_fatal', 'all_time', 'high');
 
-const getTrimFilterPacks = (severityFilter, yearFilter) => {
-  const baseFilter = getBaseFilter(severityFilter, yearFilter);
+const getTrimFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
   return [
   {
     name: 'Total',
@@ -148,10 +154,10 @@ const getTrimFilterPacks = (severityFilter, yearFilter) => {
 ];
 };
 
-const TRIM_FILTER_PACKS = getTrimFilterPacks('potentially_fatal', 'all_time');
+const TRIM_FILTER_PACKS = getTrimFilterPacks('potentially_fatal', 'all_time', 'high');
 
-const getBarFilterPacks = (severityFilter, yearFilter) => {
-  const baseFilter = getBaseFilter(severityFilter, yearFilter);
+const getBarFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
   return [
   {
     name: 'Total',
@@ -203,10 +209,10 @@ const getBarFilterPacks = (severityFilter, yearFilter) => {
 ];
 };
 
-const BAR_FILTER_PACKS = getBarFilterPacks('potentially_fatal', 'all_time');
+const BAR_FILTER_PACKS = getBarFilterPacks('potentially_fatal', 'all_time', 'high');
 
-const getFlightPhaseFilterPacks = (severityFilter, yearFilter) => {
-  const baseFilter = getBaseFilter(severityFilter, yearFilter);
+const getFlightPhaseFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
   return [
   {
     name: 'Total',
@@ -236,10 +242,10 @@ const getFlightPhaseFilterPacks = (severityFilter, yearFilter) => {
 ];
 };
 
-const FLIGHT_PHASE_FILTER_PACKS = getFlightPhaseFilterPacks('potentially_fatal', 'all_time');
+const FLIGHT_PHASE_FILTER_PACKS = getFlightPhaseFilterPacks('potentially_fatal', 'all_time', 'high');
 
-const getAltitudeFilterPacks = (severityFilter, yearFilter) => {
-  const baseFilter = getBaseFilter(severityFilter, yearFilter);
+const getAltitudeFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
   return [
   {
     name: 'Total',
@@ -274,10 +280,10 @@ const getAltitudeFilterPacks = (severityFilter, yearFilter) => {
 ];
 };
 
-const ALTITUDE_FILTER_PACKS = getAltitudeFilterPacks('potentially_fatal', 'all_time');
+const ALTITUDE_FILTER_PACKS = getAltitudeFilterPacks('potentially_fatal', 'all_time', 'high');
 
-const getTurbulenceFilterPacks = (severityFilter, yearFilter) => {
-  const baseFilter = getBaseFilter(severityFilter, yearFilter);
+const getTurbulenceFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
   return [
   {
     name: 'Total',
@@ -312,7 +318,7 @@ const getTurbulenceFilterPacks = (severityFilter, yearFilter) => {
 ];
 };
 
-const TURBULENCE_FILTER_PACKS = getTurbulenceFilterPacks('potentially_fatal', 'all_time');
+const TURBULENCE_FILTER_PACKS = getTurbulenceFilterPacks('potentially_fatal', 'all_time', 'high');
 
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
@@ -341,6 +347,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [severityFilter, setSeverityFilter] = useState('potentially_fatal');
   const [yearFilter, setYearFilter] = useState('all_time');
+  const [confidenceFilter, setConfidenceFilter] = useState('high');
   const [pieStats, setPieStats] = useState(null);
   const [barStats, setBarStats] = useState(null);
   const [flightPhaseStats, setFlightPhaseStats] = useState(null);
@@ -367,15 +374,15 @@ export default function Dashboard() {
   useEffect(() => {
     const loadStats = async () => {
       setLoading(true);
-      const baseFilter = getBaseFilter(severityFilter, yearFilter);
+      const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
       const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
-        fetchDashboardStats(getPieFilterPacks(severityFilter, yearFilter)),
-        fetchDashboardStats(getBarFilterPacks(severityFilter, yearFilter)),
-        fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter, yearFilter)),
-        fetchDashboardStats(getAltitudeFilterPacks(severityFilter, yearFilter)),
-        fetchDashboardStats(getTurbulenceFilterPacks(severityFilter, yearFilter)),
-        fetchDashboardStats(getReserveFilterPacks(severityFilter, yearFilter)),
-        fetchDashboardStats(getTrimFilterPacks(severityFilter, yearFilter)),
+        fetchDashboardStats(getPieFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getBarFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getAltitudeFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getTurbulenceFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchCountryStats(baseFilter, {}, 10),
         fetchYearStats(baseFilter, {})
       ]);
@@ -392,7 +399,7 @@ export default function Dashboard() {
     };
 
     loadStats();
-  }, [severityFilter, yearFilter]);
+  }, [severityFilter, yearFilter, confidenceFilter]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -427,13 +434,13 @@ export default function Dashboard() {
     );
   }
 
-  const pieFilterPacks = getPieFilterPacks(severityFilter, yearFilter);
-  const barFilterPacks = getBarFilterPacks(severityFilter, yearFilter);
-  const flightPhaseFilterPacks = getFlightPhaseFilterPacks(severityFilter, yearFilter);
-  const altitudeFilterPacks = getAltitudeFilterPacks(severityFilter, yearFilter);
-  const turbulenceFilterPacks = getTurbulenceFilterPacks(severityFilter, yearFilter);
-  const reserveFilterPacks = getReserveFilterPacks(severityFilter, yearFilter);
-  const trimFilterPacks = getTrimFilterPacks(severityFilter, yearFilter);
+  const pieFilterPacks = getPieFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const barFilterPacks = getBarFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const flightPhaseFilterPacks = getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const altitudeFilterPacks = getAltitudeFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const turbulenceFilterPacks = getTurbulenceFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const reserveFilterPacks = getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const trimFilterPacks = getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter);
 
   // Filter sections based on severity filter
   const SECTIONS = severityFilter === 'fatal'
@@ -549,6 +556,17 @@ export default function Dashboard() {
                     <option value="last_5_years">Last 5 years</option>
                   </select>
                 </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-slate-400">Confidence:</label>
+                  <select
+                    value={confidenceFilter}
+                    onChange={(e) => setConfidenceFilter(e.target.value)}
+                    className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/25"
+                  >
+                    <option value="high">High</option>
+                    <option value="any">Any</option>
+                  </select>
+                </div>
               </div>
               <div className="text-base md:text-lg text-slate-300">
                 <span className="font-bold">{pieTotal}</span>
@@ -556,7 +574,7 @@ export default function Dashboard() {
                 {severityFilter === 'potentially_fatal' ? 'potentially fatal incidents' : severityFilter === 'fatal' ? 'fatal incidents' : 'incidents'}
                 {' '}
                 {yearFilter === 'all_time' ? '' : yearFilter === 'last_10_years' ? 'from the last 10 years ' : 'from the last 5 years '}
-                with high cause confidence
+                {confidenceFilter === 'high' && 'with high cause confidence'}
               </div>
             </div>
 
