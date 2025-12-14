@@ -13,8 +13,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from incidents.models import Incident
 from incidents.serializers import IncidentSerializer
 from ppg_incidents.ai_communication import ai_communicator
-from ppg_incidents.fts_store import search_fts, upsert_fts
-from ppg_incidents.vector_store import upsert_embedding, search_similar, init_vector_table
+from ppg_incidents.fts_store import delete_fts, search_fts, upsert_fts
+from ppg_incidents.vector_store import delete_embedding, search_similar, init_vector_table, upsert_embedding
 
 logger = logging.getLogger(__name__)
 
@@ -379,7 +379,10 @@ class IncidentDeleteView(APIView):
 
     def delete(self, request, uuid):
         incident = Incident.all_objects.get(uuid=uuid)
+        incident_id = incident.id
         incident.delete()
+        delete_embedding(incident_id)
+        delete_fts(incident_id)
         return Response({"deleted": True})
 
 
