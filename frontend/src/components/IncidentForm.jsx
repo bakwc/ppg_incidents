@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident, fetchIncidentDrafts } from '../api';
 
 const FLIGHT_PHASES = [
@@ -101,6 +101,7 @@ const PRIMARY_CAUSES = [
 function IncidentForm() {
   const { uuid } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isEditing = Boolean(uuid);
 
   const [loading, setLoading] = useState(isEditing);
@@ -180,6 +181,10 @@ function IncidentForm() {
   useEffect(() => {
     if (uuid) {
       fetchIncident(uuid).then(data => {
+        if (data.original_uuid) {
+          navigate(`/edit/${data.original_uuid}?draft=${uuid}`, { replace: true });
+          return;
+        }
         const normalizedData = {
           ...data,
           date: data.date || '',
@@ -193,6 +198,40 @@ function IncidentForm() {
       });
       fetchIncidentDrafts(uuid).then(data => {
         setDrafts(data);
+        const draftParam = searchParams.get('draft');
+        if (draftParam && data.some(d => d.uuid === draftParam)) {
+          const draft = data.find(d => d.uuid === draftParam);
+          const normalizedDraft = {
+            ...draft,
+            date: draft.date || '',
+            time: draft.time || '',
+            flight_altitude: draft.flight_altitude || '',
+            collapse_types: draft.collapse_types || [],
+          };
+          const changedFields = new Set();
+          fetchIncident(uuid).then(orig => {
+            const normalizedOrig = {
+              ...orig,
+              date: orig.date || '',
+              time: orig.time || '',
+              flight_altitude: orig.flight_altitude || '',
+              collapse_types: orig.collapse_types || [],
+            };
+            for (const key of Object.keys(normalizedOrig)) {
+              const origValue = normalizedOrig[key];
+              const draftValue = normalizedDraft[key];
+              const valuesEqual = Array.isArray(origValue) && Array.isArray(draftValue)
+                ? JSON.stringify(origValue) === JSON.stringify(draftValue)
+                : origValue === draftValue;
+              if (!valuesEqual) {
+                changedFields.add(key);
+              }
+            }
+            setFormData(normalizedDraft);
+            setHighlightedFields(changedFields);
+            setSelectedDraft(draftParam);
+          });
+        }
       });
     }
   }, [uuid]);
