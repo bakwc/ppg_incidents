@@ -15,21 +15,26 @@ def test_incidents_endpoints():
         title="Wing collapse",
         country="Spain",
         severity="serious",
+        verified=True,
     )
     incident2 = Incident.objects.create(
         title="Engine failure",
         country="France",
         severity="minor",
+        verified=True,
     )
     incident3 = Incident.objects.create(
         title="Fatal crash",
         country="Germany",
         severity="fatal",
+        verified=True,
     )
 
     response = client.get("/api/incidents")
     assert response.status_code == 200
-    assert len(response.json()) == 3
+    data = response.json()
+    assert data["count"] == 3
+    assert len(data["results"]) == 3
 
     response = client.get(f"/api/incident/{incident2.uuid}")
     assert response.status_code == 200
@@ -70,16 +75,18 @@ def test_incident_chat_flow():
     assert data["incident_data"]["title"] == "Wing collapse near Valencia"
     assert data["saved"] is False
 
-    response = client.post(
-        "/api/incident/save",
-        data={"incident_data": data["incident_data"]},
-        format="json",
-    )
+    with patch("incidents.views.upsert_embedding"), patch("incidents.views.upsert_fts"), \
+         patch("incidents.views.ai_communicator.get_embedding", return_value=[0.1] * 1536):
+        response = client.post(
+            "/api/incident/save",
+            data={"incident_data": data["incident_data"]},
+            format="json",
+        )
 
     assert response.status_code == 200
     assert response.json()["saved"] is True
 
-    incident = Incident.objects.get(title="Wing collapse near Valencia")
+    incident = Incident.all_objects.get(title="Wing collapse near Valencia")
     assert incident.country == "Spain"
     assert incident.severity == "serious"
 
