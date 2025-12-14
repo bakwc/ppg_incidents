@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident } from '../api';
+import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident, fetchIncidentDrafts } from '../api';
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
@@ -172,19 +172,27 @@ function IncidentForm() {
   const [deleting, setDeleting] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [drafts, setDrafts] = useState([]);
+  const [selectedDraft, setSelectedDraft] = useState('');
+  const [originalData, setOriginalData] = useState(null);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
     if (uuid) {
       fetchIncident(uuid).then(data => {
-        setFormData({
+        const normalizedData = {
           ...data,
           date: data.date || '',
           time: data.time || '',
           flight_altitude: data.flight_altitude || '',
           collapse_types: data.collapse_types || [],
-        });
+        };
+        setFormData(normalizedData);
+        setOriginalData(normalizedData);
         setLoading(false);
+      });
+      fetchIncidentDrafts(uuid).then(data => {
+        setDrafts(data);
       });
     }
   }, [uuid]);
@@ -224,6 +232,9 @@ function IncidentForm() {
     setHighlightedFields(new Set());
 
     const dataToSave = { ...formData, verified };
+    if (verified) {
+      dataToSave.original_uuid = null;
+    }
     if (dataToSave.flight_altitude === '') {
       dataToSave.flight_altitude = null;
     }
@@ -323,11 +334,111 @@ function IncidentForm() {
     setDuplicateLoading(false);
   };
 
+  const handleDraftSelect = (draftUuid) => {
+    setSelectedDraft(draftUuid);
+    if (!draftUuid) {
+      setFormData(originalData);
+      setHighlightedFields(new Set());
+      return;
+    }
+    const draft = drafts.find(d => d.uuid === draftUuid);
+    const normalizedDraft = {
+      ...draft,
+      date: draft.date || '',
+      time: draft.time || '',
+      flight_altitude: draft.flight_altitude || '',
+      collapse_types: draft.collapse_types || [],
+    };
+    const changedFields = new Set();
+    for (const key of Object.keys(originalData)) {
+      const origValue = originalData[key];
+      const draftValue = normalizedDraft[key];
+      const valuesEqual = Array.isArray(origValue) && Array.isArray(draftValue)
+        ? JSON.stringify(origValue) === JSON.stringify(draftValue)
+        : origValue === draftValue;
+      if (!valuesEqual) {
+        changedFields.add(key);
+      }
+    }
+    setFormData(normalizedDraft);
+    setHighlightedFields(changedFields);
+  };
+
+  const handleApproveDraft = async () => {
+    setSaving(true);
+    setSaveError(null);
+    const dataToSave = { ...formData, verified: originalData.verified, original_uuid: null };
+    if (dataToSave.flight_altitude === '') dataToSave.flight_altitude = null;
+    if (dataToSave.date === '') dataToSave.date = null;
+    if (dataToSave.time === '') dataToSave.time = null;
+    const choiceFields = [
+      'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
+      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type',
+      'factor_mid_air_collision', 'primary_cause'
+    ];
+    for (const field of choiceFields) {
+      if (dataToSave[field] === '') dataToSave[field] = null;
+    }
+    await updateIncident(uuid, dataToSave);
+    await deleteIncident(selectedDraft);
+    setDrafts(drafts.filter(d => d.uuid !== selectedDraft));
+    setSelectedDraft('');
+    setOriginalData(formData);
+    setHighlightedFields(new Set());
+    setSaveSuccess(true);
+    setSaving(false);
+  };
+
+  const handleDeclineDraft = async () => {
+    await deleteIncident(selectedDraft);
+    setDrafts(drafts.filter(d => d.uuid !== selectedDraft));
+    setSelectedDraft('');
+    setFormData(originalData);
+    setHighlightedFields(new Set());
+  };
+
   const handleDelete = async () => {
     if (!confirm('Delete this incident?')) return;
     setDeleting(true);
     await deleteIncident(uuid);
     navigate('/');
+  };
+
+  const handleSubmitForReview = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+    setHighlightedFields(new Set());
+
+    const dataToSave = { ...formData, verified: false };
+    if (dataToSave.flight_altitude === '') {
+      dataToSave.flight_altitude = null;
+    }
+    if (dataToSave.date === '') {
+      dataToSave.date = null;
+    }
+    if (dataToSave.time === '') {
+      dataToSave.time = null;
+    }
+    const choiceFields = [
+      'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
+      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type',
+      'factor_mid_air_collision', 'primary_cause'
+    ];
+    for (const field of choiceFields) {
+      if (dataToSave[field] === '') {
+        dataToSave[field] = null;
+      }
+    }
+
+    if (isEditing) {
+      dataToSave.original_uuid = uuid;
+    }
+
+    const result = await createIncident(dataToSave);
+    navigate(`/edit/${result.incident.uuid}`);
+    setSaving(false);
   };
 
   const getVerdictInfo = (confidence) => {
@@ -539,6 +650,30 @@ function IncidentForm() {
                   <span className="text-slate-500 text-sm">
                     {formData.verified ? '(verified)' : '(unverified)'}
                   </span>
+                </div>
+              )}
+
+              {/* Drafts Selector */}
+              {isEditing && drafts.length > 0 && (
+                <div className="px-4 py-3 rounded-xl border border-violet-500/50 bg-violet-500/10">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="text-violet-300 text-sm font-medium">{drafts.length} draft{drafts.length > 1 ? 's' : ''} available</span>
+                    <select
+                      value={selectedDraft}
+                      onChange={(e) => handleDraftSelect(e.target.value)}
+                      className="flex-1 px-3 py-1.5 bg-slate-900/50 border border-violet-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-violet-500 transition-all cursor-pointer"
+                    >
+                      <option value="">Original document</option>
+                      {drafts.map(draft => (
+                        <option key={draft.uuid} value={draft.uuid}>
+                          {draft.created_at ? new Date(draft.created_at).toLocaleString() : draft.uuid.slice(0, 8)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
 
@@ -769,8 +904,44 @@ function IncidentForm() {
                 </div>
               )}
 
+              {/* Draft Review Actions */}
+              {selectedDraft && (
+                <div className="flex justify-end gap-4 pt-4 pb-8">
+                  <button
+                    type="button"
+                    onClick={handleDeclineDraft}
+                    className="px-6 py-3 bg-red-600/80 hover:bg-red-600 border border-red-500/50 rounded-xl text-white font-medium transition-all flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Decline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleApproveDraft}
+                    disabled={saving}
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {saving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Approving...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Approve
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
               {/* Submit */}
-              <div className="flex justify-end gap-4 pt-4 pb-8">
+              {!selectedDraft && <div className="flex justify-end gap-4 pt-4 pb-8">
                 {isEditing && (
                   <button
                     type="button"
@@ -823,13 +994,21 @@ function IncidentForm() {
                 </button>
                 <button
                   type="button"
+                  onClick={handleSubmitForReview}
+                  disabled={saving}
+                  className="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl font-semibold text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Submit for Review'}
+                </button>
+                <button
+                  type="button"
                   onClick={(e) => handleSubmit(e, true)}
                   disabled={saving}
                   className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Publish'}
                 </button>
-              </div>
+              </div>}
             </form>
           </div>
         </div>

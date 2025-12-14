@@ -590,3 +590,11 @@ class YearStatsView(APIView):
         )
         
         return Response(list(year_counts))
+
+
+class IncidentDraftsView(generics.ListAPIView):
+    serializer_class = IncidentSerializer
+
+    def get_queryset(self):
+        uuid = self.kwargs["uuid"]
+        return Incident.all_objects.filter(original_uuid=uuid).order_by("-created_at")

@@ -186,3 +186,8 @@ export async function fetchYearStats(include, exclude) {
   return response.json();
 }
 
+export async function fetchIncidentDrafts(uuid) {
+  const response = await fetch(`${API_BASE}/incident/${uuid}/drafts`);
+  return response.json();
+}
+
