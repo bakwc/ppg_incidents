@@ -16,8 +16,8 @@ function App() {
         <div className="min-h-screen">
           <Navigation />
           <Routes>
-            <Route path="/" element={<IncidentList />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/incidents" element={<IncidentList />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
             <Route path="/unverified" element={<UnverifiedList />} />

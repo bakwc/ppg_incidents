@@ -6,8 +6,11 @@ export default function Navigation() {
   const { user, isAdmin, logout } = useAuth();
   
   const isActive = (path) => {
+    if (path === '/incidents') {
+      return location.pathname === '/incidents' || location.pathname.startsWith('/view') || location.pathname.startsWith('/edit') || location.pathname.startsWith('/unverified');
+    }
     if (path === '/') {
-      return location.pathname === '/' || location.pathname.startsWith('/view') || location.pathname.startsWith('/edit') || location.pathname.startsWith('/unverified');
+      return location.pathname === '/';
     }
     return location.pathname.startsWith(path);
   };
@@ -28,17 +31,17 @@ export default function Navigation() {
                   : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
               }`}
             >
-              Incidents
+              Dashboards
             </Link>
             <Link 
-              to="/dashboard" 
+              to="/incidents" 
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/dashboard')
+                isActive('/incidents')
                   ? 'bg-slate-800 text-amber-400' 
                   : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
               }`}
             >
-              Dashboards
+              Incidents
             </Link>
             <Link 
               to="/about" 
