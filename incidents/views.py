@@ -83,6 +83,11 @@ def apply_filters(queryset, filters, exclude=False):
                     queryset = queryset.filter(flight_altitude__isnull=False)
                 else:
                     queryset = queryset.exclude(flight_altitude__isnull=False)
+        elif field == "year_min":
+            if not exclude:
+                queryset = queryset.filter(date__year__gte=int(value))
+            else:
+                queryset = queryset.exclude(date__year__gte=int(value))
         elif field in BOOLEAN_FILTER_FIELDS:
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 if exclude:
@@ -192,6 +197,17 @@ class IncidentListView(generics.ListAPIView):
             value = self.request.query_params.get(field)
             if value is not None:
                 include_filters[field] = value
+        
+        # Collect numeric range filters
+        for field in ["wind_speed_ms_min", "wind_speed_ms_max", "altitude_min", "altitude_max", "year_min"]:
+            value = self.request.query_params.get(field)
+            if value is not None:
+                include_filters[field] = value
+        
+        # Collect altitude_not_null filter
+        altitude_not_null = self.request.query_params.get("altitude_not_null")
+        if altitude_not_null is not None:
+            include_filters["altitude_not_null"] = altitude_not_null
 
         # Collect exclude filters from query params
         exclude_filters = {}
@@ -200,6 +216,12 @@ class IncidentListView(generics.ListAPIView):
             if value is not None:
                 exclude_filters[field] = value
         for field in ["collapse", "stall", "spin", "line_twist", "unknown_collapse"]:
+            value = self.request.query_params.get(f"exclude_{field}")
+            if value is not None:
+                exclude_filters[field] = value
+        
+        # Collect numeric range exclude filters
+        for field in ["wind_speed_ms_min", "wind_speed_ms_max", "altitude_min", "altitude_max", "year_min"]:
             value = self.request.query_params.get(f"exclude_{field}")
             if value is not None:
                 exclude_filters[field] = value
