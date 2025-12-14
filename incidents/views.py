@@ -344,6 +344,8 @@ class IncidentSaveView(APIView):
 
 
 class IncidentUpdateView(APIView):
+    permission_classes = [IsAdminUser]
+
     def put(self, request, uuid):
         logger.info(f"Update request for {uuid}: {request.data}")
         incident = Incident.all_objects.get(uuid=uuid)
