@@ -19,6 +19,7 @@ from incidents.views import (
     IncidentUpdateView,
     LogoutView,
     UnverifiedIncidentListView,
+    WindSpeedPercentileView,
     YearStatsView,
 )
 
@@ -42,5 +43,6 @@ urlpatterns = [
     path("countries", CountriesView.as_view(), name="countries"),
     path("country_stats", CountryStatsView.as_view(), name="country-stats"),
     path("year_stats", YearStatsView.as_view(), name="year-stats"),
+    path("wind_speed_percentile", WindSpeedPercentileView.as_view(), name="wind-speed-percentile"),
 ]
 

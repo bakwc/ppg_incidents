@@ -191,3 +191,11 @@ export async function fetchIncidentDrafts(uuid) {
   return response.json();
 }
 
+export async function fetchWindSpeedPercentile(include, exclude, percentile = 40) {
+  const response = await apiCall('/wind_speed_percentile', {
+    method: 'POST',
+    body: JSON.stringify({ include, exclude, percentile }),
+  });
+  return response.json();
+}
+

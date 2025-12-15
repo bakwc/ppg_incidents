@@ -114,6 +114,11 @@ def apply_filters(queryset, filters, exclude=False):
                 queryset = queryset.filter(wind_speed_ms__gte=float(value))
             else:
                 queryset = queryset.exclude(wind_speed_ms__gte=float(value))
+        elif field == "wind_speed_ms_max":
+            if not exclude:
+                queryset = queryset.filter(wind_speed_ms__lt=float(value))
+            else:
+                queryset = queryset.exclude(wind_speed_ms__lt=float(value))
         elif field == "altitude_min":
             if not exclude:
                 queryset = queryset.filter(flight_altitude__gte=int(value))
@@ -130,6 +135,12 @@ def apply_filters(queryset, filters, exclude=False):
                     queryset = queryset.filter(flight_altitude__isnull=False)
                 else:
                     queryset = queryset.exclude(flight_altitude__isnull=False)
+        elif field == "wind_speed_ms_not_null":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                if not exclude:
+                    queryset = queryset.filter(wind_speed_ms__isnull=False)
+                else:
+                    queryset = queryset.exclude(wind_speed_ms__isnull=False)
         elif field == "year_min":
             if not exclude:
                 queryset = queryset.filter(date__year__gte=int(value))
@@ -255,6 +266,11 @@ class IncidentListView(generics.ListAPIView):
         altitude_not_null = self.request.query_params.get("altitude_not_null")
         if altitude_not_null is not None:
             include_filters["altitude_not_null"] = altitude_not_null
+        
+        # Collect wind_speed_ms_not_null filter
+        wind_speed_ms_not_null = self.request.query_params.get("wind_speed_ms_not_null")
+        if wind_speed_ms_not_null is not None:
+            include_filters["wind_speed_ms_not_null"] = wind_speed_ms_not_null
 
         # Collect exclude filters from query params
         exclude_filters = {}
@@ -606,3 +622,29 @@ class IncidentDraftsView(generics.ListAPIView):
     def get_queryset(self):
         uuid = self.kwargs["uuid"]
         return Incident.all_objects.filter(original_uuid=uuid).order_by("-created_at")
+
+
+class WindSpeedPercentileView(APIView):
+    def post(self, request):
+        include_filters = request.data.get("include", {})
+        exclude_filters = request.data.get("exclude", {})
+        percentile = request.data.get("percentile", 40)
+        
+        queryset = Incident.objects.all()
+        queryset = apply_filters(queryset, include_filters, exclude=False)
+        queryset = apply_filters(queryset, exclude_filters, exclude=True)
+        
+        wind_speeds = list(
+            queryset
+            .exclude(wind_speed_ms__isnull=True)
+            .values_list("wind_speed_ms", flat=True)
+            .order_by("wind_speed_ms")
+        )
+        
+        if not wind_speeds:
+            return Response({"percentile_value": None})
+        
+        index = int(len(wind_speeds) * percentile / 100)
+        percentile_value = wind_speeds[index] if index < len(wind_speeds) else wind_speeds[-1]
+        
+        return Response({"percentile_value": round(percentile_value, 1)})

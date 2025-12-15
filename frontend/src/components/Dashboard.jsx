@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
-import { fetchDashboardStats, fetchCountryStats, fetchYearStats } from '../api';
+import { fetchDashboardStats, fetchCountryStats, fetchYearStats, fetchWindSpeedPercentile } from '../api';
 import { getCountryCode, getFlag } from '../countryUtils';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#84cc16', '#6366f1'];
@@ -320,6 +320,54 @@ const getTurbulenceFilterPacks = (severityFilter, yearFilter, confidenceFilter) 
 
 const TURBULENCE_FILTER_PACKS = getTurbulenceFilterPacks('potentially_fatal', 'all_time', 'high');
 
+const getWindSpeedFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
+  return [
+  {
+    name: 'Total',
+    include: { ...baseFilter, wind_speed_ms_not_null: true },
+    exclude: {}
+  },
+  {
+    name: '0-1',
+    include: { ...baseFilter, wind_speed_ms_max: 1 },
+    exclude: {}
+  },
+  {
+    name: '1-2',
+    include: { ...baseFilter, wind_speed_ms_min: 1, wind_speed_ms_max: 2 },
+    exclude: {}
+  },
+  {
+    name: '2-3',
+    include: { ...baseFilter, wind_speed_ms_min: 2, wind_speed_ms_max: 3 },
+    exclude: {}
+  },
+  {
+    name: '3-4',
+    include: { ...baseFilter, wind_speed_ms_min: 3, wind_speed_ms_max: 4 },
+    exclude: {}
+  },
+  {
+    name: '4-6',
+    include: { ...baseFilter, wind_speed_ms_min: 4, wind_speed_ms_max: 6 },
+    exclude: {}
+  },
+  {
+    name: '6-8',
+    include: { ...baseFilter, wind_speed_ms_min: 6, wind_speed_ms_max: 8 },
+    exclude: {}
+  },
+  {
+    name: '8+',
+    include: { ...baseFilter, wind_speed_ms_min: 8 },
+    exclude: {}
+  }
+];
+};
+
+const WIND_SPEED_FILTER_PACKS = getWindSpeedFilterPacks('potentially_fatal', 'all_time', 'high');
+
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
   Object.entries(filterPack.include || {}).forEach(([key, value]) => {
@@ -337,6 +385,7 @@ const ALL_SECTIONS = [
   { id: 'flight-phase', label: 'Flight Phase' },
   { id: 'flight-altitude', label: 'Flight Altitude' },
   { id: 'turbulence-type', label: 'Turbulence Type' },
+  { id: 'wind-speed', label: 'Wind Speed' },
   { id: 'reserve-usage', label: 'Reserve Usage' },
   { id: 'trim-position', label: 'Trim Position' },
   { id: 'by-country', label: 'By Country' },
@@ -353,6 +402,8 @@ export default function Dashboard() {
   const [flightPhaseStats, setFlightPhaseStats] = useState(null);
   const [altitudeStats, setAltitudeStats] = useState(null);
   const [turbulenceStats, setTurbulenceStats] = useState(null);
+  const [windSpeedStats, setWindSpeedStats] = useState(null);
+  const [windSpeedPercentile, setWindSpeedPercentile] = useState(null);
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
   const [countryStats, setCountryStats] = useState(null);
@@ -375,12 +426,14 @@ export default function Dashboard() {
     const loadStats = async () => {
       setLoading(true);
       const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
-      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, reserveData, trimData, countryData, yearData] = await Promise.all([
+      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(getPieFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getBarFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getAltitudeFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getTurbulenceFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getWindSpeedFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchWindSpeedPercentile(baseFilter, {}, 40),
         fetchDashboardStats(getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchCountryStats(baseFilter, {}, 10),
@@ -391,6 +444,8 @@ export default function Dashboard() {
       setFlightPhaseStats(flightPhaseData);
       setAltitudeStats(altitudeData);
       setTurbulenceStats(turbulenceData);
+      setWindSpeedStats(windSpeedData);
+      setWindSpeedPercentile(windPercentileData.percentile_value);
       setReserveStats(reserveData);
       setTrimStats(trimData);
       setCountryStats(countryData);
@@ -439,6 +494,7 @@ export default function Dashboard() {
   const flightPhaseFilterPacks = getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const altitudeFilterPacks = getAltitudeFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const turbulenceFilterPacks = getTurbulenceFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const windSpeedFilterPacks = getWindSpeedFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const reserveFilterPacks = getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const trimFilterPacks = getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter);
 
@@ -894,6 +950,110 @@ export default function Dashboard() {
                   <span className="text-base md:text-lg text-slate-400">
                     Based on <span className="text-cyan-400 font-bold text-lg md:text-xl">{turbulencePercentOfAll}%</span> incidents happened in turbulent conditions
                   </span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div id="wind-speed" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Wind Speed</h2>
+          
+          {(() => {
+            const windSpeedTotal = windSpeedStats?.['Total'] || 0;
+            
+            const getColorFromGradient = (index, total) => {
+              const ratio = index / (total - 1);
+              const green = { r: 34, g: 197, b: 94 };
+              const orange = { r: 245, g: 158, b: 11 };
+              const red = { r: 239, g: 68, b: 68 };
+              
+              let r, g, b;
+              if (ratio < 0.5) {
+                const localRatio = ratio * 2;
+                r = Math.round(green.r + (orange.r - green.r) * localRatio);
+                g = Math.round(green.g + (orange.g - green.g) * localRatio);
+                b = Math.round(green.b + (orange.b - green.b) * localRatio);
+              } else {
+                const localRatio = (ratio - 0.5) * 2;
+                r = Math.round(orange.r + (red.r - orange.r) * localRatio);
+                g = Math.round(orange.g + (red.g - orange.g) * localRatio);
+                b = Math.round(orange.b + (red.b - orange.b) * localRatio);
+              }
+              
+              return `rgb(${r}, ${g}, ${b})`;
+            };
+            
+            const filteredPacks = windSpeedFilterPacks.filter(p => p.name !== 'Total');
+            const windSpeedChartData = filteredPacks.map((p, index) => ({
+                name: p.name + ' m/s',
+                value: windSpeedStats?.[p.name] || 0,
+                percent: windSpeedTotal > 0 ? ((windSpeedStats?.[p.name] || 0) / windSpeedTotal) * 100 : 0,
+                filterPack: p,
+                color: getColorFromGradient(index, filteredPacks.length)
+              }));
+
+            const handleWindSpeedClick = (data) => {
+              if (isTouchDevice) {
+                if (activeTooltip === `windspeed-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`windspeed-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
+              }
+            };
+
+            const allIncidentsTotal = barStats?.['Total'] || 0;
+            const windSpeedPercentOfAll = allIncidentsTotal > 0 ? ((windSpeedTotal / allIncidentsTotal) * 100).toFixed(0) : 0;
+
+            return (
+              <div>
+                <div className="h-[320px] md:h-[370px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={windSpeedChartData} margin={{ left: 0, right: 0, top: 20, bottom: 10 }}>
+                      <XAxis 
+                        type="category" 
+                        dataKey="name" 
+                        stroke="#64748b" 
+                        interval={0} 
+                        style={{ fontSize: isMobile ? '9px' : '11px', fill: '#e2e8f0' }}
+                      />
+                      <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
+                        formatter={(value) => `${value.toFixed(1)}%`}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Bar dataKey="percent" radius={[4, 4, 0, 0]} onClick={handleWindSpeedClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                        {windSpeedChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                        <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center space-y-2">
+                  <div className="text-base md:text-lg text-slate-400">
+                    Based on <span className="text-sky-400 font-bold text-lg md:text-xl">{windSpeedPercentOfAll}%</span> incidents with known wind speed
+                  </div>
+                  {windSpeedPercentile !== null && (
+                    <div className="text-base md:text-lg text-slate-400">
+                      60% of incidents happened with wind speed higher than <span className="text-sky-400 font-bold text-lg md:text-xl">{windSpeedPercentile}</span> meters/second
+                    </div>
+                  )}
                 </div>
               </div>
             );
