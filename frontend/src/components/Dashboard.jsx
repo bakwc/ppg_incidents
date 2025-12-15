@@ -584,9 +584,9 @@ export default function Dashboard() {
         </div>
 
         {/* Main Content */}
-        <div className="lg:ml-48 xl:ml-64 flex-1 p-4 md:p-6 xl:p-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-6 md:mb-8 flex flex-col gap-4">
+        <div className="lg:ml-48 xl:ml-64 flex-1">
+          <div className="lg:sticky lg:top-16 lg:z-20 bg-slate-950 border-b border-slate-800 p-4 md:p-6 xl:px-8 xl:py-6 lg:shadow-lg">
+            <div className="max-w-4xl mx-auto">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-400">Severity:</label>
@@ -624,7 +624,12 @@ export default function Dashboard() {
                   </select>
                 </div>
               </div>
-              <div className="text-base md:text-lg text-slate-300">
+            </div>
+          </div>
+
+          <div className="p-4 md:p-6 xl:p-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-6 md:mb-8 text-base md:text-lg text-slate-300">
                 <span className="font-bold">{pieTotal}</span>
                 {' '}
                 {severityFilter === 'potentially_fatal' ? 'potentially fatal incidents' : severityFilter === 'fatal' ? 'fatal incidents' : 'incidents'}
@@ -633,8 +638,8 @@ export default function Dashboard() {
                 {confidenceFilter === 'high' && 'with high cause confidence'}
               </div>
             </div>
-
-            <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8">
+            <div className="max-w-4xl mx-auto">
+              <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8 lg:scroll-mt-48">
               <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Primary Causes</h2>
           
           <div className="h-[400px] md:h-[480px]">
@@ -689,7 +694,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div id="contributing-factors" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="contributing-factors" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Contributing Factors</h2>
           
           <div className="h-[450px] md:h-[500px]">
@@ -724,7 +729,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div id="flight-phase" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="flight-phase" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Flight Phase</h2>
           
           {(() => {
@@ -781,7 +786,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="flight-altitude" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="flight-altitude" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Flight Altitude</h2>
           
           {(() => {
@@ -875,7 +880,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="turbulence-type" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="turbulence-type" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Turbulence Type</h2>
           
           {(() => {
@@ -956,7 +961,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="wind-speed" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="wind-speed" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Wind Speed</h2>
           
           {(() => {
@@ -1061,7 +1066,7 @@ export default function Dashboard() {
         </div>
 
         {severityFilter !== 'fatal' && (
-          <div id="reserve-usage" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+          <div id="reserve-usage" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
             <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Reserve Usage</h2>
             
             {(() => {
@@ -1132,7 +1137,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div id="trim-position" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="trim-position" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Trim Position</h2>
           
           {(() => {
@@ -1202,7 +1207,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="by-country" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="by-country" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Incidents by Country</h2>
           
           {(() => {
@@ -1270,7 +1275,7 @@ export default function Dashboard() {
           })()}
         </div>
 
-        <div id="by-year" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8">
+        <div id="by-year" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
           <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Incidents by Year</h2>
           
           {(() => {
@@ -1331,6 +1336,7 @@ export default function Dashboard() {
             );
           })()}
         </div>
+            </div>
           </div>
         </div>
       </div>
