@@ -564,7 +564,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="flex">
         {/* Table of Contents - Hidden on mobile */}
-        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-48 xl:w-64 bg-slate-900 border-r border-slate-800 p-4 xl:p-6 overflow-y-auto">
+        <div className="hidden lg:block lg:fixed lg:left-0 lg:top-16 lg:h-[calc(100vh-4rem)] lg:w-48 xl:w-64 bg-slate-900 border-r border-slate-800 p-4 xl:p-6 overflow-y-auto">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Contents</h2>
           <nav className="space-y-1.5">
             {SECTIONS.map(section => (
