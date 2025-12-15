@@ -457,14 +457,18 @@ export default function Dashboard() {
   }, [severityFilter, yearFilter, confidenceFilter]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = SECTIONS.map(s => document.getElementById(s.id));
-      const scrollPosition = window.scrollY + 100;
+    const sections = severityFilter === 'fatal'
+      ? ALL_SECTIONS.filter(s => s.id !== 'reserve-usage')
+      : ALL_SECTIONS;
 
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
+    const handleScroll = () => {
+      const sectionElements = sections.map(s => document.getElementById(s.id));
+      const scrollPosition = window.scrollY + 200;
+
+      for (let i = sectionElements.length - 1; i >= 0; i--) {
+        const section = sectionElements[i];
         if (section && section.offsetTop <= scrollPosition) {
-          setActiveSection(SECTIONS[i].id);
+          setActiveSection(sections[i].id);
           break;
         }
       }
@@ -472,7 +476,7 @@ export default function Dashboard() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [severityFilter]);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
