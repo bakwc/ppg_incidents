@@ -176,8 +176,8 @@ function IncidentView() {
           {(incident.description || incident.causes_description || incident.primary_cause || incident.reserve_use || incident.surface_type || incident.cause_confidence || incident.pilot_actions || incident.injury_details) && (
             <Section title="Incident Details">
               <div className="grid grid-cols-2 gap-4">
-                {incident.primary_cause && <Field label="Primary Cause" value={PRIMARY_CAUSE_LABELS[incident.primary_cause] || incident.primary_cause} />}
-                {incident.cause_confidence && <Field label="Cause Confidence" value={CAUSE_CONFIDENCE_LABELS[incident.cause_confidence] || incident.cause_confidence} />}
+                {incident.primary_cause && <HighlightedField label="Primary Cause" value={PRIMARY_CAUSE_LABELS[incident.primary_cause] || incident.primary_cause} />}
+                {incident.cause_confidence && <HighlightedField label="Cause Confidence" value={CAUSE_CONFIDENCE_LABELS[incident.cause_confidence] || incident.cause_confidence} />}
               </div>
               {incident.description && <Field label="Description" value={incident.description} multiline />}
               {incident.causes_description && <Field label="Causes" value={incident.causes_description} multiline />}
@@ -335,6 +335,15 @@ function Field({ label, value, multiline }) {
       ) : (
         <p className="text-slate-200 text-sm">{value}</p>
       )}
+    </div>
+  );
+}
+
+function HighlightedField({ label, value }) {
+  return (
+    <div className="p-3 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <p className="text-white text-sm font-medium">{value}</p>
     </div>
   );
 }
