@@ -84,6 +84,7 @@ class Incident(models.Model):
         PREFLIGHT_ERROR = "preflight_error", "Preflight Error"
         GROUND_STARTING = "ground_starting", "Ground Starting"
         GROUND_OBJECT_COLLISION = "ground_object_collision", "Ground Object Collision / Near Miss"
+        RAIN_FOG_SNOW = "rain_fog_snow", "Rain / Fog / Snow / Mist"
 
     # UUID
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

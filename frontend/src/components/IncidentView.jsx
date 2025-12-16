@@ -86,6 +86,7 @@ const PRIMARY_CAUSE_LABELS = {
   preflight_error: 'Preflight Error',
   ground_starting: 'Ground Starting',
   ground_object_collision: 'Ground Object Collision / Near Miss',
+  rain_fog_snow: 'Rain / Fog / Snow / Mist',
 };
 
 const severityColors = {
@@ -171,6 +172,24 @@ function IncidentView() {
         </div>
 
         <div className="space-y-6">
+          {/* Incident Details */}
+          {(incident.description || incident.causes_description || incident.primary_cause || incident.reserve_use || incident.surface_type || incident.cause_confidence || incident.pilot_actions || incident.injury_details) && (
+            <Section title="Incident Details">
+              <div className="grid grid-cols-2 gap-4">
+                {incident.primary_cause && <Field label="Primary Cause" value={PRIMARY_CAUSE_LABELS[incident.primary_cause] || incident.primary_cause} />}
+                {incident.cause_confidence && <Field label="Cause Confidence" value={CAUSE_CONFIDENCE_LABELS[incident.cause_confidence] || incident.cause_confidence} />}
+              </div>
+              {incident.description && <Field label="Description" value={incident.description} multiline />}
+              {incident.causes_description && <Field label="Causes" value={incident.causes_description} multiline />}
+              <div className="grid grid-cols-2 gap-4">
+                {incident.reserve_use && <Field label="Reserve Use" value={RESERVE_USE_LABELS[incident.reserve_use] || incident.reserve_use} />}
+                {incident.surface_type && <Field label="Surface Type" value={incident.surface_type} />}
+                {incident.pilot_actions && <Field label="Pilot Actions" value={PILOT_ACTIONS_LABELS[incident.pilot_actions] || incident.pilot_actions} />}
+              </div>
+              {incident.injury_details && <Field label="Injury Details" value={incident.injury_details} multiline />}
+            </Section>
+          )}
+
           {/* Date & Location */}
           {(incident.date || incident.country || incident.city_or_site) && (
             <Section title="Date & Location">
@@ -211,22 +230,6 @@ function IncidentView() {
                 {incident.flight_altitude && <Field label="Altitude" value={`${incident.flight_altitude} m`} />}
               </div>
               {incident.pilot_details && <Field label="Pilot Details" value={incident.pilot_details} />}
-            </Section>
-          )}
-
-          {/* Incident Details */}
-          {(incident.description || incident.causes_description || incident.primary_cause || incident.reserve_use || incident.surface_type || incident.cause_confidence || incident.pilot_actions || incident.injury_details) && (
-            <Section title="Incident Details">
-              {incident.description && <Field label="Description" value={incident.description} multiline />}
-              {incident.causes_description && <Field label="Causes" value={incident.causes_description} multiline />}
-              {incident.primary_cause && <Field label="Primary Cause" value={PRIMARY_CAUSE_LABELS[incident.primary_cause] || incident.primary_cause} />}
-              <div className="grid grid-cols-2 gap-4">
-                {incident.reserve_use && <Field label="Reserve Use" value={RESERVE_USE_LABELS[incident.reserve_use] || incident.reserve_use} />}
-                {incident.surface_type && <Field label="Surface Type" value={incident.surface_type} />}
-                {incident.cause_confidence && <Field label="Cause Confidence" value={CAUSE_CONFIDENCE_LABELS[incident.cause_confidence] || incident.cause_confidence} />}
-                {incident.pilot_actions && <Field label="Pilot Actions" value={PILOT_ACTIONS_LABELS[incident.pilot_actions] || incident.pilot_actions} />}
-              </div>
-              {incident.injury_details && <Field label="Injury Details" value={incident.injury_details} multiline />}
             </Section>
           )}
 

@@ -86,9 +86,19 @@ const getPieFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
     exclude: {}
   },
   {
+    name: 'Ground Object Collision',
+    include: { ...baseFilter, primary_cause: 'ground_object_collision' },
+    exclude: {}
+  },
+  {
+    name: 'Preflight Error',
+    include: { ...baseFilter, primary_cause: 'preflight_error' },
+    exclude: {}
+  },
+  {
     name: 'Others / Unknown',
     include: { ...baseFilter },
-    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting' }
+    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting,ground_object_collision,preflight_error,rain_fog_snow' }
   }
 ];
 };
@@ -646,9 +656,9 @@ export default function Dashboard() {
               <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8 lg:scroll-mt-48">
               <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Primary Causes</h2>
           
-          <div className="h-[400px] md:h-[480px]">
+          <div className="h-[450px] md:h-[530px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={pieChartData} margin={{ left: 0, right: 0, top: 20, bottom: 80 }}>
+              <BarChart data={pieChartData} margin={{ left: 0, right: 0, top: 20, bottom: 90 }}>
                 <XAxis 
                   type="category" 
                   dataKey="name" 
@@ -656,7 +666,7 @@ export default function Dashboard() {
                   interval={0} 
                   angle={-45}
                   textAnchor="end"
-                  height={80}
+                  height={90}
                   tick={({ x, y, payload }) => {
                     const shortNames = {
                       'Wrong Control Input': 'Wrong Control Input',
@@ -667,7 +677,9 @@ export default function Dashboard() {
                       'Water Landing': 'Water',
                       'Lines & Brakes Issues': 'Lines/Brakes Issues',
                       'Ground Starting': 'Ground Starting',
-                      'Others': 'Others'
+                      'Ground Object Collision': 'Ground Object Collision',
+                      'Preflight Error': 'Preflight Error',
+                      'Others / Unknown': 'Others / Unknown'
                     };
                     return (
                       <text x={x} y={y} fill="#e2e8f0" fontSize={isMobile ? 9 : 11} textAnchor="end" transform={`rotate(-45 ${x} ${y})`}>

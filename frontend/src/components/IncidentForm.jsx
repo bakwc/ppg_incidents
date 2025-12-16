@@ -97,6 +97,7 @@ const PRIMARY_CAUSES = [
   { value: 'preflight_error', label: 'Preflight Error' },
   { value: 'ground_starting', label: 'Ground Starting' },
   { value: 'ground_object_collision', label: 'Ground Object Collision / Near Miss' },
+  { value: 'rain_fog_snow', label: 'Rain / Fog / Snow / Mist' },
 ];
 
 function IncidentForm() {

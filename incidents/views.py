@@ -500,7 +500,7 @@ class CheckDuplicateView(APIView):
                     "incidents": IncidentSerializer(matches, many=True).data
                 })
         
-        # Medium confidence: country+date OR country+pilot_name
+        # Medium confidence: country+date OR country+pilot_name OR links
         medium_matches = set()
         
         if country and date:
@@ -514,6 +514,26 @@ class CheckDuplicateView(APIView):
             if exclude_id:
                 by_country_pilot = by_country_pilot.exclude(id=exclude_id)
             medium_matches.update(by_country_pilot.values_list("id", flat=True))
+        
+        # Check for matching links
+        links = []
+        source_links = incident_data.get("source_links", "")
+        media_links = incident_data.get("media_links", "")
+        
+        if source_links:
+            links.extend([link.strip() for link in source_links.split("\n") if link.strip()])
+        if media_links:
+            links.extend([link.strip() for link in media_links.split("\n") if link.strip()])
+        
+        if links:
+            link_query = Q()
+            for link in links:
+                link_query |= Q(source_links__icontains=link) | Q(media_links__icontains=link)
+            
+            by_links = Incident.objects.filter(link_query)
+            if exclude_id:
+                by_links = by_links.exclude(id=exclude_id)
+            medium_matches.update(by_links.values_list("id", flat=True))
         
         if medium_matches:
             incidents = Incident.objects.filter(id__in=medium_matches)
