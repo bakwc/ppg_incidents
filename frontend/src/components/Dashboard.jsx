@@ -792,7 +792,7 @@ export default function Dashboard() {
         </div>
 
         <div id="contributing-factors" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
-          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Contributing Factors</h2>
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Cause & Contributing Factors</h2>
           
           <div className="h-[450px] md:h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -827,7 +827,7 @@ export default function Dashboard() {
         </div>
 
         <div id="wrong-control-input-breakdown" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
-          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Wrong Control Input Breakdown</h2>
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Wrong Control Input - Breakdown</h2>
           
           {(() => {
             const wrongControlInputTotal = wrongControlInputStats?.['Total'] || 0;
