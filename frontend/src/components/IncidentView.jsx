@@ -95,6 +95,39 @@ const severityColors = {
   minor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
 };
 
+function extractYouTubeId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/shorts\/([^&\n?#]+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return null;
+}
+
+function getYouTubeVideoId(incident) {
+  const allLinks = [
+    ...(incident.media_links || '').split('\n'),
+    ...(incident.source_links || '').split('\n')
+  ];
+  
+  for (const link of allLinks) {
+    const trimmedLink = link.trim();
+    if (trimmedLink.includes('youtube') || trimmedLink.includes('youtu.be')) {
+      const videoId = extractYouTubeId(trimmedLink);
+      if (videoId) {
+        return videoId;
+      }
+    }
+  }
+  return null;
+}
+
 function IncidentView() {
   const { uuid } = useParams();
   const [incident, setIncident] = useState(null);
@@ -170,6 +203,30 @@ function IncidentView() {
             <p className="text-slate-400">{incident.summary}</p>
           )}
         </div>
+
+        {/* YouTube Video Embed */}
+        {(() => {
+          const videoId = getYouTubeVideoId(incident);
+          if (videoId) {
+            return (
+              <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-5 mb-6">
+                <div className="aspect-video w-full">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="rounded-lg"
+                  ></iframe>
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         <div className="space-y-6">
           {/* Incident Details */}
