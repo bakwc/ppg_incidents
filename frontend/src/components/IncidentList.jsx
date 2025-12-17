@@ -175,6 +175,39 @@ function getHighlightedFragment(textContent, query, contextChars = 150) {
   return { prefix, before, match, after, suffix };
 }
 
+function extractYouTubeId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/shorts\/([^&\n?#]+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return null;
+}
+
+function getYouTubeVideoId(incident) {
+  const allLinks = [
+    ...(incident.media_links || '').split('\n'),
+    ...(incident.source_links || '').split('\n')
+  ];
+  
+  for (const link of allLinks) {
+    const trimmedLink = link.trim();
+    if (trimmedLink.includes('youtube') || trimmedLink.includes('youtu.be')) {
+      const videoId = extractYouTubeId(trimmedLink);
+      if (videoId) {
+        return videoId;
+      }
+    }
+  }
+  return null;
+}
+
 function IncidentList() {
   const [searchParams] = useSearchParams();
   const [incidents, setIncidents] = useState([]);
@@ -628,7 +661,27 @@ function IncidentList() {
                   key={incident.uuid}
                   className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 md:p-6 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-4">
+                    {/* YouTube Thumbnail */}
+                    {(() => {
+                      const videoId = getYouTubeVideoId(incident);
+                      if (videoId) {
+                        return (
+                          <Link
+                            to={`/view/${incident.uuid}`}
+                            className="flex-shrink-0 hidden sm:block"
+                          >
+                            <img
+                              src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                              alt="Video thumbnail"
+                              className="w-52 h-40 object-cover rounded-lg border border-slate-600/50 hover:border-orange-500/50 transition-all"
+                            />
+                          </Link>
+                        );
+                      }
+                      return null;
+                    })()}
+
                     <div className="flex-1 min-w-0">
                       {/* Title & Date row */}
                       <div className="flex flex-wrap items-center gap-2 mb-3">
