@@ -750,6 +750,26 @@ function IncidentForm() {
                 </div>
               </Section>
 
+              {/* Incident Details */}
+              <Section title="Incident Details">
+                <div className="grid grid-cols-2 gap-4">
+                  <Select label="Primary Cause" name="primary_cause" value={formData.primary_cause} onChange={handleChange} options={PRIMARY_CAUSES} highlighted={highlightedFields.has('primary_cause')} />
+                  <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} highlighted={highlightedFields.has('cause_confidence')} />
+                </div>
+                <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} highlighted={highlightedFields.has('description')} />
+                <Textarea label="Causes Description" name="causes_description" value={formData.causes_description} onChange={handleChange} rows={3} highlighted={highlightedFields.has('causes_description')} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Select label="Severity" name="severity" value={formData.severity} onChange={handleChange} options={SEVERITIES} highlighted={highlightedFields.has('severity')} />
+                  <Select label="Reserve Use" name="reserve_use" value={formData.reserve_use} onChange={handleChange} options={RESERVE_USE} highlighted={highlightedFields.has('reserve_use')} />
+                </div>
+                <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} highlighted={highlightedFields.has('potentially_fatal')} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." highlighted={highlightedFields.has('surface_type')} />
+                  <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} highlighted={highlightedFields.has('pilot_actions')} />
+                </div>
+                <Textarea label="Injury Details" name="injury_details" value={formData.injury_details} onChange={handleChange} rows={2} highlighted={highlightedFields.has('injury_details')} />
+              </Section>
+
               {/* Location */}
               <Section title="Location">
                 <div className="grid grid-cols-2 gap-4">
@@ -780,24 +800,6 @@ function IncidentForm() {
                   <Input label="Flight Altitude (m)" name="flight_altitude" type="number" value={formData.flight_altitude} onChange={handleChange} highlighted={highlightedFields.has('flight_altitude')} />
                   <Select label="Flight Phase" name="flight_phase" value={formData.flight_phase} onChange={handleChange} options={FLIGHT_PHASES} highlighted={highlightedFields.has('flight_phase')} />
                 </div>
-              </Section>
-
-              {/* Incident Details */}
-              <Section title="Incident Details">
-                <div className="grid grid-cols-2 gap-4">
-                  <Select label="Severity" name="severity" value={formData.severity} onChange={handleChange} options={SEVERITIES} highlighted={highlightedFields.has('severity')} />
-                  <Select label="Reserve Use" name="reserve_use" value={formData.reserve_use} onChange={handleChange} options={RESERVE_USE} highlighted={highlightedFields.has('reserve_use')} />
-                </div>
-                <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} highlighted={highlightedFields.has('potentially_fatal')} />
-                <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} highlighted={highlightedFields.has('description')} />
-                <Textarea label="Causes Description" name="causes_description" value={formData.causes_description} onChange={handleChange} rows={3} highlighted={highlightedFields.has('causes_description')} />
-                <Select label="Primary Cause" name="primary_cause" value={formData.primary_cause} onChange={handleChange} options={PRIMARY_CAUSES} highlighted={highlightedFields.has('primary_cause')} />
-                <div className="grid grid-cols-2 gap-4">
-                  <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." highlighted={highlightedFields.has('surface_type')} />
-                  <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} highlighted={highlightedFields.has('cause_confidence')} />
-                </div>
-                <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} highlighted={highlightedFields.has('pilot_actions')} />
-                <Textarea label="Injury Details" name="injury_details" value={formData.injury_details} onChange={handleChange} rows={2} highlighted={highlightedFields.has('injury_details')} />
               </Section>
 
               {/* Hardware */}
