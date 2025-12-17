@@ -145,6 +145,17 @@ const BOOLEAN_FILTERS = [
   { key: 'factor_ground_object_collision', label: 'Ground object collision' },
 ];
 
+const PILOT_RELATED_FILTERS = [
+  { key: 'factor_released_brake_toggle', label: 'Released brake toggle' },
+  { key: 'factor_wrongly_adjusted_trims', label: 'Wrongly adjusted trims' },
+  { key: 'factor_accidental_motor_kill', label: 'Accidental motor kill' },
+  { key: 'factor_wrong_throttle_management', label: 'Wrong throttle management' },
+  { key: 'factor_accidental_reserve_deployment', label: 'Accidental reserve deployment' },
+  { key: 'factor_oscillations_out_of_control', label: 'Oscillations out of control' },
+  { key: 'factor_student_pilot', label: 'Student pilot' },
+  { key: 'factor_medical_issues', label: 'Medical issues' },
+];
+
 const COLLAPSE_FILTERS = [
   { key: 'collapse', label: 'Collapse' },
   { key: 'stall', label: 'Stall' },
@@ -626,6 +637,29 @@ function IncidentList() {
                   ))}
                 </div>
               </div>
+
+              {/* Pilot-Related Filters */}
+              <div className="mt-6">
+                <label className="block text-xs text-slate-500 mb-2">Pilot-Related Factors</label>
+                <div className="flex flex-wrap gap-2">
+                  {PILOT_RELATED_FILTERS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleFilter(key, null, label, 'Pilot Factor')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        isFilterActive(key, null)
+                          ? filterMode === 'include'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -669,6 +703,7 @@ function IncidentList() {
                         return (
                           <Link
                             to={`/view/${incident.uuid}`}
+                            state={{ from: '/incidents' }}
                             className="flex-shrink-0 hidden sm:block"
                           >
                             <img
@@ -712,7 +747,7 @@ function IncidentList() {
                       </div>
 
                       {/* Title */}
-                      <Link to={`/view/${incident.uuid}`} className="block">
+                      <Link to={`/view/${incident.uuid}`} state={{ from: '/incidents' }} className="block">
                         <h3 className="text-lg md:text-xl font-semibold text-white mb-2 line-clamp-2 hover:text-orange-400 transition-colors">
                           {incident.title || 'Untitled Incident'}
                         </h3>

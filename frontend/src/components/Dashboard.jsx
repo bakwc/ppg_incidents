@@ -651,6 +651,9 @@ export default function Dashboard() {
                 {yearFilter === 'all_time' ? '' : yearFilter === 'last_10_years' ? 'from the last 10 years ' : 'from the last 5 years '}
                 {confidenceFilter === 'high' && 'with high cause confidence'}
               </div>
+              <div className="mb-6 md:mb-8 text-base md:text-lg text-slate-300">
+                Click on a column to view individual incidents.
+              </div>
             </div>
             <div className="max-w-4xl mx-auto">
               <div id="primary-causes" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 scroll-mt-8 lg:scroll-mt-48">

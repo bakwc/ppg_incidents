@@ -172,6 +172,14 @@ class Incident(models.Model):
     factor_spiral_maneuver = models.BooleanField(null=True, blank=True, verbose_name="Spiral maneuver")
     factor_mid_air_collision = models.CharField(max_length=30, choices=MidAirCollision.choices, null=True, blank=True, verbose_name="Mid-air collision")
     factor_ground_object_collision = models.BooleanField(null=True, blank=True, verbose_name="Ground object collision")
+    factor_released_brake_toggle = models.BooleanField(null=True, blank=True, verbose_name="Released / lost the brake toggle")
+    factor_wrongly_adjusted_trims = models.BooleanField(null=True, blank=True, verbose_name="Wrongly adjusted trims")
+    factor_accidental_motor_kill = models.BooleanField(null=True, blank=True, verbose_name="Accidental motor kill")
+    factor_wrong_throttle_management = models.BooleanField(null=True, blank=True, verbose_name="Wrong throttle management")
+    factor_accidental_reserve_deployment = models.BooleanField(null=True, blank=True, verbose_name="Accidental reserve deployment")
+    factor_oscillations_out_of_control = models.BooleanField(null=True, blank=True, verbose_name="Oscillations out of control")
+    factor_student_pilot = models.BooleanField(null=True, blank=True, verbose_name="Student pilot")
+    factor_medical_issues = models.BooleanField(null=True, blank=True, verbose_name="Had medical issues")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
@@ -327,6 +335,22 @@ class Incident(models.Model):
             factors.append(f"mid-air collision: {self.get_factor_mid_air_collision_display()}")
         if self.factor_ground_object_collision:
             factors.append("ground object collision")
+        if self.factor_released_brake_toggle:
+            factors.append("released/lost brake toggle")
+        if self.factor_wrongly_adjusted_trims:
+            factors.append("wrongly adjusted trims")
+        if self.factor_accidental_motor_kill:
+            factors.append("accidental motor kill")
+        if self.factor_wrong_throttle_management:
+            factors.append("wrong throttle management")
+        if self.factor_accidental_reserve_deployment:
+            factors.append("accidental reserve deployment")
+        if self.factor_oscillations_out_of_control:
+            factors.append("oscillations out of control")
+        if self.factor_student_pilot:
+            factors.append("student pilot")
+        if self.factor_medical_issues:
+            factors.append("medical issues")
         if factors:
             parts.append(f"Factors: {', '.join(factors)}")
 

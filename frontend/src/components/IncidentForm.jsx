@@ -156,6 +156,14 @@ function IncidentForm() {
     factor_spiral_maneuver: false,
     factor_mid_air_collision: '',
     factor_ground_object_collision: false,
+    factor_released_brake_toggle: false,
+    factor_wrongly_adjusted_trims: false,
+    factor_accidental_motor_kill: false,
+    factor_wrong_throttle_management: false,
+    factor_accidental_reserve_deployment: false,
+    factor_oscillations_out_of_control: false,
+    factor_student_pilot: false,
+    factor_medical_issues: false,
     source_links: '',
     media_links: '',
     report_raw: '',
@@ -882,6 +890,20 @@ function IncidentForm() {
                   <Checkbox label="Turbulent conditions" name="factor_turbulent_conditions" checked={formData.factor_turbulent_conditions} onChange={handleChange} highlighted={highlightedFields.has('factor_turbulent_conditions')} />
                   <Checkbox label="Spiral maneuver" name="factor_spiral_maneuver" checked={formData.factor_spiral_maneuver} onChange={handleChange} highlighted={highlightedFields.has('factor_spiral_maneuver')} />
                   <Checkbox label="Ground object collision" name="factor_ground_object_collision" checked={formData.factor_ground_object_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_object_collision')} />
+                </div>
+              </Section>
+
+              {/* Pilot-Related Factors */}
+              <Section title="Pilot-Related Factors">
+                <div className="grid grid-cols-2 gap-3">
+                  <Checkbox label="Released / lost the brake toggle" name="factor_released_brake_toggle" checked={formData.factor_released_brake_toggle} onChange={handleChange} highlighted={highlightedFields.has('factor_released_brake_toggle')} />
+                  <Checkbox label="Wrongly adjusted trims" name="factor_wrongly_adjusted_trims" checked={formData.factor_wrongly_adjusted_trims} onChange={handleChange} highlighted={highlightedFields.has('factor_wrongly_adjusted_trims')} />
+                  <Checkbox label="Accidental motor kill" name="factor_accidental_motor_kill" checked={formData.factor_accidental_motor_kill} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_motor_kill')} />
+                  <Checkbox label="Wrong throttle management" name="factor_wrong_throttle_management" checked={formData.factor_wrong_throttle_management} onChange={handleChange} highlighted={highlightedFields.has('factor_wrong_throttle_management')} />
+                  <Checkbox label="Accidental reserve deployment" name="factor_accidental_reserve_deployment" checked={formData.factor_accidental_reserve_deployment} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_reserve_deployment')} />
+                  <Checkbox label="Oscillations out of control" name="factor_oscillations_out_of_control" checked={formData.factor_oscillations_out_of_control} onChange={handleChange} highlighted={highlightedFields.has('factor_oscillations_out_of_control')} />
+                  <Checkbox label="Student pilot" name="factor_student_pilot" checked={formData.factor_student_pilot} onChange={handleChange} highlighted={highlightedFields.has('factor_student_pilot')} />
+                  <Checkbox label="Had medical issues" name="factor_medical_issues" checked={formData.factor_medical_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_medical_issues')} />
                 </div>
               </Section>
 

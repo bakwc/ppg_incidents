@@ -89,6 +89,14 @@ BOOLEAN_FILTER_FIELDS = [
     "factor_turbulent_conditions",
     "factor_spiral_maneuver",
     "factor_ground_object_collision",
+    "factor_released_brake_toggle",
+    "factor_wrongly_adjusted_trims",
+    "factor_accidental_motor_kill",
+    "factor_wrong_throttle_management",
+    "factor_accidental_reserve_deployment",
+    "factor_oscillations_out_of_control",
+    "factor_student_pilot",
+    "factor_medical_issues",
 ]
 
 # Choice fields that can be filtered

@@ -64,6 +64,14 @@ The incident has the following fields:
 - factor_spiral_maneuver: Boolean - spiral maneuver (spiral dive, SAT, etc.)
 - factor_mid_air_collision: One of: "fly_nearby", "got_in_wake_turbulence", "almost_collided", "collided".
 - factor_ground_object_collision: Boolean - collision with ground object
+- factor_released_brake_toggle: Boolean - pilot released or lost the brake toggle
+- factor_wrongly_adjusted_trims: Boolean - trims were wrongly adjusted
+- factor_accidental_motor_kill: Boolean - accidental motor kill
+- factor_wrong_throttle_management: Boolean - wrong throttle management
+- factor_accidental_reserve_deployment: Boolean - accidental reserve deployment
+- factor_oscillations_out_of_control: Boolean - oscillations out of control
+- factor_student_pilot: Boolean - student pilot
+- factor_medical_issues: Boolean - pilot had medical issues
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
 - report_raw: Raw reports / analysis copied from source. If no link provided - just copy the text from the user message.

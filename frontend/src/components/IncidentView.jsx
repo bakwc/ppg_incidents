@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { fetchIncident } from '../api';
 
 const COLLAPSE_LABELS = {
@@ -130,6 +130,8 @@ function getYouTubeVideoId(incident) {
 
 function IncidentView() {
   const { uuid } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [incident, setIncident] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -139,6 +141,16 @@ function IncidentView() {
       setLoading(false);
     });
   }, [uuid]);
+
+  const handleBack = () => {
+    if (location.state?.from) {
+      navigate(location.state.from);
+    } else if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate('/incidents');
+    }
+  };
 
   if (loading) {
     return (
@@ -154,14 +166,14 @@ function IncidentView() {
         {/* Header */}
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-            <Link
-              to="/"
+            <button
+              onClick={handleBack}
               className="p-2 rounded-xl bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-            </Link>
+            </button>
             <h1 className="font-display text-3xl text-gradient">
               Incident Details
             </h1>
@@ -341,6 +353,22 @@ function IncidentView() {
                 {incident.factor_turbulent_conditions && <Badge label="Turbulent conditions" />}
                 {incident.factor_spiral_maneuver && <Badge label="Spiral maneuver" />}
                 {incident.factor_ground_object_collision && <Badge label="Ground object collision" />}
+              </div>
+            </Section>
+          )}
+
+          {/* Pilot-Related Factors */}
+          {(incident.factor_released_brake_toggle || incident.factor_wrongly_adjusted_trims || incident.factor_accidental_motor_kill || incident.factor_wrong_throttle_management || incident.factor_accidental_reserve_deployment || incident.factor_oscillations_out_of_control || incident.factor_student_pilot || incident.factor_medical_issues) && (
+            <Section title="Pilot-Related Factors">
+              <div className="flex flex-wrap gap-2">
+                {incident.factor_released_brake_toggle && <Badge label="Released / lost the brake toggle" />}
+                {incident.factor_wrongly_adjusted_trims && <Badge label="Wrongly adjusted trims" />}
+                {incident.factor_accidental_motor_kill && <Badge label="Accidental motor kill" />}
+                {incident.factor_wrong_throttle_management && <Badge label="Wrong throttle management" />}
+                {incident.factor_accidental_reserve_deployment && <Badge label="Accidental reserve deployment" />}
+                {incident.factor_oscillations_out_of_control && <Badge label="Oscillations out of control" />}
+                {incident.factor_student_pilot && <Badge label="Student pilot" />}
+                {incident.factor_medical_issues && <Badge label="Had medical issues" />}
               </div>
             </Section>
           )}
