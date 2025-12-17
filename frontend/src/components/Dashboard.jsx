@@ -378,6 +378,79 @@ const getWindSpeedFilterPacks = (severityFilter, yearFilter, confidenceFilter) =
 
 const WIND_SPEED_FILTER_PACKS = getWindSpeedFilterPacks('potentially_fatal', 'all_time', 'high');
 
+const getWrongControlInputFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
+  return [
+  {
+    name: 'Total',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input' },
+    exclude: {}
+  },
+  {
+    name: 'Active Maneuvers',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_maneuvers: true },
+    exclude: {}
+  },
+  {
+    name: 'Stall Induced',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', stall: true },
+    exclude: {}
+  },
+  {
+    name: 'Line Twist',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', line_twist: true },
+    exclude: {}
+  },
+  {
+    name: 'Brake Toggle Lost / Released',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_released_brake_toggle: true },
+    exclude: {}
+  },
+  {
+    name: 'Wrongly Adjusted Trims',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_wrongly_adjusted_trims: true },
+    exclude: {}
+  },
+  {
+    name: 'Accidental Reserve Deployment',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_accidental_reserve_deployment: true },
+    exclude: {}
+  },
+  {
+    name: 'Accidental Motor Kill',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_accidental_motor_kill: true },
+    exclude: {}
+  },
+  {
+    name: 'Student Pilot',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_student_pilot: true },
+    exclude: {}
+  },
+  {
+    name: 'Wrong Throttle Management',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_wrong_throttle_management: true },
+    exclude: {}
+  },
+  {
+    name: 'Oscillations Out of Control',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_oscillations_out_of_control: true },
+    exclude: {}
+  },
+  {
+    name: 'Medical Issues',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input', factor_medical_issues: true },
+    exclude: {}
+  },
+  {
+    name: 'Others',
+    include: { ...baseFilter, primary_cause: 'wrong_control_input' },
+    exclude: { factor_maneuvers: true, stall: true, line_twist: true, factor_released_brake_toggle: true, factor_wrongly_adjusted_trims: true, factor_accidental_reserve_deployment: true, factor_accidental_motor_kill: true, factor_student_pilot: true, factor_wrong_throttle_management: true, factor_oscillations_out_of_control: true, factor_medical_issues: true }
+  }
+];
+};
+
+const WRONG_CONTROL_INPUT_FILTER_PACKS = getWrongControlInputFilterPacks('potentially_fatal', 'all_time', 'high');
+
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
   Object.entries(filterPack.include || {}).forEach(([key, value]) => {
@@ -392,6 +465,7 @@ const buildFilterUrl = (filterPack) => {
 const ALL_SECTIONS = [
   { id: 'primary-causes', label: 'Primary Causes' },
   { id: 'contributing-factors', label: 'Contributing Factors' },
+  { id: 'wrong-control-input-breakdown', label: 'Wrong Control Input Breakdown' },
   { id: 'flight-phase', label: 'Flight Phase' },
   { id: 'flight-altitude', label: 'Flight Altitude' },
   { id: 'turbulence-type', label: 'Turbulence Type' },
@@ -416,6 +490,7 @@ export default function Dashboard() {
   const [windSpeedPercentile, setWindSpeedPercentile] = useState(null);
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
+  const [wrongControlInputStats, setWrongControlInputStats] = useState(null);
   const [countryStats, setCountryStats] = useState(null);
   const [yearStats, setYearStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -436,7 +511,7 @@ export default function Dashboard() {
     const loadStats = async () => {
       setLoading(true);
       const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
-      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, countryData, yearData] = await Promise.all([
+      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(getPieFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getBarFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter)),
@@ -446,6 +521,7 @@ export default function Dashboard() {
         fetchWindSpeedPercentile(baseFilter, {}, 40),
         fetchDashboardStats(getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getWrongControlInputFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchCountryStats(baseFilter, {}, 10),
         fetchYearStats(baseFilter, {})
       ]);
@@ -458,6 +534,7 @@ export default function Dashboard() {
       setWindSpeedPercentile(windPercentileData.percentile_value);
       setReserveStats(reserveData);
       setTrimStats(trimData);
+      setWrongControlInputStats(wrongControlInputData);
       setCountryStats(countryData);
       setYearStats(yearData);
       setLoading(false);
@@ -511,6 +588,7 @@ export default function Dashboard() {
   const windSpeedFilterPacks = getWindSpeedFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const reserveFilterPacks = getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const trimFilterPacks = getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const wrongControlInputFilterPacks = getWrongControlInputFilterPacks(severityFilter, yearFilter, confidenceFilter);
 
   // Filter sections based on severity filter
   const SECTIONS = severityFilter === 'fatal'
@@ -746,6 +824,87 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        <div id="wrong-control-input-breakdown" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Wrong Control Input Breakdown</h2>
+          
+          {(() => {
+            const wrongControlInputTotal = wrongControlInputStats?.['Total'] || 0;
+            const wrongControlInputChartData = wrongControlInputFilterPacks
+              .filter(p => p.name !== 'Total')
+              .map((p, index) => ({
+                name: p.name,
+                value: wrongControlInputStats?.[p.name] || 0,
+                percent: wrongControlInputTotal > 0 ? ((wrongControlInputStats?.[p.name] || 0) / wrongControlInputTotal) * 100 : 0,
+                filterPack: p,
+                colorIndex: index
+              }))
+              .sort((a, b) => b.percent - a.percent);
+
+            const handleWrongControlInputClick = (data) => {
+              if (isTouchDevice) {
+                if (activeTooltip === `wrongcontrol-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`wrongcontrol-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
+              }
+            };
+
+            const allIncidentsTotal = barStats?.['Total'] || 0;
+            const wrongControlInputPercentOfAll = allIncidentsTotal > 0 ? ((wrongControlInputTotal / allIncidentsTotal) * 100).toFixed(0) : 0;
+
+            return (
+              <div>
+                <div className="h-[350px] md:h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={wrongControlInputChartData} margin={{ left: 0, right: 0, top: 20, bottom: 90 }}>
+                      <XAxis 
+                        type="category" 
+                        dataKey="name" 
+                        stroke="#64748b" 
+                        interval={0} 
+                        angle={-45}
+                        textAnchor="end"
+                        height={90}
+                        style={{ fontSize: isMobile ? '9px' : '11px', fill: '#e2e8f0' }}
+                      />
+                      <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
+                        formatter={(value) => `${value.toFixed(1)}%`}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Bar dataKey="percent" radius={[4, 4, 0, 0]} onClick={handleWrongControlInputClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                        {wrongControlInputChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.colorIndex % COLORS.length]} />
+                        ))}
+                        <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
+                  <span className="text-base md:text-lg text-slate-400">
+                    Based on <span className="text-orange-400 font-bold text-lg md:text-xl">{wrongControlInputPercentOfAll}%</span> incidents with wrong control input as primary cause ({wrongControlInputTotal} incidents)
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div id="flight-phase" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
