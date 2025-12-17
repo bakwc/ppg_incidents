@@ -410,65 +410,89 @@ function IncidentList() {
                 : 'bg-red-500/5 border-red-500/20'
             }`}>
 
-              {/* Date Range Filter */}
-              <div className="mb-6">
-                <label className="block text-xs text-slate-500 mb-1.5">Date Range</label>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 w-10">From:</span>
-                    <select
-                      value={yearFrom}
-                      onChange={(e) => setYearFrom(e.target.value)}
-                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
-                    >
-                      <option value="">Year</option>
-                      {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={monthFrom}
-                      onChange={(e) => setMonthFrom(e.target.value)}
-                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
-                    >
-                      <option value="">Month</option>
-                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
-                        <option key={m} value={m}>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i]}</option>
-                      ))}
-                    </select>
+              {/* Date Range and Video Filter */}
+              <div className="mb-6 flex flex-col lg:flex-row lg:items-start gap-6">
+                {/* Date Range Filter */}
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1.5">Date Range</label>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500 w-10">From:</span>
+                      <select
+                        value={yearFrom}
+                        onChange={(e) => setYearFrom(e.target.value)}
+                        className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      >
+                        <option value="">Year</option>
+                        {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={monthFrom}
+                        onChange={(e) => setMonthFrom(e.target.value)}
+                        className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      >
+                        <option value="">Month</option>
+                        {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+                          <option key={m} value={m}>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i]}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500 w-10">To:</span>
+                      <select
+                        value={yearTo}
+                        onChange={(e) => setYearTo(e.target.value)}
+                        className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      >
+                        <option value="">Year</option>
+                        {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={monthTo}
+                        onChange={(e) => setMonthTo(e.target.value)}
+                        className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                      >
+                        <option value="">Month</option>
+                        {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+                          <option key={m} value={m}>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i]}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {(yearFrom || monthFrom || yearTo || monthTo) && (
+                      <button
+                        type="button"
+                        onClick={() => { setYearFrom(''); setMonthFrom(''); setYearTo(''); setMonthTo(''); }}
+                        className="text-xs text-slate-500 hover:text-red-400 transition-colors self-start sm:self-center"
+                      >
+                        Clear
+                      </button>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 w-10">To:</span>
-                    <select
-                      value={yearTo}
-                      onChange={(e) => setYearTo(e.target.value)}
-                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
-                    >
-                      <option value="">Year</option>
-                      {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={monthTo}
-                      onChange={(e) => setMonthTo(e.target.value)}
-                      className="flex-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-md text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
-                    >
-                      <option value="">Month</option>
-                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
-                        <option key={m} value={m}>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i]}</option>
-                      ))}
-                    </select>
-                  </div>
-                  {(yearFrom || monthFrom || yearTo || monthTo) && (
-                    <button
-                      type="button"
-                      onClick={() => { setYearFrom(''); setMonthFrom(''); setYearTo(''); setMonthTo(''); }}
-                      className="text-xs text-slate-500 hover:text-red-400 transition-colors self-start sm:self-center"
-                    >
-                      Clear
-                    </button>
-                  )}
+                </div>
+
+                {/* Video Available Filter */}
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1.5">Video</label>
+                  <button
+                    type="button"
+                    onClick={() => toggleFilter('has_video', null, 'Video available', 'Video')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                      isFilterActive('has_video', null)
+                        ? filterMode === 'include'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    Video available
+                  </button>
                 </div>
               </div>
 

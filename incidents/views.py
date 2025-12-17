@@ -215,6 +215,13 @@ def apply_filters(queryset, filters, exclude=False):
                     queryset = queryset.exclude(collapse_types__icontains="unknown")
                 else:
                     queryset = queryset.filter(collapse_types__icontains="unknown")
+        elif field == "has_video":
+            if value is True or (isinstance(value, str) and value.lower() == "true"):
+                q = Q(media_links__icontains="youtube") | Q(source_links__icontains="youtube")
+                if exclude:
+                    queryset = queryset.exclude(q)
+                else:
+                    queryset = queryset.filter(q)
     return queryset
 
 
@@ -251,7 +258,7 @@ class IncidentListView(generics.ListAPIView):
 
         # Collect include filters from query params
         include_filters = {}
-        for field in BOOLEAN_FILTER_FIELDS + CHOICE_FILTER_FIELDS + ["collapse", "stall", "spin", "line_twist", "unknown_collapse"]:
+        for field in BOOLEAN_FILTER_FIELDS + CHOICE_FILTER_FIELDS + ["collapse", "stall", "spin", "line_twist", "unknown_collapse", "has_video"]:
             value = self.request.query_params.get(field)
             if value is not None:
                 include_filters[field] = value
@@ -278,7 +285,7 @@ class IncidentListView(generics.ListAPIView):
             value = self.request.query_params.get(f"exclude_{field}")
             if value is not None:
                 exclude_filters[field] = value
-        for field in ["collapse", "stall", "spin", "line_twist", "unknown_collapse"]:
+        for field in ["collapse", "stall", "spin", "line_twist", "unknown_collapse", "has_video"]:
             value = self.request.query_params.get(f"exclude_{field}")
             if value is not None:
                 exclude_filters[field] = value
