@@ -503,6 +503,7 @@ export default function Dashboard() {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [sectionToRestore, setSectionToRestore] = useState(null);
 
   useEffect(() => {
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -514,6 +515,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadStats = async () => {
+      setSectionToRestore(activeSection);
       setLoading(true);
       const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
       const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, countryData, yearData] = await Promise.all([
@@ -547,6 +549,25 @@ export default function Dashboard() {
 
     loadStats();
   }, [severityFilter, yearFilter, confidenceFilter]);
+
+  useEffect(() => {
+    if (!loading && sectionToRestore) {
+      const sections = severityFilter === 'fatal'
+        ? ALL_SECTIONS.filter(s => s.id !== 'reserve-usage')
+        : ALL_SECTIONS;
+      
+      const sectionExists = sections.some(s => s.id === sectionToRestore);
+      if (sectionExists) {
+        setTimeout(() => {
+          const element = document.getElementById(sectionToRestore);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+      setSectionToRestore(null);
+    }
+  }, [loading, sectionToRestore, severityFilter]);
 
   useEffect(() => {
     const sections = severityFilter === 'fatal'
