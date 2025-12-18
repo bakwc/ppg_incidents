@@ -504,6 +504,7 @@ export default function Dashboard() {
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [sectionToRestore, setSectionToRestore] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -515,7 +516,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadStats = async () => {
-      setSectionToRestore(activeSection);
+      if (!isInitialLoad) {
+        setSectionToRestore(activeSection);
+      }
       setLoading(true);
       const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
       const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, countryData, yearData] = await Promise.all([
@@ -545,6 +548,9 @@ export default function Dashboard() {
       setCountryStats(countryData);
       setYearStats(yearData);
       setLoading(false);
+      if (isInitialLoad) {
+        setIsInitialLoad(false);
+      }
     };
 
     loadStats();
@@ -561,7 +567,7 @@ export default function Dashboard() {
         setTimeout(() => {
           const element = document.getElementById(sectionToRestore);
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            element.scrollIntoView({ behavior: 'auto', block: 'start' });
           }
         }, 100);
       }
