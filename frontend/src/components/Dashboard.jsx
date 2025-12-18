@@ -263,8 +263,13 @@ const getAltitudeFilterPacks = (severityFilter, yearFilter, confidenceFilter) =>
     exclude: {}
   },
   {
-    name: '0-50',
-    include: { ...baseFilter, altitude_min: 0, altitude_max: 50 },
+    name: '0-15',
+    include: { ...baseFilter, altitude_min: 0, altitude_max: 15 },
+    exclude: {}
+  },
+  {
+    name: '15-50',
+    include: { ...baseFilter, altitude_min: 15, altitude_max: 50 },
     exclude: {}
   },
   {
@@ -971,10 +976,11 @@ export default function Dashboard() {
             const altitudeTotal = altitudeStats?.['Total'] || 0;
             
             const altitudeLabels = {
-              '0-50': { meters: '0-50 m', feet: '0-160 ft' },
-              '50-100': { meters: '50-100 m', feet: '160-330 ft' },
-              '100-200': { meters: '100-200 m', feet: '330-660 ft' },
-              '200-500': { meters: '200-500 m', feet: '660-1640 ft' },
+              '0-15': { meters: '0-15 m', feet: '0-49 ft' },
+              '15-50': { meters: '15-50 m', feet: '49-164 ft' },
+              '50-100': { meters: '50-100 m', feet: '164-328 ft' },
+              '100-200': { meters: '100-200 m', feet: '328-656 ft' },
+              '200-500': { meters: '200-500 m', feet: '656-1640 ft' },
               '500+': { meters: '500+ m', feet: '1640+ ft' }
             };
             
