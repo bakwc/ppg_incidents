@@ -49,9 +49,10 @@ jobs:
         DEEPSEEK_API_KEY: dummy-key-for-testing
         ANTHROPIC_API_KEY: dummy-key-for-testing
         DJANGO_SECRET_KEY: test-secret-key-for-ci
+        DJANGO_SETTINGS_MODULE: ppg_incidents.settings
       run: |
-        poetry run python -c "from ppg_incidents.vector_store import init_vector_table; init_vector_table()"
-        poetry run python -c "from ppg_incidents.fts_store import init_fts_table; init_fts_table()"
+        poetry run python -c "import django; django.setup(); from ppg_incidents.vector_store import init_vector_table; init_vector_table()"
+        poetry run python -c "import django; django.setup(); from ppg_incidents.fts_store import init_fts_table; init_fts_table()"
     
     - name: Run tests
       env:
