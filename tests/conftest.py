@@ -10,3 +10,17 @@ def django_db_setup(django_db_setup, django_db_blocker):
         init_vector_table()
         init_fts_table()
 
+
+@pytest.fixture(autouse=True)
+def reset_db_connections():
+    yield
+    import ppg_incidents.vector_store as vector_store
+    import ppg_incidents.fts_store as fts_store
+    
+    if vector_store._connection:
+        vector_store._connection.close()
+        vector_store._connection = None
+    if fts_store._connection:
+        fts_store._connection.close()
+        fts_store._connection = None
+
