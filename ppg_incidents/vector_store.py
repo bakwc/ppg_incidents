@@ -1,29 +1,27 @@
-import sqlite3
 import struct
 from logging import getLogger
 
 import sqlite_vec
-from django.conf import settings
+from django.db import connection
 
 logger = getLogger(__name__)
 
 EMBEDDING_DIM = 3072  # text-embedding-3-large output dimension
 
-_connection: sqlite3.Connection | None = None
+_vec_loaded = False
 
 
-def _get_raw_connection() -> sqlite3.Connection:
-    """Get sqlite3 connection with sqlite-vec extension loaded."""
-    global _connection
-    if _connection is not None:
-        return _connection
-
-    db_path = settings.DATABASES["default"]["NAME"]
-    _connection = sqlite3.connect(db_path, check_same_thread=False)
-    _connection.enable_load_extension(True)
-    sqlite_vec.load(_connection)
-    _connection.enable_load_extension(False)
-    return _connection
+def _get_raw_connection():
+    """Get Django's sqlite3 connection with sqlite-vec extension loaded."""
+    global _vec_loaded
+    connection.ensure_connection()
+    conn = connection.connection
+    if not _vec_loaded:
+        conn.enable_load_extension(True)
+        sqlite_vec.load(conn)
+        conn.enable_load_extension(False)
+        _vec_loaded = True
+    return conn
 
 
 def _serialize_embedding(embedding: list[float]) -> bytes:

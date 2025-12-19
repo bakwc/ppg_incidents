@@ -5,6 +5,43 @@ from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
 from incidents.models import Incident
+from ppg_incidents.fts_store import upsert_fts, search_fts
+
+
+@pytest.mark.django_db
+def test_full_text_search():
+    incident1 = Incident.objects.create(
+        title="Wing collapse in Spain",
+        country="Spain",
+        severity="serious",
+        verified=True,
+    )
+    incident2 = Incident.objects.create(
+        title="Engine failure in France",
+        country="France",
+        severity="minor",
+        verified=True,
+    )
+    incident3 = Incident.objects.create(
+        title="Paramotor crash in Germany",
+        country="Germany",
+        severity="fatal",
+        verified=True,
+    )
+
+    upsert_fts(incident1.id, "wing collapse asymmetric deflation spain valencia")
+    upsert_fts(incident2.id, "engine failure france motor stopped")
+    upsert_fts(incident3.id, "paramotor crash germany fatal accident")
+
+    results = search_fts("collapse")
+    assert incident1.id in results
+    assert incident2.id not in results
+
+    results = search_fts("engine")
+    assert incident2.id in results
+
+    results = search_fts("germany")
+    assert incident3.id in results
 
 
 @pytest.mark.django_db
