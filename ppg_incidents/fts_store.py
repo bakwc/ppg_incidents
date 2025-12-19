@@ -7,6 +7,7 @@ logger = getLogger(__name__)
 
 def _get_raw_connection():
     """Get Django's sqlite3 connection."""
+    connection.ensure_connection()
     return connection.connection
 
 
