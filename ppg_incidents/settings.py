@@ -26,7 +26,16 @@ SECRET_KEY = "django-insecure-5))0ez+u^@hf2()mmejki3e^h)d5d9)3ommw(fes+!#gun!zq^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ppg-incidents.org', 'www.ppg-incidents.org', 'localhost', '127.0.0.1']
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = ['http://ppg-incidents.org', 'http://www.ppg-incidents.org', 'https://ppg-incidents.org', 'https://www.ppg-incidents.org']
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
+
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
 
 
 # Application definition
