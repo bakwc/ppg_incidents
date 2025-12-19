@@ -35,6 +35,24 @@ jobs:
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: poetry install --no-interaction --no-root
     
+    - name: Run migrations
+      env:
+        OPENAI_API_KEY: dummy-key-for-testing
+        DEEPSEEK_API_KEY: dummy-key-for-testing
+        ANTHROPIC_API_KEY: dummy-key-for-testing
+        DJANGO_SECRET_KEY: test-secret-key-for-ci
+      run: poetry run python manage.py migrate
+    
+    - name: Initialize vector and FTS tables
+      env:
+        OPENAI_API_KEY: dummy-key-for-testing
+        DEEPSEEK_API_KEY: dummy-key-for-testing
+        ANTHROPIC_API_KEY: dummy-key-for-testing
+        DJANGO_SECRET_KEY: test-secret-key-for-ci
+      run: |
+        poetry run python -c "from ppg_incidents.vector_store import init_vector_table; init_vector_table()"
+        poetry run python -c "from ppg_incidents.fts_store import init_fts_table; init_fts_table()"
+    
     - name: Run tests
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy-key-for-testing' }}
