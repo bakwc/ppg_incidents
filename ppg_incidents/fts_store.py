@@ -1,22 +1,13 @@
-import sqlite3
 from logging import getLogger
 
-from django.conf import settings
+from django.db import connection
 
 logger = getLogger(__name__)
 
-_connection: sqlite3.Connection | None = None
 
-
-def _get_raw_connection() -> sqlite3.Connection:
-    """Get sqlite3 connection."""
-    global _connection
-    if _connection is not None:
-        return _connection
-
-    db_path = settings.DATABASES["default"]["NAME"]
-    _connection = sqlite3.connect(db_path, check_same_thread=False)
-    return _connection
+def _get_raw_connection():
+    """Get Django's sqlite3 connection."""
+    return connection.connection
 
 
 def init_fts_table():
