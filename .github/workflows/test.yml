@@ -36,5 +36,10 @@ jobs:
       run: poetry install --no-interaction --no-root
     
     - name: Run tests
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy-key-for-testing' }}
+        DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'dummy-key-for-testing' }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'dummy-key-for-testing' }}
+        DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'test-secret-key-for-ci' }}
       run: poetry run pytest
 
