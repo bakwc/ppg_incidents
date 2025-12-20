@@ -13,11 +13,9 @@ def _get_raw_connection():
     """Get Django's sqlite3 connection with sqlite-vec extension loaded."""
     connection.ensure_connection()
     conn = connection.connection
-    if not getattr(conn, '_vec_loaded', False):
-        conn.enable_load_extension(True)
-        sqlite_vec.load(conn)
-        conn.enable_load_extension(False)
-        conn._vec_loaded = True
+    conn.enable_load_extension(True)
+    sqlite_vec.load(conn)
+    conn.enable_load_extension(False)
     return conn
 
 
