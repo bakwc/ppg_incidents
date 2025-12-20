@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
+from incidents.csv_export import IncidentCSVExportView
 from incidents.views import (
     CheckDuplicateView,
     CountriesView,
@@ -30,6 +31,7 @@ urlpatterns = [
     path("auth/me", CurrentUserView.as_view(), name="current-user"),
     path("incidents", IncidentListView.as_view(), name="incident-list"),
     path("incidents/unverified", UnverifiedIncidentListView.as_view(), name="incident-unverified-list"),
+    path("incidents/csv", IncidentCSVExportView.as_view(), name="incident-csv-export"),
     path("incident/<uuid:uuid>", IncidentDetailView.as_view(), name="incident-detail"),
     path("incident/<uuid:uuid>/update", IncidentUpdateView.as_view(), name="incident-update"),
     path("incident/<uuid:uuid>/delete", IncidentDeleteView.as_view(), name="incident-delete"),

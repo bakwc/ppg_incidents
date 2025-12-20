@@ -199,3 +199,17 @@ export async function fetchWindSpeedPercentile(include, exclude, percentile = 40
   return response.json();
 }
 
+export async function exportIncidentsCSV(searchQuery = null, filters = {}) {
+  const params = new URLSearchParams();
+  if (searchQuery) {
+    params.set('text_search', searchQuery);
+  }
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      params.set(key, value);
+    }
+  });
+  const response = await apiCall(`/incidents/csv?${params}`);
+  return response.blob();
+}
+
