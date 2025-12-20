@@ -1,6 +1,6 @@
 import logging
 
-from django.db.models import Case, Count, Q, When
+from django.db.models import Case, Count, Max, Min, Q, When
 from django.db.models.functions import ExtractYear
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
@@ -704,3 +704,16 @@ class WindSpeedPercentileView(APIView):
         percentile_value = wind_speeds[index] if index < len(wind_speeds) else wind_speeds[-1]
         
         return Response({"percentile_value": round(percentile_value, 1)})
+
+
+class DateRangeView(APIView):
+    def get(self, request):
+        date_range = Incident.objects.aggregate(
+            min_date=Min("date"),
+            max_date=Max("date")
+        )
+        
+        return Response({
+            "min_date": date_range["min_date"],
+            "max_date": date_range["max_date"]
+        })

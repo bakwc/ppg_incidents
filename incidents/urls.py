@@ -9,6 +9,7 @@ from incidents.views import (
     CurrentUserView,
     CustomTokenObtainPairView,
     DashboardStatsView,
+    DateRangeView,
     IncidentChatView,
     IncidentDeleteView,
     IncidentDetailView,
@@ -46,5 +47,6 @@ urlpatterns = [
     path("country_stats", CountryStatsView.as_view(), name="country-stats"),
     path("year_stats", YearStatsView.as_view(), name="year-stats"),
     path("wind_speed_percentile", WindSpeedPercentileView.as_view(), name="wind-speed-percentile"),
+    path("date_range", DateRangeView.as_view(), name="date-range"),
 ]
 

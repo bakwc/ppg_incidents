@@ -12,6 +12,9 @@ export default function Navigation() {
     if (path === '/') {
       return location.pathname === '/';
     }
+    if (path === '/dashboards') {
+      return location.pathname === '/dashboards';
+    }
     return location.pathname.startsWith(path);
   };
   
@@ -28,6 +31,16 @@ export default function Navigation() {
                 to="/" 
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/')
+                    ? 'bg-slate-800 text-amber-400' 
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
+                }`}
+              >
+                Home
+              </Link>
+              <Link 
+                to="/dashboards" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                  isActive('/dashboards')
                     ? 'bg-slate-800 text-amber-400' 
                     : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
                 }`}

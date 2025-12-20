@@ -213,3 +213,8 @@ export async function exportIncidentsCSV(searchQuery = null, filters = {}) {
   return response.blob();
 }
 
+export async function fetchDateRange() {
+  const response = await fetch(`${API_BASE}/date_range`);
+  return response.json();
+}
+

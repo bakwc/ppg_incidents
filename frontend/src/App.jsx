@@ -5,6 +5,7 @@ import IncidentList from './components/IncidentList';
 import IncidentForm from './components/IncidentForm';
 import IncidentView from './components/IncidentView';
 import Dashboard from './components/Dashboard';
+import Home from './components/Home';
 import UnverifiedList from './components/UnverifiedList';
 import About from './components/About';
 import Login from './components/Login';
@@ -16,7 +17,7 @@ function App() {
         <div className="min-h-screen">
           <Navigation />
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
             <Route path="/dashboards" element={<Dashboard />} />
             <Route path="/incidents" element={<IncidentList />} />
             <Route path="/about" element={<About />} />
