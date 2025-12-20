@@ -157,7 +157,7 @@ export default function Home() {
             Learn from the past, fly safer
           </p>
           <p className="text-base md:text-lg text-slate-400 mb-8 max-w-3xl">
-            A comprehensive database of paramotor incidents designed to help pilots understand risks and improve safety through data-driven insights.
+            Database of paramotor incidents designed to help pilots understand risks and improve safety through data-driven insights.
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
@@ -182,11 +182,15 @@ export default function Home() {
         <div className="mb-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">Safety Insights at a Glance</h2>
           <p className="text-slate-400">Key statistics from potentially fatal incidents with high cause confidence</p>
+          <p className="text-slate-500 text-sm mt-2">💡 Click on any chart to explore detailed statistics</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Primary Causes */}
-          <div className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800">
+          <div 
+            onClick={() => navigate('/dashboards#primary-causes')}
+            className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
+          >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Primary Causes</h3>
             <div className="h-[280px] md:h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -223,7 +227,10 @@ export default function Home() {
           </div>
 
           {/* Flight Phase */}
-          <div className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800">
+          <div 
+            onClick={() => navigate('/dashboards#flight-phase')}
+            className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
+          >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Flight Phase</h3>
             <div className="h-[280px] md:h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -248,7 +255,10 @@ export default function Home() {
           </div>
 
           {/* Reserve Usage */}
-          <div className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800">
+          <div 
+            onClick={() => navigate('/dashboards#reserve-usage')}
+            className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
+          >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Reserve Usage</h3>
             <div className="flex flex-col items-center justify-center h-[280px] md:h-[320px] space-y-6">
               <div className="text-center">
@@ -266,7 +276,10 @@ export default function Home() {
           </div>
 
           {/* Recent Trends */}
-          <div className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800">
+          <div 
+            onClick={() => navigate('/dashboards#by-year')}
+            className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
+          >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Recent Trends (Last 5 Years)</h3>
             <div className="h-[280px] md:h-[320px]">
               <ResponsiveContainer width="100%" height="100%">

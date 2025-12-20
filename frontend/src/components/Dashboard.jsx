@@ -565,6 +565,19 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash && !loading) {
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setActiveSection(hash);
+        }
+      }, 100);
+    }
+  }, [loading]);
+
+  useEffect(() => {
     const loadStats = async () => {
       if (!isInitialLoad) {
         setSectionToRestore(activeSection);
