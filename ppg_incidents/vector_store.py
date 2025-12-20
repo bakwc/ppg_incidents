@@ -8,19 +8,16 @@ logger = getLogger(__name__)
 
 EMBEDDING_DIM = 3072  # text-embedding-3-large output dimension
 
-_loaded_connections = set()
-
 
 def _get_raw_connection():
     """Get Django's sqlite3 connection with sqlite-vec extension loaded."""
     connection.ensure_connection()
     conn = connection.connection
-    conn_id = id(conn)
-    if conn_id not in _loaded_connections:
+    if not getattr(conn, '_vec_loaded', False):
         conn.enable_load_extension(True)
         sqlite_vec.load(conn)
         conn.enable_load_extension(False)
-        _loaded_connections.add(conn_id)
+        conn._vec_loaded = True
     return conn
 
 
