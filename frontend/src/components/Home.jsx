@@ -38,7 +38,8 @@ export default function Home() {
         { name: 'Powerline Collision', include: { ...baseFilter, primary_cause: 'powerline_collision' }, exclude: {} },
         { name: 'Midair Collision', include: { ...baseFilter, primary_cause: 'midair_collision' }, exclude: {} },
         { name: 'Water Landing', include: { ...baseFilter, primary_cause: 'water_landing' }, exclude: {} },
-        { name: 'Others', include: { ...baseFilter }, exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting,ground_object_collision,preflight_error,rain_fog_snow' } }
+        { name: 'Ground Starting', include: { ...baseFilter, primary_cause: 'ground_starting' }, exclude: {} },
+        { name: 'Others', include: { ...baseFilter }, exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,ground_starting' } }
       ];
 
       const flightPhaseFilterPacks = [
@@ -108,8 +109,13 @@ export default function Home() {
     { name: 'Powerline', value: stats.primaryCauses['Powerline Collision'] || 0, percent: (stats.primaryCauses['Powerline Collision'] || 0) / stats.potentiallyFatalIncidents * 100, color: COLORS[3] },
     { name: 'Midair', value: stats.primaryCauses['Midair Collision'] || 0, percent: (stats.primaryCauses['Midair Collision'] || 0) / stats.potentiallyFatalIncidents * 100, color: COLORS[4] },
     { name: 'Water', value: stats.primaryCauses['Water Landing'] || 0, percent: (stats.primaryCauses['Water Landing'] || 0) / stats.potentiallyFatalIncidents * 100, color: COLORS[5] },
+    { name: 'Ground Starting', value: stats.primaryCauses['Ground Starting'] || 0, percent: (stats.primaryCauses['Ground Starting'] || 0) / stats.potentiallyFatalIncidents * 100, color: COLORS[7] },
     { name: 'Others', value: stats.primaryCauses['Others'] || 0, percent: (stats.primaryCauses['Others'] || 0) / stats.potentiallyFatalIncidents * 100, color: COLORS[6] }
-  ].sort((a, b) => b.percent - a.percent);
+  ].sort((a, b) => {
+    if (a.name === 'Others') return 1;
+    if (b.name === 'Others') return -1;
+    return b.percent - a.percent;
+  });
 
   const flightPhaseChartData = [
     { name: 'Ground', percent: (stats.flightPhase['Ground'] || 0) / stats.flightPhase['Total'] * 100 },
