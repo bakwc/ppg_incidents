@@ -180,6 +180,12 @@ class Incident(models.Model):
     factor_oscillations_out_of_control = models.BooleanField(null=True, blank=True, verbose_name="Oscillations out of control")
     factor_student_pilot = models.BooleanField(null=True, blank=True, verbose_name="Student pilot")
     factor_medical_issues = models.BooleanField(null=True, blank=True, verbose_name="Had medical issues")
+    factor_engine_failure = models.BooleanField(null=True, blank=True, verbose_name="Engine failure")
+    factor_trimmers_failure = models.BooleanField(null=True, blank=True, verbose_name="Trimmers failure")
+    factor_structural_failure = models.BooleanField(null=True, blank=True, verbose_name="Structural failure (frame / carabiners / etc.)")
+    factor_fire = models.BooleanField(null=True, blank=True, verbose_name="Fire")
+    factor_throttle_system_issues = models.BooleanField(null=True, blank=True, verbose_name="Throttle system issues (cable / button / etc.)")
+    factor_paraglider_failure = models.BooleanField(null=True, blank=True, verbose_name="Paraglider (wing) failure (material / porosity issues / torn / etc.)")
 
     # Links and media
     source_links = models.TextField(null=True, blank=True, help_text="Links to source / analysis (one per line)")
@@ -351,6 +357,18 @@ class Incident(models.Model):
             factors.append("student pilot")
         if self.factor_medical_issues:
             factors.append("medical issues")
+        if self.factor_engine_failure:
+            factors.append("engine failure")
+        if self.factor_trimmers_failure:
+            factors.append("trimmers failure")
+        if self.factor_structural_failure:
+            factors.append("structural failure")
+        if self.factor_fire:
+            factors.append("fire")
+        if self.factor_throttle_system_issues:
+            factors.append("throttle system issues")
+        if self.factor_paraglider_failure:
+            factors.append("paraglider failure")
         if factors:
             parts.append(f"Factors: {', '.join(factors)}")
 

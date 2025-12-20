@@ -97,6 +97,12 @@ BOOLEAN_FILTER_FIELDS = [
     "factor_oscillations_out_of_control",
     "factor_student_pilot",
     "factor_medical_issues",
+    "factor_engine_failure",
+    "factor_trimmers_failure",
+    "factor_structural_failure",
+    "factor_fire",
+    "factor_throttle_system_issues",
+    "factor_paraglider_failure",
 ]
 
 # Choice fields that can be filtered

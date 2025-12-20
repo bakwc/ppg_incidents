@@ -156,6 +156,15 @@ const PILOT_RELATED_FILTERS = [
   { key: 'factor_medical_issues', label: 'Medical issues' },
 ];
 
+const HARDWARE_FAILURE_FILTERS = [
+  { key: 'factor_engine_failure', label: 'Engine failure' },
+  { key: 'factor_trimmers_failure', label: 'Trimmers failure' },
+  { key: 'factor_structural_failure', label: 'Structural failure' },
+  { key: 'factor_fire', label: 'Fire' },
+  { key: 'factor_throttle_system_issues', label: 'Throttle system issues' },
+  { key: 'factor_paraglider_failure', label: 'Paraglider failure' },
+];
+
 const COLLAPSE_FILTERS = [
   { key: 'collapse', label: 'Collapse' },
   { key: 'stall', label: 'Stall' },
@@ -647,6 +656,29 @@ function IncidentList() {
                       key={key}
                       type="button"
                       onClick={() => toggleFilter(key, null, label, 'Pilot Factor')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        isFilterActive(key, null)
+                          ? filterMode === 'include'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Hardware Failure Filters */}
+              <div className="mt-6">
+                <label className="block text-xs text-slate-500 mb-2">Hardware Failure Factors</label>
+                <div className="flex flex-wrap gap-2">
+                  {HARDWARE_FAILURE_FILTERS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleFilter(key, null, label, 'Hardware Factor')}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         isFilterActive(key, null)
                           ? filterMode === 'include'

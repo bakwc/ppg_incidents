@@ -164,6 +164,12 @@ function IncidentForm() {
     factor_oscillations_out_of_control: false,
     factor_student_pilot: false,
     factor_medical_issues: false,
+    factor_engine_failure: false,
+    factor_trimmers_failure: false,
+    factor_structural_failure: false,
+    factor_fire: false,
+    factor_throttle_system_issues: false,
+    factor_paraglider_failure: false,
     source_links: '',
     media_links: '',
     report_raw: '',
@@ -904,6 +910,18 @@ function IncidentForm() {
                   <Checkbox label="Oscillations out of control" name="factor_oscillations_out_of_control" checked={formData.factor_oscillations_out_of_control} onChange={handleChange} highlighted={highlightedFields.has('factor_oscillations_out_of_control')} />
                   <Checkbox label="Student pilot" name="factor_student_pilot" checked={formData.factor_student_pilot} onChange={handleChange} highlighted={highlightedFields.has('factor_student_pilot')} />
                   <Checkbox label="Had medical issues" name="factor_medical_issues" checked={formData.factor_medical_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_medical_issues')} />
+                </div>
+              </Section>
+
+              {/* Hardware Failure Factors */}
+              <Section title="Hardware Failure Factors">
+                <div className="grid grid-cols-2 gap-3">
+                  <Checkbox label="Engine failure" name="factor_engine_failure" checked={formData.factor_engine_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_engine_failure')} />
+                  <Checkbox label="Trimmers failure" name="factor_trimmers_failure" checked={formData.factor_trimmers_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_trimmers_failure')} />
+                  <Checkbox label="Structural failure (frame / carabiners / etc.)" name="factor_structural_failure" checked={formData.factor_structural_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_structural_failure')} />
+                  <Checkbox label="Fire" name="factor_fire" checked={formData.factor_fire} onChange={handleChange} highlighted={highlightedFields.has('factor_fire')} />
+                  <Checkbox label="Throttle system issues (cable / button / etc.)" name="factor_throttle_system_issues" checked={formData.factor_throttle_system_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_throttle_system_issues')} />
+                  <Checkbox label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" name="factor_paraglider_failure" checked={formData.factor_paraglider_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_paraglider_failure')} />
                 </div>
               </Section>
 

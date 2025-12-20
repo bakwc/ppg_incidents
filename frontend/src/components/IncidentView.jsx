@@ -373,6 +373,20 @@ function IncidentView() {
             </Section>
           )}
 
+          {/* Hardware Failure Factors */}
+          {(incident.factor_engine_failure || incident.factor_trimmers_failure || incident.factor_structural_failure || incident.factor_fire || incident.factor_throttle_system_issues || incident.factor_paraglider_failure) && (
+            <Section title="Hardware Failure Factors">
+              <div className="flex flex-wrap gap-2">
+                {incident.factor_engine_failure && <Badge label="Engine failure" />}
+                {incident.factor_trimmers_failure && <Badge label="Trimmers failure" />}
+                {incident.factor_structural_failure && <Badge label="Structural failure (frame / carabiners / etc.)" />}
+                {incident.factor_fire && <Badge label="Fire" />}
+                {incident.factor_throttle_system_issues && <Badge label="Throttle system issues (cable / button / etc.)" />}
+                {incident.factor_paraglider_failure && <Badge label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" />}
+              </div>
+            </Section>
+          )}
+
           {/* Weather */}
           {(incident.wind_speed || incident.wind_speed_ms || incident.meteorological_conditions || incident.thermal_conditions) && (
             <Section title="Weather Conditions">

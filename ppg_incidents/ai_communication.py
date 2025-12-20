@@ -72,6 +72,12 @@ The incident has the following fields:
 - factor_oscillations_out_of_control: Boolean - oscillations out of control
 - factor_student_pilot: Boolean - student pilot
 - factor_medical_issues: Boolean - pilot had medical issues
+- factor_engine_failure: Boolean - engine failure
+- factor_trimmers_failure: Boolean - trimmers failure
+- factor_structural_failure: Boolean - structural failure (frame / carabiners / etc.)
+- factor_fire: Boolean - fire
+- factor_throttle_system_issues: Boolean - throttle system issues (cable / button / etc.)
+- factor_paraglider_failure: Boolean - paraglider (wing) failure (material / porosity issues / torn / etc.)
 - source_links: Links to sources (one per line)
 - media_links: Links to videos/photos/reports (one per line)
 - report_raw: Raw reports / analysis copied from source. If no link provided - just copy the text from the user message.
