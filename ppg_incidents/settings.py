@@ -23,10 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-5))0ez+u^@hf2()mmejki3e^h)d5d9)3ommw(fes+!#gun!zq^")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable must be set")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG_ENV = os.getenv("DEBUG")
+if DEBUG_ENV is None:
+    raise ValueError("DEBUG environment variable must be set")
+DEBUG = DEBUG_ENV.lower() in ("true", "1", "yes")
 
 ALLOWED_HOSTS = ['ppg-incidents.org', 'www.ppg-incidents.org', 'localhost', '127.0.0.1']
 
@@ -186,7 +191,7 @@ LOGGING = {
     },
     "loggers": {
         "ppg_incidents": {
-            "handlers": ["console", "api_file"],
+            "handlers": ["api_file"],
             "level": "INFO",
             "propagate": False,
         },
