@@ -20,7 +20,8 @@ dependencies = [
     "sqlite-vec (>=0.1.6,<0.2.0)",
     "youtube-transcript-api (>=1.2.3,<2.0.0)",
     "yt-dlp (>=2024.0.0)",
-    "gunicorn (>=23.0.0,<24.0.0)"
+    "gunicorn (>=23.0.0,<24.0.0)",
+    "structlog (>=25.5.0,<26.0.0)",
 ]
 
 

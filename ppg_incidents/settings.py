@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+import structlog
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "ppg_incidents.logging_middleware.APILoggingMiddleware",
 ]
 
 ROOT_URLCONF = "ppg_incidents.urls"
@@ -154,12 +156,28 @@ SIMPLE_JWT = {
 }
 
 # Logging
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
+        },
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
+        },
+        "api_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / f"api_calls.{os.getpid()}.jsonl",
+            "maxBytes": 10485760,  # 10MB
+            "backupCount": 10,
+            "formatter": "json",
         },
     },
     "root": {
@@ -168,9 +186,25 @@ LOGGING = {
     },
     "loggers": {
         "ppg_incidents": {
-            "handlers": ["console"],
+            "handlers": ["console", "api_file"],
             "level": "INFO",
             "propagate": False,
         },
     },
 }
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)

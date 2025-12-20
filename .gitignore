@@ -64,3 +64,10 @@ htmlcov/
 # ruff
 .ruff_cache/
 
+
+# API Logs
+logs/api_calls.*.jsonl
+logs/api_calls.*.jsonl.*
+logs/gunicorn-*.log
+logs/
+
