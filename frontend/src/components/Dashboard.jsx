@@ -456,6 +456,54 @@ const getWrongControlInputFilterPacks = (severityFilter, yearFilter, confidenceF
 
 const WRONG_CONTROL_INPUT_FILTER_PACKS = getWrongControlInputFilterPacks('potentially_fatal', 'all_time', 'high');
 
+const getHardwareFailureFilterPacks = (severityFilter, yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
+  return [
+  {
+    name: 'Total',
+    include: { ...baseFilter, primary_cause: 'hardware_failure' },
+    exclude: {}
+  },
+  {
+    name: 'Engine Failure',
+    include: { ...baseFilter, primary_cause: 'hardware_failure', factor_engine_failure: true },
+    exclude: {}
+  },
+  {
+    name: 'Trimmers Failure',
+    include: { ...baseFilter, primary_cause: 'hardware_failure', factor_trimmers_failure: true },
+    exclude: {}
+  },
+  {
+    name: 'Structural Failure',
+    include: { ...baseFilter, primary_cause: 'hardware_failure', factor_structural_failure: true },
+    exclude: {}
+  },
+  {
+    name: 'Fire',
+    include: { ...baseFilter, primary_cause: 'hardware_failure', factor_fire: true },
+    exclude: {}
+  },
+  {
+    name: 'Throttle System Issues',
+    include: { ...baseFilter, primary_cause: 'hardware_failure', factor_throttle_system_issues: true },
+    exclude: {}
+  },
+  {
+    name: 'Paraglider Failure',
+    include: { ...baseFilter, primary_cause: 'hardware_failure', factor_paraglider_failure: true },
+    exclude: {}
+  },
+  {
+    name: 'Others',
+    include: { ...baseFilter, primary_cause: 'hardware_failure' },
+    exclude: { factor_engine_failure: true, factor_trimmers_failure: true, factor_structural_failure: true, factor_fire: true, factor_throttle_system_issues: true, factor_paraglider_failure: true }
+  }
+];
+};
+
+const HARDWARE_FAILURE_FILTER_PACKS = getHardwareFailureFilterPacks('potentially_fatal', 'all_time', 'high');
+
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
   Object.entries(filterPack.include || {}).forEach(([key, value]) => {
@@ -471,6 +519,7 @@ const ALL_SECTIONS = [
   { id: 'primary-causes', label: 'Primary Causes' },
   { id: 'contributing-factors', label: 'Contributing Factors' },
   { id: 'wrong-control-input-breakdown', label: 'Wrong Control Input Breakdown' },
+  { id: 'hardware-failure-breakdown', label: 'Hardware Failure Breakdown' },
   { id: 'flight-phase', label: 'Flight Phase' },
   { id: 'flight-altitude', label: 'Flight Altitude' },
   { id: 'turbulence-type', label: 'Turbulence Type' },
@@ -496,6 +545,7 @@ export default function Dashboard() {
   const [reserveStats, setReserveStats] = useState(null);
   const [trimStats, setTrimStats] = useState(null);
   const [wrongControlInputStats, setWrongControlInputStats] = useState(null);
+  const [hardwareFailureStats, setHardwareFailureStats] = useState(null);
   const [countryStats, setCountryStats] = useState(null);
   const [yearStats, setYearStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -521,7 +571,7 @@ export default function Dashboard() {
       }
       setLoading(true);
       const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
-      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, countryData, yearData] = await Promise.all([
+      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, hardwareFailureData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(getPieFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getBarFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter)),
@@ -532,6 +582,7 @@ export default function Dashboard() {
         fetchDashboardStats(getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getWrongControlInputFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getHardwareFailureFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchCountryStats(baseFilter, {}, 10),
         fetchYearStats(baseFilter, {})
       ]);
@@ -545,6 +596,7 @@ export default function Dashboard() {
       setReserveStats(reserveData);
       setTrimStats(trimData);
       setWrongControlInputStats(wrongControlInputData);
+      setHardwareFailureStats(hardwareFailureData);
       setCountryStats(countryData);
       setYearStats(yearData);
       setLoading(false);
@@ -621,6 +673,7 @@ export default function Dashboard() {
   const reserveFilterPacks = getReserveFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const trimFilterPacks = getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter);
   const wrongControlInputFilterPacks = getWrongControlInputFilterPacks(severityFilter, yearFilter, confidenceFilter);
+  const hardwareFailureFilterPacks = getHardwareFailureFilterPacks(severityFilter, yearFilter, confidenceFilter);
 
   // Filter sections based on severity filter
   const SECTIONS = severityFilter === 'fatal'
@@ -932,6 +985,87 @@ export default function Dashboard() {
                 <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
                   <span className="text-base md:text-lg text-slate-400">
                     Based on <span className="text-orange-400 font-bold text-lg md:text-xl">{wrongControlInputPercentOfAll}%</span> incidents with wrong control input as primary cause ({wrongControlInputTotal} incidents)
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div id="hardware-failure-breakdown" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Hardware Failure - Breakdown</h2>
+          
+          {(() => {
+            const hardwareFailureTotal = hardwareFailureStats?.['Total'] || 0;
+            const hardwareFailureChartData = hardwareFailureFilterPacks
+              .filter(p => p.name !== 'Total')
+              .map((p, index) => ({
+                name: p.name,
+                value: hardwareFailureStats?.[p.name] || 0,
+                percent: hardwareFailureTotal > 0 ? ((hardwareFailureStats?.[p.name] || 0) / hardwareFailureTotal) * 100 : 0,
+                filterPack: p,
+                colorIndex: index
+              }))
+              .sort((a, b) => b.percent - a.percent);
+
+            const handleHardwareFailureClick = (data) => {
+              if (isTouchDevice) {
+                if (activeTooltip === `hardwarefailure-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`hardwarefailure-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
+              }
+            };
+
+            const allIncidentsTotal = barStats?.['Total'] || 0;
+            const hardwareFailurePercentOfAll = allIncidentsTotal > 0 ? ((hardwareFailureTotal / allIncidentsTotal) * 100).toFixed(0) : 0;
+
+            return (
+              <div>
+                <div className="h-[350px] md:h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={hardwareFailureChartData} margin={{ left: 0, right: 0, top: 20, bottom: 90 }}>
+                      <XAxis 
+                        type="category" 
+                        dataKey="name" 
+                        stroke="#64748b" 
+                        interval={0} 
+                        angle={-45}
+                        textAnchor="end"
+                        height={90}
+                        style={{ fontSize: isMobile ? '9px' : '11px', fill: '#e2e8f0' }}
+                      />
+                      <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
+                        formatter={(value) => `${value.toFixed(1)}%`}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Bar dataKey="percent" radius={[4, 4, 0, 0]} onClick={handleHardwareFailureClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                        {hardwareFailureChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.colorIndex % COLORS.length]} />
+                        ))}
+                        <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '9px' : '11px' }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
+                  <span className="text-base md:text-lg text-slate-400">
+                    Based on <span className="text-orange-400 font-bold text-lg md:text-xl">{hardwareFailurePercentOfAll}%</span> incidents with hardware failure as primary cause ({hardwareFailureTotal} incidents)
                   </span>
                 </div>
               </div>
