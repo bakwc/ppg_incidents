@@ -12,6 +12,14 @@ class APILoggingMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         request._start_time = time.time()
+        
+        request._cached_body = None
+        if request.method in ['POST', 'PUT', 'PATCH']:
+            try:
+                request._cached_body = request.body
+            except Exception:
+                pass
+        
         return None
 
     def process_response(self, request, response):
@@ -34,9 +42,9 @@ class APILoggingMiddleware(MiddlewareMixin):
                 response_body = response.content.decode('utf-8', errors='ignore')[:500]
 
         request_body = None
-        if request.method in ['POST', 'PUT', 'PATCH']:
+        if hasattr(request, '_cached_body') and request._cached_body:
             try:
-                request_body = json.loads(request.body.decode('utf-8'))
+                request_body = json.loads(request._cached_body.decode('utf-8'))
             except (json.JSONDecodeError, UnicodeDecodeError, AttributeError, ValueError):
                 request_body = None
 
