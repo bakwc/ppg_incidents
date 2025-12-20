@@ -192,7 +192,7 @@ export default function Home() {
             className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
           >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Primary Causes</h3>
-            <div className="h-[280px] md:h-[320px]">
+            <div className="h-[280px] md:h-[320px] pointer-events-none">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={primaryCausesChartData} margin={{ left: 0, right: 0, top: 20, bottom: 60 }}>
                   <XAxis 
@@ -206,15 +206,6 @@ export default function Home() {
                     style={{ fontSize: isMobile ? '9px' : '11px', fill: '#e2e8f0' }}
                   />
                   <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
-                  <Tooltip
-                    formatter={(value) => `${value.toFixed(1)}%`}
-                    contentStyle={{
-                      backgroundColor: '#1e293b',
-                      border: '1px solid #334155',
-                      borderRadius: '8px',
-                      color: '#f1f5f9'
-                    }}
-                  />
                   <Bar dataKey="percent" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                     {primaryCausesChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -232,20 +223,11 @@ export default function Home() {
             className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
           >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Flight Phase</h3>
-            <div className="h-[280px] md:h-[320px]">
+            <div className="h-[280px] md:h-[320px] pointer-events-none">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={flightPhaseChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
                   <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '10px' : '12px' }} />
                   <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
-                  <Tooltip
-                    formatter={(value) => `${value.toFixed(1)}%`}
-                    contentStyle={{
-                      backgroundColor: '#1e293b',
-                      border: '1px solid #334155',
-                      borderRadius: '8px',
-                      color: '#f1f5f9'
-                    }}
-                  />
                   <Bar dataKey="percent" fill="#fbbf24" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                     <LabelList dataKey="percent" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                   </Bar>
@@ -281,20 +263,11 @@ export default function Home() {
             className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
           >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Recent Trends (Last 5 Years)</h3>
-            <div className="h-[280px] md:h-[320px]">
+            <div className="h-[280px] md:h-[320px] pointer-events-none">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={yearChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
                   <XAxis type="category" dataKey="year" stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                   <YAxis type="number" stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
-                  <Tooltip
-                    formatter={(value) => [value, 'Incidents']}
-                    contentStyle={{
-                      backgroundColor: '#1e293b',
-                      border: '1px solid #334155',
-                      borderRadius: '8px',
-                      color: '#f1f5f9'
-                    }}
-                  />
                   <Bar dataKey="count" fill="#14b8a6" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                     <LabelList dataKey="count" position="top" fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                   </Bar>
