@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 
 from incidents.models import Incident
-from incidents.views import BOOLEAN_FILTER_FIELDS, CHOICE_FILTER_FIELDS, apply_filters
+from incidents.views import ALLOWED_ORDER_BY_FIELDS_WITH_DESC, BOOLEAN_FILTER_FIELDS, CHOICE_FILTER_FIELDS, apply_filters
 from ppg_incidents.ai_communication import ai_communicator
 from ppg_incidents.fts_store import search_fts
 from ppg_incidents.vector_store import search_similar
@@ -29,7 +29,7 @@ class IncidentCSVExportView(APIView):
         else:
             queryset = Incident.objects.all()
             order_by = request.query_params.get("order_by")
-            if order_by:
+            if order_by and order_by in ALLOWED_ORDER_BY_FIELDS_WITH_DESC:
                 queryset = queryset.order_by(order_by)
 
         include_filters = {}

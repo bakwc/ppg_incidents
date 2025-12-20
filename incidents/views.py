@@ -69,6 +69,21 @@ class IncidentPagination(PageNumberPagination):
     max_page_size = 100
 
 
+# Allowed fields for ordering
+ALLOWED_ORDER_BY_FIELDS = [
+    'date',
+    'severity',
+    'country',
+    'flight_phase',
+    'flight_altitude',
+    'created_at',
+    'updated_at',
+]
+
+# Auto-generate descending versions
+ALLOWED_ORDER_BY_FIELDS_WITH_DESC = ALLOWED_ORDER_BY_FIELDS + [f'-{field}' for field in ALLOWED_ORDER_BY_FIELDS]
+
+
 # Boolean fields that can be filtered
 BOOLEAN_FILTER_FIELDS = [
     "potentially_fatal",
@@ -267,7 +282,7 @@ class IncidentListView(generics.ListAPIView):
         else:
             queryset = Incident.objects.all()
             order_by = self.request.query_params.get("order_by")
-            if order_by:
+            if order_by and order_by in ALLOWED_ORDER_BY_FIELDS_WITH_DESC:
                 queryset = queryset.order_by(order_by)
 
         # Collect include filters from query params
