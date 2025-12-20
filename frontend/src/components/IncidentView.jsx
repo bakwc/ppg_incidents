@@ -303,11 +303,17 @@ function IncidentView() {
           )}
 
           {/* Hardware */}
-          {(incident.hardware_failure || incident.bad_hardware_preflight) && (
+          {(incident.hardware_failure || incident.bad_hardware_preflight || incident.factor_engine_failure || incident.factor_trimmers_failure || incident.factor_structural_failure || incident.factor_fire || incident.factor_throttle_system_issues || incident.factor_paraglider_failure) && (
             <Section title="Hardware">
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {incident.hardware_failure && <Badge label="Hardware failure occurred" />}
                 {incident.bad_hardware_preflight && <Badge label="Issue could be found on preflight" />}
+                {incident.factor_engine_failure && <Badge label="Engine failure" />}
+                {incident.factor_trimmers_failure && <Badge label="Trimmers failure" />}
+                {incident.factor_structural_failure && <Badge label="Structural failure (frame / carabiners / etc.)" />}
+                {incident.factor_fire && <Badge label="Fire" />}
+                {incident.factor_throttle_system_issues && <Badge label="Throttle system issues (cable / button / etc.)" />}
+                {incident.factor_paraglider_failure && <Badge label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" />}
               </div>
             </Section>
           )}
@@ -369,20 +375,6 @@ function IncidentView() {
                 {incident.factor_oscillations_out_of_control && <Badge label="Oscillations out of control" />}
                 {incident.factor_student_pilot && <Badge label="Student pilot" />}
                 {incident.factor_medical_issues && <Badge label="Had medical issues" />}
-              </div>
-            </Section>
-          )}
-
-          {/* Hardware Failure Factors */}
-          {(incident.factor_engine_failure || incident.factor_trimmers_failure || incident.factor_structural_failure || incident.factor_fire || incident.factor_throttle_system_issues || incident.factor_paraglider_failure) && (
-            <Section title="Hardware Failure Factors">
-              <div className="flex flex-wrap gap-2">
-                {incident.factor_engine_failure && <Badge label="Engine failure" />}
-                {incident.factor_trimmers_failure && <Badge label="Trimmers failure" />}
-                {incident.factor_structural_failure && <Badge label="Structural failure (frame / carabiners / etc.)" />}
-                {incident.factor_fire && <Badge label="Fire" />}
-                {incident.factor_throttle_system_issues && <Badge label="Throttle system issues (cable / button / etc.)" />}
-                {incident.factor_paraglider_failure && <Badge label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" />}
               </div>
             </Section>
           )}
