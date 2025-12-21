@@ -34,7 +34,7 @@ At least one API key must be set.
 ## Run Tests
 
 ```bash
-poetry run pytest
+./run.py test
 ```
 
 ## Management Commands

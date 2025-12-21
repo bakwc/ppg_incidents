@@ -21,9 +21,23 @@ def launch_frontend():
     subprocess.run(["npm", "run", "dev"])
 
 
+def run_tests():
+    """Run tests with pytest, passing all additional arguments"""
+    env = os.environ.copy()
+    if "SECRET_KEY" not in env:
+        env["SECRET_KEY"] = "test-secret-key-for-testing-only"
+    if "DEBUG" not in env:
+        env["DEBUG"] = "True"
+    
+    pytest_args = ["poetry", "run", "pytest"] + sys.argv[2:]
+    print(f"🧪 Running tests: {' '.join(pytest_args)}")
+    result = subprocess.run(pytest_args, env=env)
+    sys.exit(result.returncode)
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python run.py [backend|frontend]")
+        print("Usage: python run.py [backend|frontend|test]")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -32,9 +46,11 @@ def main():
         launch_backend()
     elif command == "frontend":
         launch_frontend()
+    elif command == "test":
+        run_tests()
     else:
         print(f"Unknown command: {command}")
-        print("Available commands: backend, frontend")
+        print("Available commands: backend, frontend, test")
         sys.exit(1)
 
 

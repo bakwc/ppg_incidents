@@ -1,5 +1,7 @@
 # PPG Incidents Database
 
+[![Tests](https://github.com/bakwc/ppg_incidents/actions/workflows/test.yml/badge.svg)](https://github.com/bakwc/ppg_incidents/actions/workflows/test.yml)
+
 A comprehensive database of paramotor and powered paragliding incidents worldwide, designed to improve safety through data-driven insights and community collaboration.
 
 ## 🌐 Website

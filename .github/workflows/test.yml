@@ -40,7 +40,8 @@ jobs:
         OPENAI_API_KEY: dummy-key-for-testing
         DEEPSEEK_API_KEY: dummy-key-for-testing
         ANTHROPIC_API_KEY: dummy-key-for-testing
-        DJANGO_SECRET_KEY: test-secret-key-for-ci
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: "True"
       run: poetry run python manage.py migrate
     
     - name: Run tests
@@ -48,6 +49,7 @@ jobs:
         OPENAI_API_KEY: dummy-key-for-testing
         DEEPSEEK_API_KEY: dummy-key-for-testing
         ANTHROPIC_API_KEY: dummy-key-for-testing
-        DJANGO_SECRET_KEY: test-secret-key-for-ci
-      run: poetry run pytest
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: "True"
+      run: python run.py test
 
