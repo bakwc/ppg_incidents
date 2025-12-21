@@ -70,11 +70,44 @@ export default function About() {
           
           <section>
             <h2 className="text-2xl font-semibold text-slate-100 mb-4">Contributing</h2>
-            <p className="text-base leading-relaxed">
+            <p className="text-base leading-relaxed mb-4">
               If you have information about an incident that is not in our database, please consider 
               contributing. Accurate incident reporting helps the entire paramotoring community learn 
               from past events and improve safety practices.
             </p>
+            <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-800">
+              <h3 className="text-lg font-medium text-slate-200 mb-4">Get in Touch:</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <span className="text-amber-400 mr-3">•</span>
+                  <span>
+                    For incident reports —{' '}
+                    <a href="/create" className="text-amber-400 hover:text-amber-300 font-medium">
+                      use the reporting form
+                    </a>
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-400 mr-3">•</span>
+                  <span>
+                    For improvement ideas and issues —{' '}
+                    <a href="https://github.com/bakwc/ppg_incidents/issues" target="_blank" rel="noopener noreferrer" 
+                       className="text-amber-400 hover:text-amber-300 font-medium">
+                      create an issue on GitHub
+                    </a>
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-400 mr-3">•</span>
+                  <span>
+                    For any questions, proposals, or if you want to help with analyzes —{' '}
+                    <a href="mailto:info@ppg-incidents.org" className="text-amber-400 hover:text-amber-300 font-medium">
+                      info@ppg-incidents.org
+                    </a>
+                  </span>
+                </li>
+              </ul>
+            </div>
           </section>
         </div>
       </div>
