@@ -504,6 +504,91 @@ const getHardwareFailureFilterPacks = (severityFilter, yearFilter, confidenceFil
 
 const HARDWARE_FAILURE_FILTER_PACKS = getHardwareFailureFilterPacks('potentially_fatal', 'all_time', 'high');
 
+const getSurvivabilityFilterPacks = (yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter('all', yearFilter, confidenceFilter);
+  return [
+  {
+    name: 'Powerline Hit',
+    include: { ...baseFilter, factor_powerline_collision: true },
+    exclude: {}
+  },
+  {
+    name: 'Tree Hit',
+    include: { ...baseFilter, factor_tree_collision: true },
+    exclude: {}
+  },
+  {
+    name: 'Reserve Toss',
+    include: { ...baseFilter, reserve_use: 'no_time,tangled,partially_opened,fully_opened' },
+    exclude: { flight_phase: 'ground' }
+  },
+  {
+    name: 'Engine Failure',
+    include: { ...baseFilter, factor_engine_failure: true },
+    exclude: {}
+  },
+  {
+    name: 'Water Landing',
+    include: { ...baseFilter, factor_water_landing: true },
+    exclude: {}
+  },
+  {
+    name: 'Wing Collapse *',
+    include: { ...baseFilter, collapse: true },
+    exclude: {}
+  },
+  {
+    name: 'Low Altitude (<100m / 300ft)',
+    include: { ...baseFilter, altitude_not_null: true, altitude_max: 100 },
+    exclude: {}
+  }
+];
+};
+
+const getSurvivabilityFatalFilterPacks = (yearFilter, confidenceFilter) => {
+  const baseFilter = getBaseFilter('fatal', yearFilter, confidenceFilter);
+  return [
+  {
+    name: 'Powerline Hit',
+    include: { ...baseFilter, factor_powerline_collision: true },
+    exclude: {}
+  },
+  {
+    name: 'Tree Hit',
+    include: { ...baseFilter, factor_tree_collision: true },
+    exclude: {}
+  },
+  {
+    name: 'Reserve Toss',
+    include: { ...baseFilter, reserve_use: 'no_time,tangled,partially_opened,fully_opened' },
+    exclude: { flight_phase: 'ground' }
+  },
+  {
+    name: 'Engine Failure',
+    include: { ...baseFilter, factor_engine_failure: true },
+    exclude: {}
+  },
+  {
+    name: 'Water Landing',
+    include: { ...baseFilter, factor_water_landing: true },
+    exclude: {}
+  },
+  {
+    name: 'Wing Collapse *',
+    include: { ...baseFilter, collapse: true },
+    exclude: {}
+  },
+  {
+    name: 'Low Altitude (<100m / 300ft)',
+    include: { ...baseFilter, altitude_not_null: true, altitude_max: 100 },
+    exclude: {}
+  }
+];
+};
+
+const SURVIVABILITY_FILTER_PACKS = getSurvivabilityFilterPacks('all_time', 'high');
+const SURVIVABILITY_FATAL_FILTER_PACKS = getSurvivabilityFatalFilterPacks('all_time', 'high');
+
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
   Object.entries(filterPack.include || {}).forEach(([key, value]) => {
@@ -524,6 +609,7 @@ const ALL_SECTIONS = [
   { id: 'flight-altitude', label: 'Flight Altitude' },
   { id: 'turbulence-type', label: 'Turbulence Type' },
   { id: 'wind-speed', label: 'Wind Speed' },
+  { id: 'survivability', label: 'Survivability' },
   { id: 'reserve-usage', label: 'Reserve Usage' },
   { id: 'trim-position', label: 'Trim Position' },
   { id: 'by-country', label: 'By Country' },
@@ -546,6 +632,8 @@ export default function Dashboard() {
   const [trimStats, setTrimStats] = useState(null);
   const [wrongControlInputStats, setWrongControlInputStats] = useState(null);
   const [hardwareFailureStats, setHardwareFailureStats] = useState(null);
+  const [survivabilityStats, setSurvivabilityStats] = useState(null);
+  const [survivabilityFatalStats, setSurvivabilityFatalStats] = useState(null);
   const [countryStats, setCountryStats] = useState(null);
   const [yearStats, setYearStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -584,7 +672,7 @@ export default function Dashboard() {
       }
       setLoading(true);
       const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
-      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, hardwareFailureData, countryData, yearData] = await Promise.all([
+      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, hardwareFailureData, survivabilityData, survivabilityFatalData, countryData, yearData] = await Promise.all([
         fetchDashboardStats(getPieFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getBarFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter)),
@@ -596,6 +684,8 @@ export default function Dashboard() {
         fetchDashboardStats(getTrimFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getWrongControlInputFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getHardwareFailureFilterPacks(severityFilter, yearFilter, confidenceFilter)),
+        fetchDashboardStats(getSurvivabilityFilterPacks(yearFilter, confidenceFilter)),
+        fetchDashboardStats(getSurvivabilityFatalFilterPacks(yearFilter, confidenceFilter)),
         fetchCountryStats(baseFilter, {}, 10),
         fetchYearStats(baseFilter, {})
       ]);
@@ -610,6 +700,8 @@ export default function Dashboard() {
       setTrimStats(trimData);
       setWrongControlInputStats(wrongControlInputData);
       setHardwareFailureStats(hardwareFailureData);
+      setSurvivabilityStats(survivabilityData);
+      setSurvivabilityFatalStats(survivabilityFatalData);
       setCountryStats(countryData);
       setYearStats(yearData);
       setLoading(false);
@@ -694,6 +786,15 @@ export default function Dashboard() {
     : ALL_SECTIONS;
 
   const pieTotal = pieStats['Total'] || 0;
+  
+  if (pieStats && pieTotal > 0) {
+    pieFilterPacks.forEach(p => {
+      if (!(p.name in pieStats)) {
+        throw new Error(`MISSING STATS KEY: "${p.name}" not found in pieStats. Available keys: ${Object.keys(pieStats).join(', ')}`);
+      }
+    });
+  }
+  
   const pieChartData = pieFilterPacks
     .filter(p => p.name !== 'Total')
     .map((p, index) => ({ 
@@ -706,6 +807,15 @@ export default function Dashboard() {
     .sort((a, b) => b.percent - a.percent);
 
   const barTotal = barStats['Total'] || 0;
+  
+  if (barStats && barTotal > 0) {
+    barFilterPacks.forEach(p => {
+      if (!(p.name in barStats)) {
+        throw new Error(`MISSING STATS KEY: "${p.name}" not found in barStats. Available keys: ${Object.keys(barStats).join(', ')}`);
+      }
+    });
+  }
+  
   const barChartData = barFilterPacks
     .filter(p => p.name !== 'Total')
     .map(p => ({
@@ -929,6 +1039,15 @@ export default function Dashboard() {
           
           {(() => {
             const wrongControlInputTotal = wrongControlInputStats?.['Total'] || 0;
+            
+            if (wrongControlInputStats && wrongControlInputTotal > 0) {
+              wrongControlInputFilterPacks.forEach(p => {
+                if (!(p.name in wrongControlInputStats)) {
+                  throw new Error(`MISSING STATS KEY: "${p.name}" not found in wrongControlInputStats. Available keys: ${Object.keys(wrongControlInputStats).join(', ')}`);
+                }
+              });
+            }
+            
             const wrongControlInputChartData = wrongControlInputFilterPacks
               .filter(p => p.name !== 'Total')
               .map((p, index) => ({
@@ -1010,6 +1129,15 @@ export default function Dashboard() {
           
           {(() => {
             const hardwareFailureTotal = hardwareFailureStats?.['Total'] || 0;
+            
+            if (hardwareFailureStats && hardwareFailureTotal > 0) {
+              hardwareFailureFilterPacks.forEach(p => {
+                if (!(p.name in hardwareFailureStats)) {
+                  throw new Error(`MISSING STATS KEY: "${p.name}" not found in hardwareFailureStats. Available keys: ${Object.keys(hardwareFailureStats).join(', ')}`);
+                }
+              });
+            }
+            
             const hardwareFailureChartData = hardwareFailureFilterPacks
               .filter(p => p.name !== 'Total')
               .map((p, index) => ({
@@ -1091,6 +1219,15 @@ export default function Dashboard() {
           
           {(() => {
             const flightPhaseTotal = flightPhaseStats?.['Total'] || 0;
+            
+            if (flightPhaseStats && flightPhaseTotal > 0) {
+              flightPhaseFilterPacks.forEach(p => {
+                if (!(p.name in flightPhaseStats)) {
+                  throw new Error(`MISSING STATS KEY: "${p.name}" not found in flightPhaseStats. Available keys: ${Object.keys(flightPhaseStats).join(', ')}`);
+                }
+              });
+            }
+            
             const flightPhaseChartData = flightPhaseFilterPacks
               .filter(p => p.name !== 'Total')
               .map(p => ({
@@ -1148,6 +1285,14 @@ export default function Dashboard() {
           
           {(() => {
             const altitudeTotal = altitudeStats?.['Total'] || 0;
+            
+            if (altitudeStats && altitudeTotal > 0) {
+              altitudeFilterPacks.forEach(p => {
+                if (!(p.name in altitudeStats)) {
+                  throw new Error(`MISSING STATS KEY: "${p.name}" not found in altitudeStats. Available keys: ${Object.keys(altitudeStats).join(', ')}`);
+                }
+              });
+            }
             
             const altitudeLabels = {
               '0-15': { meters: '0-15 m', feet: '0-49 ft' },
@@ -1243,6 +1388,15 @@ export default function Dashboard() {
           
           {(() => {
             const turbulenceTotal = turbulenceStats?.['Total'] || 0;
+            
+            if (turbulenceStats && turbulenceTotal > 0) {
+              turbulenceFilterPacks.forEach(p => {
+                if (!(p.name in turbulenceStats)) {
+                  throw new Error(`MISSING STATS KEY: "${p.name}" not found in turbulenceStats. Available keys: ${Object.keys(turbulenceStats).join(', ')}`);
+                }
+              });
+            }
+            
             const turbulenceChartData = turbulenceFilterPacks
               .filter(p => p.name !== 'Total')
               .map((p, index) => ({
@@ -1324,6 +1478,14 @@ export default function Dashboard() {
           
           {(() => {
             const windSpeedTotal = windSpeedStats?.['Total'] || 0;
+            
+            if (windSpeedStats && windSpeedTotal > 0) {
+              windSpeedFilterPacks.forEach(p => {
+                if (!(p.name in windSpeedStats)) {
+                  throw new Error(`MISSING STATS KEY: "${p.name}" not found in windSpeedStats. Available keys: ${Object.keys(windSpeedStats).join(', ')}`);
+                }
+              });
+            }
             
             const getColorFromGradient = (index, total) => {
               const ratio = index / (total - 1);
@@ -1450,12 +1612,148 @@ export default function Dashboard() {
           })()}
         </div>
 
+        <div id="survivability" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Survivability</h2>
+          
+          {(() => {
+            const survivabilityFilterPacks = getSurvivabilityFilterPacks(yearFilter, confidenceFilter);
+            const survivabilityFatalFilterPacks = getSurvivabilityFatalFilterPacks(yearFilter, confidenceFilter);
+            
+            if (survivabilityFilterPacks.length !== survivabilityFatalFilterPacks.length) {
+              throw new Error(`FILTER PACK LENGTH MISMATCH: All=${survivabilityFilterPacks.length} vs Fatal=${survivabilityFatalFilterPacks.length}`);
+            }
+            
+            survivabilityFilterPacks.forEach((pack, index) => {
+              const fatalPack = survivabilityFatalFilterPacks[index];
+              if (pack.name !== fatalPack.name) {
+                throw new Error(`FILTER PACK NAME MISMATCH at index ${index}: All="${pack.name}" vs Fatal="${fatalPack.name}"`);
+              }
+            });
+            
+            const survivabilityChartData = survivabilityFilterPacks.map((p, index) => {
+              const totalCount = survivabilityStats?.[p.name] || 0;
+              const fatalCount = survivabilityFatalStats?.[p.name] || 0;
+              
+              if (totalCount > 0 && fatalCount === 0 && !survivabilityFatalStats) {
+                throw new Error(`MISSING FATAL STATS DATA for "${p.name}"`);
+              }
+              
+              const survivedCount = totalCount - fatalCount;
+              const survivabilityPercent = totalCount > 0 ? (survivedCount / totalCount * 100) : 0;
+              
+              return {
+                name: p.name,
+                survivability: survivabilityPercent,
+                totalCount: totalCount,
+                fatalCount: fatalCount,
+                survivedCount: survivedCount,
+                filterPack: p,
+                colorIndex: index
+              };
+            }).sort((a, b) => b.survivability - a.survivability);
+
+            const handleSurvivabilityClick = (data) => {
+              if (isTouchDevice) {
+                if (activeTooltip === `survivability-${data?.name}`) {
+                  if (data?.filterPack) {
+                    navigate(buildFilterUrl(data.filterPack));
+                  }
+                } else {
+                  setActiveTooltip(`survivability-${data?.name}`);
+                  setTimeout(() => setActiveTooltip(null), 3000);
+                }
+              } else {
+                if (data?.filterPack) {
+                  navigate(buildFilterUrl(data.filterPack));
+                }
+              }
+            };
+
+            const CustomSurvivabilityTick = ({ x, y, payload }) => {
+              const value = payload.value;
+              if (value === 'Low Altitude (<100m / 300ft)') {
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text x={0} y={0} dy={8} transform={`rotate(-45)`} textAnchor="end" fill="#64748b" fontSize={isMobile ? 9 : 11}>
+                      Low Altitude
+                    </text>
+                    <text x={0} y={0} dy={20} transform={`rotate(-45)`} textAnchor="end" fill="#64748b" fontSize={isMobile ? 9 : 11}>
+                      (&lt;100m / 300ft)
+                    </text>
+                  </g>
+                );
+              }
+              return (
+                <text x={x} y={y} dy={16} fill="#64748b" fontSize={isMobile ? 9 : 11} textAnchor="end" transform={`rotate(-45 ${x} ${y})`}>
+                  {value}
+                </text>
+              );
+            };
+
+            return (
+              <div>
+                <div className="h-[300px] md:h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={survivabilityChartData} margin={{ left: 0, right: 0, top: 20, bottom: 40 }}>
+                      <XAxis 
+                        type="category" 
+                        dataKey="name" 
+                        stroke="#64748b" 
+                        interval={0} 
+                        height={40}
+                        tick={<CustomSurvivabilityTick />}
+                      />
+                      <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
+                        formatter={(value, name, props) => [
+                          `${value.toFixed(1)}%`,
+                          `Survived: ${props.payload.survivedCount} / Total: ${props.payload.totalCount}`
+                        ]}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Bar dataKey="survivability" radius={[4, 4, 0, 0]} onClick={handleSurvivabilityClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
+                        {survivabilityChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.colorIndex % COLORS.length]} />
+                        ))}
+                        <LabelList dataKey="survivability" position="top" formatter={(v) => `${v.toFixed(0)}%`} fill="#f1f5f9" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center space-y-2">
+                  <div className="text-base md:text-lg text-slate-400">
+                    Shows the percentage of survived incidents for each scenario
+                  </div>
+                  <div className="text-sm text-slate-500 italic">
+                    * Note: Wing collapse survivability reflects only reported incidents. Most routine collapses are recovered without incident and aren't included in this data.
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
         {severityFilter !== 'fatal' && (
           <div id="reserve-usage" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
             <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Reserve Usage</h2>
             
             {(() => {
               const total = reserveStats?.['Total'] || 0;
+              
+              if (reserveStats && total > 0) {
+                reserveFilterPacks.forEach(p => {
+                  if (!(p.name in reserveStats)) {
+                    throw new Error(`MISSING STATS KEY: "${p.name}" not found in reserveStats. Available keys: ${Object.keys(reserveStats).join(', ')}`);
+                  }
+                });
+              }
+              
               const attempted = reserveStats?.['Attempted'] || 0;
               const fullyOpened = reserveStats?.['FullyOpened'] || 0;
               const notOpened = reserveStats?.['NotOpened'] || 0;
@@ -1527,6 +1825,15 @@ export default function Dashboard() {
           
           {(() => {
             const total = trimStats?.['Total'] || 0;
+            
+            if (trimStats && total > 0) {
+              trimFilterPacks.forEach(p => {
+                if (!(p.name in trimStats)) {
+                  throw new Error(`MISSING STATS KEY: "${p.name}" not found in trimStats. Available keys: ${Object.keys(trimStats).join(', ')}`);
+                }
+              });
+            }
+            
             const unknown = trimStats?.['Unknown'] || 0;
             const trimOut = trimStats?.['TrimOut'] || 0;
             const partiallyOpen = trimStats?.['PartiallyOpen'] || 0;
