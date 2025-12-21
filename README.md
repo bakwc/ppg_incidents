@@ -6,7 +6,7 @@ A comprehensive database of paramotor and powered paragliding incidents worldwid
 
 ## 🌐 Website
 
-Visit [ppg-incidents.com](https://ppg-incidents.org) to browse and search the incident database.
+Visit [ppg-incidents.org](https://ppg-incidents.org) to browse and search the incident database.
 
 ## 📊 About
 
