@@ -1347,9 +1347,20 @@ export default function Dashboard() {
               return `rgb(${r}, ${g}, ${b})`;
             };
             
+            const windSpeedLabels = {
+              '0-1': { ms: '0-1 m/s', mph: '0-2 mph' },
+              '1-2': { ms: '1-2 m/s', mph: '2-4 mph' },
+              '2-3': { ms: '2-3 m/s', mph: '4-7 mph' },
+              '3-4': { ms: '3-4 m/s', mph: '7-9 mph' },
+              '4-6': { ms: '4-6 m/s', mph: '9-13 mph' },
+              '6-8': { ms: '6-8 m/s', mph: '13-18 mph' },
+              '8+': { ms: '8+ m/s', mph: '18+ mph' }
+            };
+            
             const filteredPacks = windSpeedFilterPacks.filter(p => p.name !== 'Total');
             const windSpeedChartData = filteredPacks.map((p, index) => ({
-                name: p.name + ' m/s',
+                name: p.name,
+                displayName: windSpeedLabels[p.name]?.ms || p.name,
                 value: windSpeedStats?.[p.name] || 0,
                 percent: windSpeedTotal > 0 ? ((windSpeedStats?.[p.name] || 0) / windSpeedTotal) * 100 : 0,
                 filterPack: p,
@@ -1373,6 +1384,22 @@ export default function Dashboard() {
               }
             };
 
+            const CustomWindSpeedTick = ({ x, y, payload }) => {
+              const labels = windSpeedLabels[payload.value];
+              if (!labels) return null;
+              
+              return (
+                <g transform={`translate(${x},${y})`}>
+                  <text x={0} y={0} dy={10} textAnchor="middle" fill="#64748b" fontSize={isMobile ? 9 : 11}>
+                    {labels.ms}
+                  </text>
+                  <text x={0} y={0} dy={22} textAnchor="middle" fill="#64748b" fontSize={isMobile ? 8 : 10}>
+                    {labels.mph}
+                  </text>
+                </g>
+              );
+            };
+
             const allIncidentsTotal = barStats?.['Total'] || 0;
             const windSpeedPercentOfAll = allIncidentsTotal > 0 ? ((windSpeedTotal / allIncidentsTotal) * 100).toFixed(0) : 0;
 
@@ -1380,13 +1407,13 @@ export default function Dashboard() {
               <div>
                 <div className="h-[320px] md:h-[370px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={windSpeedChartData} margin={{ left: 0, right: 0, top: 20, bottom: 10 }}>
+                    <BarChart data={windSpeedChartData} margin={{ left: 0, right: 0, top: 20, bottom: 35 }}>
                       <XAxis 
                         type="category" 
                         dataKey="name" 
                         stroke="#64748b" 
                         interval={0} 
-                        style={{ fontSize: isMobile ? '9px' : '11px', fill: '#e2e8f0' }}
+                        tick={<CustomWindSpeedTick />}
                       />
                       <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                       <Tooltip
@@ -1414,7 +1441,7 @@ export default function Dashboard() {
                   </div>
                   {windSpeedPercentile !== null && (
                     <div className="text-base md:text-lg text-slate-400">
-                      60% of incidents happened with wind speed higher than <span className="text-sky-400 font-bold text-lg md:text-xl">{windSpeedPercentile}</span> meters/second
+                      60% of incidents happened with wind speed higher than <span className="text-sky-400 font-bold text-lg md:text-xl">{windSpeedPercentile} m/s ({(windSpeedPercentile * 2.237).toFixed(1)} mph)</span>
                     </div>
                   )}
                 </div>
