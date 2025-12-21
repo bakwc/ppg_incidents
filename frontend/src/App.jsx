@@ -9,6 +9,7 @@ import Home from './components/Home';
 import UnverifiedList from './components/UnverifiedList';
 import About from './components/About';
 import Login from './components/Login';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/view/:uuid" element={<IncidentView />} />
             <Route path="/edit/:uuid" element={<IncidentForm />} />
           </Routes>
+          <Footer />
         </div>
       </AuthProvider>
     </BrowserRouter>
