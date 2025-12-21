@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import Navigation from './components/Navigation';
 import IncidentList from './components/IncidentList';
@@ -19,7 +19,8 @@ function App() {
           <Navigation />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/dashboards" element={<Dashboard />} />
+            <Route path="/dashboard/*" element={<Dashboard />} />
+            <Route path="/dashboards" element={<Navigate to="/dashboard/causes-analysis" replace />} />
             <Route path="/incidents" element={<IncidentList />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />

@@ -13,7 +13,7 @@ export default function Navigation() {
       return location.pathname === '/';
     }
     if (path === '/dashboards') {
-      return location.pathname === '/dashboards';
+      return location.pathname === '/dashboards' || location.pathname.startsWith('/dashboard');
     }
     return location.pathname.startsWith(path);
   };
