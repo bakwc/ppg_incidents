@@ -29,5 +29,5 @@ Technical documentation, setup instructions, and API details are available in [D
 
 ## 📝 License
 
-This project aims to improve paramotor safety through open data sharing and community collaboration.
+MIT License - see [LICENSE](LICENSE) for details.
 
