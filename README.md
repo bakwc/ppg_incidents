@@ -25,6 +25,11 @@ We're looking for contributors to help grow and improve this database:
 - **Contributors** - Add incidents from various sources, translate reports, improve categorization
 - **Developers** - Improve functionality, add features, enhance the platform
 
+## 📧 Contact
+
+- For improvement ideas and issues — [create an issue on GitHub](https://github.com/bakwc/ppg_incidents/issues)
+- For any questions, proposals, or if you want to help — info@ppg-incidents.org
+
 ## 👨‍💻 For Developers
 
 Technical documentation, setup instructions, and API details are available in [DEVELOPMENT.md](DEVELOPMENT.md).
