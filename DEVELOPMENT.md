@@ -11,8 +11,16 @@ poetry run python manage.py migrate
 
 ## Run
 
+Backend:
 ```bash
-poetry run python manage.py runserver
+./run.py runserver
+```
+
+Frontend:
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ## Environment Variables
