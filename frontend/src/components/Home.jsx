@@ -310,7 +310,7 @@ export default function Home() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="text-slate-400 font-mono text-sm w-20">
+                    <div className="text-slate-400 font-mono text-sm w-20 whitespace-nowrap">
                       {incident.date || 'Unknown'}
                     </div>
                     {incident.country && (
