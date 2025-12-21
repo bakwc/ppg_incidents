@@ -175,6 +175,11 @@ def apply_filters(queryset, filters, exclude=False):
                 queryset = queryset.filter(date__year__gte=int(value))
             else:
                 queryset = queryset.exclude(date__year__gte=int(value))
+        elif field == "year_max":
+            if not exclude:
+                queryset = queryset.filter(date__year__lte=int(value))
+            else:
+                queryset = queryset.exclude(date__year__lte=int(value))
         elif field in BOOLEAN_FILTER_FIELDS:
             if value is True or (isinstance(value, str) and value.lower() == "true"):
                 if exclude:
@@ -293,7 +298,7 @@ class IncidentListView(generics.ListAPIView):
                 include_filters[field] = value
         
         # Collect numeric range filters
-        for field in ["wind_speed_ms_min", "wind_speed_ms_max", "altitude_min", "altitude_max", "year_min"]:
+        for field in ["wind_speed_ms_min", "wind_speed_ms_max", "altitude_min", "altitude_max", "year_min", "year_max"]:
             value = self.request.query_params.get(field)
             if value is not None:
                 include_filters[field] = value
@@ -320,7 +325,7 @@ class IncidentListView(generics.ListAPIView):
                 exclude_filters[field] = value
         
         # Collect numeric range exclude filters
-        for field in ["wind_speed_ms_min", "wind_speed_ms_max", "altitude_min", "altitude_max", "year_min"]:
+        for field in ["wind_speed_ms_min", "wind_speed_ms_max", "altitude_min", "altitude_max", "year_min", "year_max"]:
             value = self.request.query_params.get(f"exclude_{field}")
             if value is not None:
                 exclude_filters[field] = value

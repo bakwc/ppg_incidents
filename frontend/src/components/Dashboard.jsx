@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList, Legend } from 'recharts';
 import { fetchDashboardStats, fetchCountryStats, fetchYearStats, fetchWindSpeedPercentile } from '../api';
 import { getCountryCode, getFlag } from '../countryUtils';
 
@@ -531,16 +531,6 @@ const getSurvivabilityFilterPacks = (yearFilter, confidenceFilter) => {
     name: 'Water Landing',
     include: { ...baseFilter, factor_water_landing: true },
     exclude: {}
-  },
-  {
-    name: 'Wing Collapse *',
-    include: { ...baseFilter, collapse: true },
-    exclude: {}
-  },
-  {
-    name: 'Low Altitude (<100m / 300ft)',
-    include: { ...baseFilter, altitude_not_null: true, altitude_max: 100 },
-    exclude: {}
   }
 ];
 };
@@ -572,22 +562,166 @@ const getSurvivabilityFatalFilterPacks = (yearFilter, confidenceFilter) => {
     name: 'Water Landing',
     include: { ...baseFilter, factor_water_landing: true },
     exclude: {}
-  },
-  {
-    name: 'Wing Collapse *',
-    include: { ...baseFilter, collapse: true },
-    exclude: {}
-  },
-  {
-    name: 'Low Altitude (<100m / 300ft)',
-    include: { ...baseFilter, altitude_not_null: true, altitude_max: 100 },
-    exclude: {}
   }
 ];
 };
 
 const SURVIVABILITY_FILTER_PACKS = getSurvivabilityFilterPacks('all_time', 'high');
 const SURVIVABILITY_FATAL_FILTER_PACKS = getSurvivabilityFatalFilterPacks('all_time', 'high');
+
+const getPrimaryCauseTrendFilterPacks = (severityFilter, confidenceFilter) => {
+  const currentYear = new Date().getFullYear();
+  const baseFilterMaker = (yearMin, yearMax) => {
+    const base = getBaseFilter(severityFilter, 'all_time', confidenceFilter);
+    delete base.year_min;
+    base.year_min = yearMin;
+    base.year_max = yearMax;
+    return base;
+  };
+  
+  return [
+    {
+      name: `${currentYear - 4}-${currentYear}`,
+      periods: [
+        { 
+          cause: 'Wrong Control Input',
+          include: { ...baseFilterMaker(currentYear - 4, currentYear), primary_cause: 'wrong_control_input' },
+          exclude: {}
+        },
+        {
+          cause: 'Turbulence',
+          include: { ...baseFilterMaker(currentYear - 4, currentYear), primary_cause: 'turbulence' },
+          exclude: {}
+        },
+        {
+          cause: 'Hardware Failure',
+          include: { ...baseFilterMaker(currentYear - 4, currentYear), primary_cause: 'hardware_failure' },
+          exclude: {}
+        },
+        {
+          cause: 'Ground Starting',
+          include: { ...baseFilterMaker(currentYear - 4, currentYear), primary_cause: 'ground_starting' },
+          exclude: {}
+        },
+        {
+          cause: 'Powerline Collision',
+          include: { ...baseFilterMaker(currentYear - 4, currentYear), primary_cause: 'powerline_collision' },
+          exclude: {}
+        },
+        {
+          cause: 'Other',
+          include: { ...baseFilterMaker(currentYear - 4, currentYear) },
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+        }
+      ]
+    },
+    {
+      name: `${currentYear - 9}-${currentYear - 5}`,
+      periods: [
+        {
+          cause: 'Wrong Control Input',
+          include: { ...baseFilterMaker(currentYear - 9, currentYear - 5), primary_cause: 'wrong_control_input' },
+          exclude: {}
+        },
+        {
+          cause: 'Turbulence',
+          include: { ...baseFilterMaker(currentYear - 9, currentYear - 5), primary_cause: 'turbulence' },
+          exclude: {}
+        },
+        {
+          cause: 'Hardware Failure',
+          include: { ...baseFilterMaker(currentYear - 9, currentYear - 5), primary_cause: 'hardware_failure' },
+          exclude: {}
+        },
+        {
+          cause: 'Ground Starting',
+          include: { ...baseFilterMaker(currentYear - 9, currentYear - 5), primary_cause: 'ground_starting' },
+          exclude: {}
+        },
+        {
+          cause: 'Powerline Collision',
+          include: { ...baseFilterMaker(currentYear - 9, currentYear - 5), primary_cause: 'powerline_collision' },
+          exclude: {}
+        },
+        {
+          cause: 'Other',
+          include: { ...baseFilterMaker(currentYear - 9, currentYear - 5) },
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+        }
+      ]
+    },
+    {
+      name: `${currentYear - 14}-${currentYear - 10}`,
+      periods: [
+        {
+          cause: 'Wrong Control Input',
+          include: { ...baseFilterMaker(currentYear - 14, currentYear - 10), primary_cause: 'wrong_control_input' },
+          exclude: {}
+        },
+        {
+          cause: 'Turbulence',
+          include: { ...baseFilterMaker(currentYear - 14, currentYear - 10), primary_cause: 'turbulence' },
+          exclude: {}
+        },
+        {
+          cause: 'Hardware Failure',
+          include: { ...baseFilterMaker(currentYear - 14, currentYear - 10), primary_cause: 'hardware_failure' },
+          exclude: {}
+        },
+        {
+          cause: 'Ground Starting',
+          include: { ...baseFilterMaker(currentYear - 14, currentYear - 10), primary_cause: 'ground_starting' },
+          exclude: {}
+        },
+        {
+          cause: 'Powerline Collision',
+          include: { ...baseFilterMaker(currentYear - 14, currentYear - 10), primary_cause: 'powerline_collision' },
+          exclude: {}
+        },
+        {
+          cause: 'Other',
+          include: { ...baseFilterMaker(currentYear - 14, currentYear - 10) },
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+        }
+      ]
+    },
+    {
+      name: `${currentYear - 19}-${currentYear - 15}`,
+      periods: [
+        {
+          cause: 'Wrong Control Input',
+          include: { ...baseFilterMaker(currentYear - 19, currentYear - 15), primary_cause: 'wrong_control_input' },
+          exclude: {}
+        },
+        {
+          cause: 'Turbulence',
+          include: { ...baseFilterMaker(currentYear - 19, currentYear - 15), primary_cause: 'turbulence' },
+          exclude: {}
+        },
+        {
+          cause: 'Hardware Failure',
+          include: { ...baseFilterMaker(currentYear - 19, currentYear - 15), primary_cause: 'hardware_failure' },
+          exclude: {}
+        },
+        {
+          cause: 'Ground Starting',
+          include: { ...baseFilterMaker(currentYear - 19, currentYear - 15), primary_cause: 'ground_starting' },
+          exclude: {}
+        },
+        {
+          cause: 'Powerline Collision',
+          include: { ...baseFilterMaker(currentYear - 19, currentYear - 15), primary_cause: 'powerline_collision' },
+          exclude: {}
+        },
+        {
+          cause: 'Other',
+          include: { ...baseFilterMaker(currentYear - 19, currentYear - 15) },
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+        }
+      ]
+    }
+  ];
+};
 
 const buildFilterUrl = (filterPack) => {
   const params = new URLSearchParams();
@@ -610,6 +744,7 @@ const ALL_SECTIONS = [
   { id: 'turbulence-type', label: 'Turbulence Type' },
   { id: 'wind-speed', label: 'Wind Speed' },
   { id: 'survivability', label: 'Survivability' },
+  { id: 'primary-cause-trend', label: 'Primary Cause Trend' },
   { id: 'reserve-usage', label: 'Reserve Usage' },
   { id: 'trim-position', label: 'Trim Position' },
   { id: 'by-country', label: 'By Country' },
@@ -634,6 +769,7 @@ export default function Dashboard() {
   const [hardwareFailureStats, setHardwareFailureStats] = useState(null);
   const [survivabilityStats, setSurvivabilityStats] = useState(null);
   const [survivabilityFatalStats, setSurvivabilityFatalStats] = useState(null);
+  const [primaryCauseTrendStats, setPrimaryCauseTrendStats] = useState(null);
   const [countryStats, setCountryStats] = useState(null);
   const [yearStats, setYearStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -672,7 +808,13 @@ export default function Dashboard() {
       }
       setLoading(true);
       const baseFilter = getBaseFilter(severityFilter, yearFilter, confidenceFilter);
-      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, hardwareFailureData, survivabilityData, survivabilityFatalData, countryData, yearData] = await Promise.all([
+      
+      const trendFilterPacks = getPrimaryCauseTrendFilterPacks(severityFilter, confidenceFilter);
+      const trendFetchPromises = trendFilterPacks.flatMap(period => 
+        period.periods.map(p => fetchDashboardStats([{ name: `${period.name}|${p.cause}`, include: p.include, exclude: p.exclude }]))
+      );
+      
+      const [pieData, barData, flightPhaseData, altitudeData, turbulenceData, windSpeedData, windPercentileData, reserveData, trimData, wrongControlInputData, hardwareFailureData, survivabilityData, survivabilityFatalData, ...trendDataArray] = await Promise.all([
         fetchDashboardStats(getPieFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getBarFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getFlightPhaseFilterPacks(severityFilter, yearFilter, confidenceFilter)),
@@ -686,9 +828,21 @@ export default function Dashboard() {
         fetchDashboardStats(getHardwareFailureFilterPacks(severityFilter, yearFilter, confidenceFilter)),
         fetchDashboardStats(getSurvivabilityFilterPacks(yearFilter, confidenceFilter)),
         fetchDashboardStats(getSurvivabilityFatalFilterPacks(yearFilter, confidenceFilter)),
-        fetchCountryStats(baseFilter, {}, 10),
-        fetchYearStats(baseFilter, {})
+        ...trendFetchPromises
       ]);
+      
+      const countryData = await fetchCountryStats(baseFilter, {}, 10);
+      const yearData = await fetchYearStats(baseFilter, {});
+      
+      const trendData = {};
+      trendDataArray.forEach((data, index) => {
+        const periodIndex = Math.floor(index / 6);
+        const causeIndex = index % 6;
+        const periodName = trendFilterPacks[periodIndex].name;
+        const causeName = trendFilterPacks[periodIndex].periods[causeIndex].cause;
+        const key = `${periodName}|${causeName}`;
+        trendData[key] = data[key] || 0;
+      });
       setPieStats(pieData);
       setBarStats(barData);
       setFlightPhaseStats(flightPhaseData);
@@ -702,6 +856,7 @@ export default function Dashboard() {
       setHardwareFailureStats(hardwareFailureData);
       setSurvivabilityStats(survivabilityData);
       setSurvivabilityFatalStats(survivabilityFatalData);
+      setPrimaryCauseTrendStats(trendData);
       setCountryStats(countryData);
       setYearStats(yearData);
       setLoading(false);
@@ -1669,39 +1824,17 @@ export default function Dashboard() {
               }
             };
 
-            const CustomSurvivabilityTick = ({ x, y, payload }) => {
-              const value = payload.value;
-              if (value === 'Low Altitude (<100m / 300ft)') {
-                return (
-                  <g transform={`translate(${x},${y})`}>
-                    <text x={0} y={0} dy={8} transform={`rotate(-45)`} textAnchor="end" fill="#64748b" fontSize={isMobile ? 9 : 11}>
-                      Low Altitude
-                    </text>
-                    <text x={0} y={0} dy={20} transform={`rotate(-45)`} textAnchor="end" fill="#64748b" fontSize={isMobile ? 9 : 11}>
-                      (&lt;100m / 300ft)
-                    </text>
-                  </g>
-                );
-              }
-              return (
-                <text x={x} y={y} dy={16} fill="#64748b" fontSize={isMobile ? 9 : 11} textAnchor="end" transform={`rotate(-45 ${x} ${y})`}>
-                  {value}
-                </text>
-              );
-            };
-
             return (
               <div>
-                <div className="h-[300px] md:h-[350px]">
+                <div className="h-[280px] md:h-[330px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={survivabilityChartData} margin={{ left: 0, right: 0, top: 20, bottom: 40 }}>
+                    <BarChart data={survivabilityChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
                       <XAxis 
                         type="category" 
                         dataKey="name" 
                         stroke="#64748b" 
-                        interval={0} 
-                        height={40}
-                        tick={<CustomSurvivabilityTick />}
+                        interval={0}
+                        style={{ fontSize: isMobile ? '10px' : '12px' }}
                       />
                       <YAxis type="number" tickFormatter={(v) => `${v}%`} stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
                       <Tooltip
@@ -1726,12 +1859,63 @@ export default function Dashboard() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center space-y-2">
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
                   <div className="text-base md:text-lg text-slate-400">
                     Shows the percentage of survived incidents for each scenario
                   </div>
-                  <div className="text-sm text-slate-500 italic">
-                    * Note: Wing collapse survivability reflects only reported incidents. Most routine collapses are recovered without incident and aren't included in this data.
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div id="primary-cause-trend" className="bg-slate-900 rounded-xl p-4 md:p-6 xl:p-8 border border-slate-800 mt-6 md:mt-8 scroll-mt-8 lg:scroll-mt-48">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-center">Primary Cause Trend</h2>
+          
+          {(() => {
+            const trendFilterPacks = getPrimaryCauseTrendFilterPacks(severityFilter, confidenceFilter);
+            
+            const trendChartData = trendFilterPacks.map(period => {
+              const row = { name: period.name };
+              period.periods.forEach(p => {
+                const key = `${period.name}|${p.cause}`;
+                row[p.cause] = primaryCauseTrendStats?.[key] || 0;
+              });
+              return row;
+            });
+
+            return (
+              <div>
+                <div className="h-[400px] md:h-[450px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={trendChartData} margin={{ left: 0, right: 0, top: 20, bottom: 5 }}>
+                      <XAxis type="category" dataKey="name" stroke="#64748b" interval={0} style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <YAxis type="number" stroke="#64748b" style={{ fontSize: isMobile ? '10px' : '12px' }} />
+                      <Tooltip
+                        trigger={isTouchDevice ? 'click' : 'hover'}
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{ fontSize: isMobile ? '11px' : '13px' }}
+                        iconType="square"
+                      />
+                      <Bar dataKey="Wrong Control Input" stackId="a" fill="#ef4444" isAnimationActive={false} />
+                      <Bar dataKey="Turbulence" stackId="a" fill="#f97316" isAnimationActive={false} />
+                      <Bar dataKey="Hardware Failure" stackId="a" fill="#eab308" isAnimationActive={false} />
+                      <Bar dataKey="Ground Starting" stackId="a" fill="#3b82f6" isAnimationActive={false} />
+                      <Bar dataKey="Powerline Collision" stackId="a" fill="#8b5cf6" isAnimationActive={false} />
+                      <Bar dataKey="Other" stackId="a" fill="#64748b" isAnimationActive={false} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-700 text-center">
+                  <div className="text-base md:text-lg text-slate-400">
+                    Shows how primary causes have changed over time periods
                   </div>
                 </div>
               </div>
