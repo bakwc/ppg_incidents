@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
-import { fetchDashboardStats, fetchWindSpeedPercentile } from '../api';
+import { fetchDashboardStats, fetchWindSpeedPercentile } from '../../api';
 import { 
   COLORS, 
   getBaseFilter, 

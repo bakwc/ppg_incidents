@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { fetchDashboardStats } from '../api';
+import { fetchDashboardStats } from '../../api';
 import { getBaseFilter, getPieFilterPacks } from './dashboardUtils';
 import CausesAnalysisDashboard from './CausesAnalysisDashboard';
 import FlightConditionsDashboard from './FlightConditionsDashboard';

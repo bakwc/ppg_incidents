@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Legend } from 'recharts';
-import { fetchDashboardStats, fetchCountryStats, fetchYearStats } from '../api';
-import { getCountryCode, getFlag } from '../countryUtils';
+import { fetchDashboardStats, fetchCountryStats, fetchYearStats } from '../../api';
+import { getCountryCode, getFlag } from '../../countryUtils';
 import { 
   getBaseFilter, 
   getPrimaryCauseTrendFilterPacks,

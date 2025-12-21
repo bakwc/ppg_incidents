@@ -4,7 +4,7 @@ import Navigation from './components/Navigation';
 import IncidentList from './components/IncidentList';
 import IncidentForm from './components/IncidentForm';
 import IncidentView from './components/IncidentView';
-import Dashboard from './components/Dashboard';
+import Dashboard from './components/dashboards/Dashboard';
 import Home from './components/Home';
 import UnverifiedList from './components/UnverifiedList';
 import About from './components/About';
