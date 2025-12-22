@@ -1,6 +1,6 @@
 export const PRIMARY_CAUSE_HINTS = {
   turbulence: "Unexpected air disturbance causing wing collapse or loss of control. Often from thermal activity, rotor zones, or weather fronts.",
-  wrong_control_input: "Pilot error in brake/throttle management that triggered or worsened the incident. Includes incorrect recovery attempts and input mistakes.",
+  wrong_control_input: "The pilot caused the incident through aggressive maneuvers, excessive brake application, initiating steep turns, aggressive throttle use, or losing grip of the brake, among other incorrect control inputs.",
   hardware_failure: "Mechanical or structural failure of equipment during flight. Motor, frame, lines, wing material, or other component failure.",
   powerline_collision: "Contact with or near-miss of power lines. Often hard to see, especially in low light or when focused on landing.",
   midair_collision: "Collision or near-collision with another aircraft. Includes getting caught in wake turbulence from nearby traffic.",
