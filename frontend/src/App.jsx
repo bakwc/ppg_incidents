@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import Navigation from './components/Navigation';
 import IncidentList from './components/IncidentList';
@@ -11,10 +12,21 @@ import About from './components/About';
 import Login from './components/Login';
 import Footer from './components/Footer';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ScrollToTop />
         <div className="min-h-screen">
           <Navigation />
           <Routes>
