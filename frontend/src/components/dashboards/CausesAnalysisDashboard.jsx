@@ -10,6 +10,7 @@ import {
   getHardwareFailureFilterPacks,
   buildFilterUrl 
 } from './dashboardUtils';
+import { PRIMARY_CAUSE_HINTS } from '../../constants/hints';
 
 export default function CausesAnalysisDashboard({ 
   severityFilter, 
@@ -73,6 +74,20 @@ export default function CausesAnalysisDashboard({
     });
   }
   
+  const causeKeyMap = {
+    'Wrong Control Input': 'wrong_control_input',
+    'Hardware Failure': 'hardware_failure',
+    'Turbulence': 'turbulence',
+    'Powerline Collision / Near Miss': 'powerline_collision',
+    'Midair Collision / Near Miss': 'midair_collision',
+    'Water Landing': 'water_landing',
+    'Lines & Brakes Issues': 'lines_brakes_issues',
+    'Ground Starting': 'ground_starting',
+    'Ground Object Collision': 'ground_object_collision',
+    'Preflight Error': 'preflight_error',
+    'Rain / Fog / Snow / Mist': 'rain_fog_snow'
+  };
+
   const pieChartData = pieFilterPacks
     .filter(p => p.name !== 'Total')
     .map((p, index) => ({ 
@@ -80,7 +95,8 @@ export default function CausesAnalysisDashboard({
       value: pieStats[p.name] || 0, 
       percent: pieTotal > 0 ? ((pieStats[p.name] || 0) / pieTotal) * 100 : 0,
       filterPack: p,
-      colorIndex: index
+      colorIndex: index,
+      hint: PRIMARY_CAUSE_HINTS[causeKeyMap[p.name]]
     }))
     .sort((a, b) => b.percent - a.percent);
 
@@ -265,6 +281,19 @@ export default function CausesAnalysisDashboard({
                   border: '1px solid #334155',
                   borderRadius: '8px',
                   color: '#f1f5f9'
+                }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload[0]) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl max-w-xs">
+                        <div className="font-semibold text-slate-100 mb-1">{data.name}</div>
+                        <div className="text-orange-400 font-bold text-lg mb-2">{data.percent.toFixed(1)}%</div>
+                        {data.hint && <div className="text-xs text-slate-400 leading-relaxed">{data.hint}</div>}
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
               <Bar dataKey="percent" radius={[4, 4, 0, 0]} onClick={handlePieClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>

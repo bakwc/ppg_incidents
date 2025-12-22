@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident, fetchIncidentDrafts } from '../api';
 import { useAuth } from '../AuthContext';
+import HintPopup from './HintPopup';
+import { PRIMARY_CAUSE_HINTS } from '../constants/hints';
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
@@ -767,7 +769,14 @@ function IncidentForm() {
               {/* Incident Details */}
               <Section title="Incident Details">
                 <div className="grid grid-cols-2 gap-4">
-                  <Select label="Primary Cause" name="primary_cause" value={formData.primary_cause} onChange={handleChange} options={PRIMARY_CAUSES} highlighted={highlightedFields.has('primary_cause')} />
+                  <SelectWithAllHints 
+                    label="Primary Cause" 
+                    name="primary_cause" 
+                    value={formData.primary_cause} 
+                    onChange={handleChange} 
+                    options={PRIMARY_CAUSES} 
+                    highlighted={highlightedFields.has('primary_cause')}
+                  />
                   <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} highlighted={highlightedFields.has('cause_confidence')} />
                 </div>
                 <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} highlighted={highlightedFields.has('description')} />
@@ -1170,6 +1179,63 @@ function Select({ label, name, value, onChange, options, highlighted }) {
   return (
     <div>
       <label className={`block text-xs font-medium mb-1 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithHint({ label, name, value, onChange, options, highlighted, hint }) {
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        {hint && <HintPopup hint={hint} />}
+      </label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithAllHints({ label, name, value, onChange, options, highlighted }) {
+  const allHints = (
+    <div className="space-y-2 max-h-96 overflow-y-auto">
+      {options.filter(opt => opt.value && PRIMARY_CAUSE_HINTS[opt.value]).map(opt => (
+        <div key={opt.value}>
+          <div className="font-semibold text-slate-200 mb-1">{opt.label}</div>
+          <div className="text-slate-400">{PRIMARY_CAUSE_HINTS[opt.value]}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        <HintPopup hint={allHints} />
+      </label>
       <select
         name={name}
         value={value || ''}

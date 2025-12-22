@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { fetchIncident } from '../api';
+import HintPopup from './HintPopup';
+import { PRIMARY_CAUSE_HINTS } from '../constants/hints';
 
 const COLLAPSE_LABELS = {
   asymmetric_small: 'Asymmetric collapse (<30%)',
@@ -245,7 +247,13 @@ function IncidentView() {
           {(incident.description || incident.causes_description || incident.primary_cause || incident.reserve_use || incident.surface_type || incident.cause_confidence || incident.pilot_actions || incident.injury_details) && (
             <Section title="Incident Details">
               <div className="grid grid-cols-2 gap-4">
-                {incident.primary_cause && <HighlightedField label="Primary Cause" value={PRIMARY_CAUSE_LABELS[incident.primary_cause] || incident.primary_cause} />}
+                {incident.primary_cause && (
+                  <HighlightedFieldWithHint 
+                    label="Primary Cause" 
+                    value={PRIMARY_CAUSE_LABELS[incident.primary_cause] || incident.primary_cause}
+                    hint={PRIMARY_CAUSE_HINTS[incident.primary_cause]}
+                  />
+                )}
                 {incident.cause_confidence && <HighlightedField label="Cause Confidence" value={CAUSE_CONFIDENCE_LABELS[incident.cause_confidence] || incident.cause_confidence} />}
               </div>
               {incident.description && <Field label="Description" value={incident.description} multiline />}
@@ -434,6 +442,18 @@ function HighlightedField({ label, value }) {
   return (
     <div className="p-3 bg-slate-700/30 border border-slate-600/30 rounded-lg">
       <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <p className="text-white text-sm font-medium">{value}</p>
+    </div>
+  );
+}
+
+function HighlightedFieldWithHint({ label, value, hint }) {
+  return (
+    <div className="p-3 bg-slate-700/30 border border-slate-600/30 rounded-lg">
+      <label className="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+        {label}
+        <HintPopup hint={hint} />
+      </label>
       <p className="text-white text-sm font-medium">{value}</p>
     </div>
   );
