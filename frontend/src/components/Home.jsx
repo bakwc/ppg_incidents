@@ -11,6 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [recentIncidents, setRecentIncidents] = useState([]);
+  const [recentVideos, setRecentVideos] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -56,13 +57,14 @@ export default function Home() {
         { name: 'FullyOpened', include: { ...baseFilter, reserve_use: 'fully_opened' }, exclude: { flight_phase: 'ground' } }
       ];
 
-      const [totalIncidentsData, primaryCausesData, flightPhaseData, reserveData, yearData, recentIncidentsData, countriesData, dateRangeData] = await Promise.all([
+      const [totalIncidentsData, primaryCausesData, flightPhaseData, reserveData, yearData, recentIncidentsData, recentVideosData, countriesData, dateRangeData] = await Promise.all([
         fetchDashboardStats(totalIncidentsFilterPacks),
         fetchDashboardStats(primaryCausesFilterPacks),
         fetchDashboardStats(flightPhaseFilterPacks),
         fetchDashboardStats(reserveFilterPacks),
         fetchYearStats(baseFilter, {}),
         fetchIncidents(null, { order_by: '-date' }, 1),
+        fetchIncidents(null, { has_video: 'true', order_by: '-date' }, 1),
         fetchCountries(),
         fetchDateRange()
       ]);
@@ -87,7 +89,8 @@ export default function Home() {
         years: yearData
       });
 
-      setRecentIncidents(recentIncidentsData.results.slice(0, 8));
+      setRecentIncidents(recentIncidentsData.results.slice(0, 12));
+      setRecentVideos(recentVideosData.results.slice(0, 6));
       setLoading(false);
     };
 
@@ -149,6 +152,39 @@ export default function Home() {
       case 'minor': return 'bg-yellow-500/20 border-yellow-500/50';
       default: return 'bg-slate-500/20 border-slate-500/50';
     }
+  };
+
+  const extractYouTubeId = (url) => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/shorts\/([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return null;
+  };
+
+  const getYouTubeVideoId = (incident) => {
+    const allLinks = [
+      ...(incident.media_links || '').split('\n'),
+      ...(incident.source_links || '').split('\n')
+    ];
+    
+    for (const link of allLinks) {
+      const trimmedLink = link.trim();
+      if (trimmedLink.includes('youtube') || trimmedLink.includes('youtu.be')) {
+        const videoId = extractYouTubeId(trimmedLink);
+        if (videoId) {
+          return videoId;
+        }
+      }
+    }
+    return null;
   };
 
   return (
@@ -296,48 +332,114 @@ export default function Home() {
       {/* Recent Incidents */}
       <div className="bg-slate-900/50 border-y border-slate-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Recent Incidents</h2>
-            <p className="text-slate-400">Latest reports from the database</p>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Block - Recent Videos */}
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Recent Videos</h2>
+                <p className="text-slate-400">Latest incidents with video footage</p>
+              </div>
 
-          <div className="space-y-3">
-            {recentIncidents.map(incident => (
-              <Link
-                key={incident.uuid}
-                to={`/view/${incident.uuid}`}
-                className="block bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg p-4 transition-all hover:border-amber-500/50"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="text-slate-400 font-mono text-sm w-20 whitespace-nowrap">
-                      {incident.date || 'Unknown'}
-                    </div>
-                    {incident.country && (
-                      <div className="flex items-center gap-1.5 min-w-[60px]">
-                        <span className="text-xl">{getFlag(getCountryCode(incident.country))}</span>
-                        <span className="text-slate-300 text-sm">{getCountryCode(incident.country)}</span>
+              <div className="space-y-3">
+                {recentVideos.map(incident => {
+                  const videoId = getYouTubeVideoId(incident);
+                  return (
+                    <Link
+                      key={incident.uuid}
+                      to={`/view/${incident.uuid}`}
+                      className="block bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg overflow-hidden transition-all hover:border-amber-500/50 h-36"
+                    >
+                      <div className="flex gap-3 h-full">
+                        {videoId && (
+                          <img
+                            src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                            alt="Video thumbnail"
+                            className="w-52 h-full object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1 p-3 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="text-slate-400 font-mono text-xs">
+                                {incident.date || 'Unknown'}
+                              </div>
+                              <div className={`px-2 py-0.5 rounded text-xs font-medium border ${getSeverityBg(incident.severity)} ${getSeverityColor(incident.severity)}`}>
+                                {incident.severity || 'Unknown'}
+                              </div>
+                            </div>
+                            <div className="text-slate-200 text-sm line-clamp-2">
+                              {incident.title || incident.summary || 'No title'}
+                            </div>
+                          </div>
+                          {incident.country && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-base">{getFlag(getCountryCode(incident.country))}</span>
+                              <span className="text-slate-400 text-xs">{incident.country}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className={`px-2 py-1 rounded text-xs font-medium border ${getSeverityBg(incident.severity)} ${getSeverityColor(incident.severity)} flex-shrink-0`}>
-                    {incident.severity || 'Unknown'}
-                  </div>
-                  <div className="text-slate-200 flex-1 line-clamp-1">
-                    {incident.title || incident.summary || 'No title'}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                    </Link>
+                  );
+                })}
+              </div>
 
-          <div className="mt-8 text-center">
-            <Link 
-              to="/incidents" 
-              className="inline-block px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-slate-200 transition-all"
-            >
-              Browse All Incidents →
-            </Link>
+              <div className="mt-6">
+                <Link 
+                  to="/incidents?has_video=true" 
+                  className="inline-block px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-slate-200 transition-all"
+                >
+                  Browse All Videos →
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Block - Recent Incidents List */}
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Recent Incidents</h2>
+                <p className="text-slate-400">Latest reports from the database</p>
+              </div>
+
+              <div className="space-y-3">
+                {recentIncidents.map(incident => (
+                  <Link
+                    key={incident.uuid}
+                    to={`/view/${incident.uuid}`}
+                    className="block bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg p-4 transition-all hover:border-amber-500/50"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <div className="text-slate-400 font-mono text-sm w-20 whitespace-nowrap">
+                          {incident.date || 'Unknown'}
+                        </div>
+                        {incident.country && (
+                          <div className="flex items-center gap-1.5 min-w-[60px]">
+                            <span className="text-xl">{getFlag(getCountryCode(incident.country))}</span>
+                            <span className="text-slate-300 text-sm">{getCountryCode(incident.country)}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs font-medium border ${getSeverityBg(incident.severity)} ${getSeverityColor(incident.severity)} flex-shrink-0`}>
+                        {incident.severity || 'Unknown'}
+                      </div>
+                      <div className="text-slate-200 flex-1 line-clamp-1">
+                        {incident.title || incident.summary || 'No title'}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-6">
+                <Link 
+                  to="/incidents" 
+                  className="inline-block px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-slate-200 transition-all"
+                >
+                  Browse All Incidents →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
