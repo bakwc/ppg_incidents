@@ -194,7 +194,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Primary Causes */}
           <div 
-            onClick={() => navigate('/dashboards#primary-causes')}
+            onClick={() => navigate('/dashboard/causes-analysis#primary-causes')}
             className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
           >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Primary Causes</h3>
@@ -225,7 +225,7 @@ export default function Home() {
 
           {/* Flight Phase */}
           <div 
-            onClick={() => navigate('/dashboards#flight-phase')}
+            onClick={() => navigate('/dashboard/flight-conditions#flight-phase')}
             className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
           >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Flight Phase</h3>
@@ -244,7 +244,7 @@ export default function Home() {
 
           {/* Reserve Usage */}
           <div 
-            onClick={() => navigate('/dashboards#reserve-usage')}
+            onClick={() => navigate('/dashboard/safety-equipment#reserve-usage')}
             className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
           >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Reserve Usage</h3>
@@ -265,7 +265,7 @@ export default function Home() {
 
           {/* Recent Trends */}
           <div 
-            onClick={() => navigate('/dashboards#by-year')}
+            onClick={() => navigate('/dashboard/trends-distribution#by-year')}
             className="bg-slate-900 rounded-xl p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-amber-500/50 transition-all"
           >
             <h3 className="text-lg md:text-xl font-semibold mb-4 text-center">Recent Trends (Last 5 Years)</h3>

@@ -89,6 +89,16 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    if (location.hash) {
+      const sectionId = location.hash.substring(1);
+      const timer = setTimeout(() => {
+        scrollToSection(sectionId);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, location.hash]);
+
+  useEffect(() => {
     const allSections = menuStructure.flatMap(cat => cat.sections);
     
     const handleScroll = () => {
@@ -141,12 +151,7 @@ export default function Dashboard() {
                       <button
                         key={section.id}
                         onClick={() => {
-                          if (location.pathname !== category.path) {
-                            navigate(category.path);
-                            setTimeout(() => scrollToSection(section.id), 100);
-                          } else {
-                            scrollToSection(section.id);
-                          }
+                          navigate(`${category.path}#${section.id}`);
                         }}
                         className={`w-full text-left px-3 py-1.5 rounded-lg transition-colors text-xs ${
                           isCurrentCategory && activeSection === section.id
