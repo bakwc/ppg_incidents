@@ -13,15 +13,15 @@ import Login from './components/Login';
 import Footer from './components/Footer';
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const location = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Track page view for Umami
+    // Track page view for Umami SPA navigation
     if (typeof window.umami !== 'undefined') {
-      window.umami.track();
+      window.umami.track(props => ({ ...props, url: location.pathname + location.search }));
     }
-  }, [pathname]);
+  }, [location]);
 
   return null;
 }
