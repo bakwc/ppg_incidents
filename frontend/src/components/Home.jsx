@@ -199,7 +199,7 @@ export default function Home() {
             Learn from the past, fly safer
           </p>
           <p className="text-base md:text-lg text-slate-400 mb-8 max-w-3xl">
-            Database of paramotor incidents designed to help pilots understand risks and improve safety through data-driven insights.
+            Database of paramotor incidents with statistical analysis — cause breakdowns, reserve success rates, trend charts, and filterable dashboards.
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
