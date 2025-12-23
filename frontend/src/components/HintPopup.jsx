@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 
 export default function HintPopup({ hint, className = "" }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState('left');
   const timeoutRef = useRef(null);
   const buttonRef = useRef(null);
   const popupRef = useRef(null);
@@ -47,6 +48,19 @@ export default function HintPopup({ hint, className = "" }) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+    
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const popupWidth = 320;
+      const spaceOnRight = window.innerWidth - rect.left;
+      
+      if (spaceOnRight < popupWidth) {
+        setPosition('right');
+      } else {
+        setPosition('left');
+      }
+    }
+    
     setIsOpen(true);
   };
 
@@ -81,9 +95,13 @@ export default function HintPopup({ hint, className = "" }) {
       {isOpen && (
         <div 
           ref={popupRef}
-          className="absolute z-50 w-80 p-3 mt-2 left-0 bg-slate-800 border border-slate-700 rounded-lg shadow-xl text-xs text-slate-300 leading-relaxed"
+          className={`absolute z-50 w-80 p-3 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl text-xs text-slate-300 leading-relaxed ${
+            position === 'right' ? 'right-0' : 'left-0'
+          }`}
         >
-          <div className="absolute -top-1.5 left-3 w-3 h-3 bg-slate-800 border-l border-t border-slate-700 rotate-45 pointer-events-none" />
+          <div className={`absolute -top-1.5 w-3 h-3 bg-slate-800 border-l border-t border-slate-700 rotate-45 pointer-events-none ${
+            position === 'right' ? 'right-3' : 'left-3'
+          }`} />
           {hint}
         </div>
       )}
