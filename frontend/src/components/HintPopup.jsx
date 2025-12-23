@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function HintPopup({ hint, className = "" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState('left');
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
   const timeoutRef = useRef(null);
   const buttonRef = useRef(null);
   const popupRef = useRef(null);
@@ -56,8 +58,16 @@ export default function HintPopup({ hint, className = "" }) {
       
       if (spaceOnRight < popupWidth) {
         setPosition('right');
+        setCoords({
+          top: rect.bottom + 8,
+          left: rect.right
+        });
       } else {
         setPosition('left');
+        setCoords({
+          top: rect.bottom + 8,
+          left: rect.left
+        });
       }
     }
     
@@ -92,18 +102,23 @@ export default function HintPopup({ hint, className = "" }) {
           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
         </svg>
       </button>
-      {isOpen && (
+      {isOpen && createPortal(
         <div 
           ref={popupRef}
-          className={`absolute z-50 w-80 p-3 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl text-xs text-slate-300 leading-relaxed ${
-            position === 'right' ? 'right-0' : 'left-0'
-          }`}
+          style={{
+            position: 'fixed',
+            top: `${coords.top}px`,
+            left: position === 'right' ? 'auto' : `${coords.left}px`,
+            right: position === 'right' ? `${window.innerWidth - coords.left}px` : 'auto'
+          }}
+          className="z-[9999] w-80 p-3 bg-slate-800 border border-slate-700 rounded-lg shadow-xl text-xs text-slate-300 leading-relaxed"
         >
           <div className={`absolute -top-1.5 w-3 h-3 bg-slate-800 border-l border-t border-slate-700 rotate-45 pointer-events-none ${
             position === 'right' ? 'right-3' : 'left-3'
           }`} />
           {hint}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
