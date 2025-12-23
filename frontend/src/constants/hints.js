@@ -12,4 +12,34 @@ export const PRIMARY_CAUSE_HINTS = {
   rain_fog_snow: "Flight in or into precipitation or low visibility conditions. Can affect wing performance, weight, and pilot visibility."
 };
 
-
+export const CONTRIBUTING_FACTOR_HINTS = {
+  factor_low_altitude: "Flying at insufficient height for recovery or reserve deployment. Reduces reaction time in emergencies.",
+  factor_maneuvers: "Performing intentional flight maneuvers like spirals, wingovers, or acrobatic moves that increase risk.",
+  factor_thermal_weather: "Flying in thermally active conditions with rising air columns that can cause turbulence and collapses.",
+  factor_rain: "Flying in or encountering rain, which adds weight to the wing and can affect performance.",
+  factor_rotor_turbulence: "Entering turbulent air behind obstacles like hills, buildings, or ridges where wind creates chaotic flow.",
+  factor_wake_turbulence: "Turbulent air created by another aircraft passing nearby or ahead.",
+  factor_reflex_profile: "Wing with reflex profile design, which affects handling characteristics and collapse resistance.",
+  factor_helmet_missing: "Not wearing a helmet during flight, removing critical head protection.",
+  factor_tree_collision: "Impact with or landing in trees, which can cause injury and equipment damage.",
+  factor_water_landing: "Landing or falling into water, dangerous due to motor weight and entanglement risk.",
+  factor_ground_starting: "Starting the engine while the paramotor is on the ground before strapping it on.",
+  factor_powerline_collision: "Contact with or proximity to power lines, often difficult to see.",
+  factor_turbulent_conditions: "General turbulent weather or air conditions making flight unstable.",
+  factor_spiral_maneuver: "Intentional or unintentinoal performing a spiral maneuver.",
+  factor_ground_object_collision: "Impact with ground-based obstacles like buildings, vehicles, or structures.",
+  factor_released_brake_toggle: "Accidentally releasing or losing grip of a brake toggle during flight.",
+  factor_wrongly_adjusted_trims: "Trimmers set incorrectly for conditions, affecting wing speed and handling.",
+  factor_accidental_motor_kill: "Unintentionally stopping the engine during flight.",
+  factor_wrong_throttle_management: "Incorrect use of throttle, such as too much or too little power for the situation.",
+  factor_accidental_reserve_deployment: "Reserve parachute deploying unintentionally during flight.",
+  factor_oscillations_out_of_control: "Wing pendulum or pitch oscillations exceeding pilot's ability to control.",
+  factor_student_pilot: "Pilot in training or with limited experience.",
+  factor_medical_issues: "Pilot experiencing health problems during flight, such as heart issues, seizure, or loss of consciousness.",
+  factor_engine_failure: "Engine stops running during flight due to mechanical failure.",
+  factor_trimmers_failure: "Trim system malfunction happened during flight.",
+  factor_structural_failure: "Breakage of frame, carabiners, or other structural components.",
+  factor_fire: "Fire occurring on the paramotor unit during flight.",
+  factor_throttle_system_issues: "Problems with throttle cable, button, or control mechanism.",
+  factor_paraglider_failure: "Wing material failure, tears, porosity issues, or structural damage to the paraglider."
+};

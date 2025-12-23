@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident, fetchIncidentDrafts } from '../api';
 import { useAuth } from '../AuthContext';
 import HintPopup from './HintPopup';
-import { PRIMARY_CAUSE_HINTS } from '../constants/hints';
+import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS } from '../constants/hints';
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
@@ -830,12 +830,12 @@ function IncidentForm() {
                 <div className="grid grid-cols-2 gap-3">
                   <Checkbox label="Hardware failure occurred" name="hardware_failure" checked={formData.hardware_failure} onChange={handleChange} highlighted={highlightedFields.has('hardware_failure')} />
                   <Checkbox label="Issue could be found on preflight" name="bad_hardware_preflight" checked={formData.bad_hardware_preflight} onChange={handleChange} highlighted={highlightedFields.has('bad_hardware_preflight')} />
-                  <Checkbox label="Engine failure" name="factor_engine_failure" checked={formData.factor_engine_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_engine_failure')} />
-                  <Checkbox label="Trimmers failure" name="factor_trimmers_failure" checked={formData.factor_trimmers_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_trimmers_failure')} />
-                  <Checkbox label="Structural failure (frame / carabiners / etc.)" name="factor_structural_failure" checked={formData.factor_structural_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_structural_failure')} />
-                  <Checkbox label="Fire" name="factor_fire" checked={formData.factor_fire} onChange={handleChange} highlighted={highlightedFields.has('factor_fire')} />
-                  <Checkbox label="Throttle system issues (cable / button / etc.)" name="factor_throttle_system_issues" checked={formData.factor_throttle_system_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_throttle_system_issues')} />
-                  <Checkbox label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" name="factor_paraglider_failure" checked={formData.factor_paraglider_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_paraglider_failure')} />
+                  <Checkbox label="Engine failure" name="factor_engine_failure" checked={formData.factor_engine_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_engine_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_engine_failure} />
+                  <Checkbox label="Trimmers failure" name="factor_trimmers_failure" checked={formData.factor_trimmers_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_trimmers_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_trimmers_failure} />
+                  <Checkbox label="Structural failure (frame / carabiners / etc.)" name="factor_structural_failure" checked={formData.factor_structural_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_structural_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_structural_failure} />
+                  <Checkbox label="Fire" name="factor_fire" checked={formData.factor_fire} onChange={handleChange} highlighted={highlightedFields.has('factor_fire')} hint={CONTRIBUTING_FACTOR_HINTS.factor_fire} />
+                  <Checkbox label="Throttle system issues (cable / button / etc.)" name="factor_throttle_system_issues" checked={formData.factor_throttle_system_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_throttle_system_issues')} hint={CONTRIBUTING_FACTOR_HINTS.factor_throttle_system_issues} />
+                  <Checkbox label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" name="factor_paraglider_failure" checked={formData.factor_paraglider_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_paraglider_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_paraglider_failure} />
                 </div>
               </Section>
 
@@ -896,35 +896,35 @@ function IncidentForm() {
                   <Select label="Mid-air Collision" name="factor_mid_air_collision" value={formData.factor_mid_air_collision} onChange={handleChange} options={MID_AIR_COLLISION} highlighted={highlightedFields.has('factor_mid_air_collision')} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} highlighted={highlightedFields.has('factor_low_altitude')} />
-                  <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} highlighted={highlightedFields.has('factor_maneuvers')} />
-                  <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} highlighted={highlightedFields.has('factor_thermal_weather')} />
-                  <Checkbox label="Rain" name="factor_rain" checked={formData.factor_rain} onChange={handleChange} highlighted={highlightedFields.has('factor_rain')} />
-                  <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_rotor_turbulence')} />
-                  <Checkbox label="Wake turbulence" name="factor_wake_turbulence" checked={formData.factor_wake_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_wake_turbulence')} />
-                  <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} highlighted={highlightedFields.has('factor_reflex_profile')} />
-                  <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} highlighted={highlightedFields.has('factor_helmet_missing')} />
-                  <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_tree_collision')} />
-                  <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} highlighted={highlightedFields.has('factor_water_landing')} />
-                  <Checkbox label="Ground starting" name="factor_ground_starting" checked={formData.factor_ground_starting} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_starting')} />
-                  <Checkbox label="Powerline collision" name="factor_powerline_collision" checked={formData.factor_powerline_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_powerline_collision')} />
-                  <Checkbox label="Turbulent conditions" name="factor_turbulent_conditions" checked={formData.factor_turbulent_conditions} onChange={handleChange} highlighted={highlightedFields.has('factor_turbulent_conditions')} />
-                  <Checkbox label="Spiral maneuver" name="factor_spiral_maneuver" checked={formData.factor_spiral_maneuver} onChange={handleChange} highlighted={highlightedFields.has('factor_spiral_maneuver')} />
-                  <Checkbox label="Ground object collision" name="factor_ground_object_collision" checked={formData.factor_ground_object_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_object_collision')} />
+                  <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} highlighted={highlightedFields.has('factor_low_altitude')} hint={CONTRIBUTING_FACTOR_HINTS.factor_low_altitude} />
+                  <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} highlighted={highlightedFields.has('factor_maneuvers')} hint={CONTRIBUTING_FACTOR_HINTS.factor_maneuvers} />
+                  <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} highlighted={highlightedFields.has('factor_thermal_weather')} hint={CONTRIBUTING_FACTOR_HINTS.factor_thermal_weather} />
+                  <Checkbox label="Rain" name="factor_rain" checked={formData.factor_rain} onChange={handleChange} highlighted={highlightedFields.has('factor_rain')} hint={CONTRIBUTING_FACTOR_HINTS.factor_rain} />
+                  <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_rotor_turbulence')} hint={CONTRIBUTING_FACTOR_HINTS.factor_rotor_turbulence} />
+                  <Checkbox label="Wake turbulence" name="factor_wake_turbulence" checked={formData.factor_wake_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_wake_turbulence')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wake_turbulence} />
+                  <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} highlighted={highlightedFields.has('factor_reflex_profile')} hint={CONTRIBUTING_FACTOR_HINTS.factor_reflex_profile} />
+                  <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} highlighted={highlightedFields.has('factor_helmet_missing')} hint={CONTRIBUTING_FACTOR_HINTS.factor_helmet_missing} />
+                  <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_tree_collision')} hint={CONTRIBUTING_FACTOR_HINTS.factor_tree_collision} />
+                  <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} highlighted={highlightedFields.has('factor_water_landing')} hint={CONTRIBUTING_FACTOR_HINTS.factor_water_landing} />
+                  <Checkbox label="Ground starting" name="factor_ground_starting" checked={formData.factor_ground_starting} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_starting')} hint={CONTRIBUTING_FACTOR_HINTS.factor_ground_starting} />
+                  <Checkbox label="Powerline collision" name="factor_powerline_collision" checked={formData.factor_powerline_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_powerline_collision')} hint={CONTRIBUTING_FACTOR_HINTS.factor_powerline_collision} />
+                  <Checkbox label="Turbulent conditions" name="factor_turbulent_conditions" checked={formData.factor_turbulent_conditions} onChange={handleChange} highlighted={highlightedFields.has('factor_turbulent_conditions')} hint={CONTRIBUTING_FACTOR_HINTS.factor_turbulent_conditions} />
+                  <Checkbox label="Spiral maneuver" name="factor_spiral_maneuver" checked={formData.factor_spiral_maneuver} onChange={handleChange} highlighted={highlightedFields.has('factor_spiral_maneuver')} hint={CONTRIBUTING_FACTOR_HINTS.factor_spiral_maneuver} />
+                  <Checkbox label="Ground object collision" name="factor_ground_object_collision" checked={formData.factor_ground_object_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_object_collision')} hint={CONTRIBUTING_FACTOR_HINTS.factor_ground_object_collision} />
                 </div>
               </Section>
 
               {/* Pilot-Related Factors */}
               <Section title="Pilot-Related Factors">
                 <div className="grid grid-cols-2 gap-3">
-                  <Checkbox label="Released / lost the brake toggle" name="factor_released_brake_toggle" checked={formData.factor_released_brake_toggle} onChange={handleChange} highlighted={highlightedFields.has('factor_released_brake_toggle')} />
-                  <Checkbox label="Wrongly adjusted trims" name="factor_wrongly_adjusted_trims" checked={formData.factor_wrongly_adjusted_trims} onChange={handleChange} highlighted={highlightedFields.has('factor_wrongly_adjusted_trims')} />
-                  <Checkbox label="Accidental motor kill" name="factor_accidental_motor_kill" checked={formData.factor_accidental_motor_kill} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_motor_kill')} />
-                  <Checkbox label="Wrong throttle management" name="factor_wrong_throttle_management" checked={formData.factor_wrong_throttle_management} onChange={handleChange} highlighted={highlightedFields.has('factor_wrong_throttle_management')} />
-                  <Checkbox label="Accidental reserve deployment" name="factor_accidental_reserve_deployment" checked={formData.factor_accidental_reserve_deployment} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_reserve_deployment')} />
-                  <Checkbox label="Oscillations out of control" name="factor_oscillations_out_of_control" checked={formData.factor_oscillations_out_of_control} onChange={handleChange} highlighted={highlightedFields.has('factor_oscillations_out_of_control')} />
-                  <Checkbox label="Student pilot" name="factor_student_pilot" checked={formData.factor_student_pilot} onChange={handleChange} highlighted={highlightedFields.has('factor_student_pilot')} />
-                  <Checkbox label="Had medical issues" name="factor_medical_issues" checked={formData.factor_medical_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_medical_issues')} />
+                  <Checkbox label="Released / lost the brake toggle" name="factor_released_brake_toggle" checked={formData.factor_released_brake_toggle} onChange={handleChange} highlighted={highlightedFields.has('factor_released_brake_toggle')} hint={CONTRIBUTING_FACTOR_HINTS.factor_released_brake_toggle} />
+                  <Checkbox label="Wrongly adjusted trims" name="factor_wrongly_adjusted_trims" checked={formData.factor_wrongly_adjusted_trims} onChange={handleChange} highlighted={highlightedFields.has('factor_wrongly_adjusted_trims')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wrongly_adjusted_trims} />
+                  <Checkbox label="Accidental motor kill" name="factor_accidental_motor_kill" checked={formData.factor_accidental_motor_kill} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_motor_kill')} hint={CONTRIBUTING_FACTOR_HINTS.factor_accidental_motor_kill} />
+                  <Checkbox label="Wrong throttle management" name="factor_wrong_throttle_management" checked={formData.factor_wrong_throttle_management} onChange={handleChange} highlighted={highlightedFields.has('factor_wrong_throttle_management')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wrong_throttle_management} />
+                  <Checkbox label="Accidental reserve deployment" name="factor_accidental_reserve_deployment" checked={formData.factor_accidental_reserve_deployment} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_reserve_deployment')} hint={CONTRIBUTING_FACTOR_HINTS.factor_accidental_reserve_deployment} />
+                  <Checkbox label="Oscillations out of control" name="factor_oscillations_out_of_control" checked={formData.factor_oscillations_out_of_control} onChange={handleChange} highlighted={highlightedFields.has('factor_oscillations_out_of_control')} hint={CONTRIBUTING_FACTOR_HINTS.factor_oscillations_out_of_control} />
+                  <Checkbox label="Student pilot" name="factor_student_pilot" checked={formData.factor_student_pilot} onChange={handleChange} highlighted={highlightedFields.has('factor_student_pilot')} hint={CONTRIBUTING_FACTOR_HINTS.factor_student_pilot} />
+                  <Checkbox label="Had medical issues" name="factor_medical_issues" checked={formData.factor_medical_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_medical_issues')} hint={CONTRIBUTING_FACTOR_HINTS.factor_medical_issues} />
                 </div>
               </Section>
 
@@ -1252,7 +1252,7 @@ function SelectWithAllHints({ label, name, value, onChange, options, highlighted
   );
 }
 
-function Checkbox({ label, name, checked, onChange, highlighted }) {
+function Checkbox({ label, name, checked, onChange, highlighted, hint }) {
   return (
     <label className={`flex items-center gap-2.5 cursor-pointer group px-2 py-1 rounded-lg transition-all ${highlighted ? 'bg-emerald-500/20 ring-1 ring-emerald-500/50' : ''}`}>
       <div className="relative">
@@ -1273,7 +1273,10 @@ function Checkbox({ label, name, checked, onChange, highlighted }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <span className={`text-xs group-hover:text-slate-300 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</span>
+      <span className={`text-xs group-hover:text-slate-300 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        {hint && <HintPopup hint={hint} />}
+      </span>
     </label>
   );
 }

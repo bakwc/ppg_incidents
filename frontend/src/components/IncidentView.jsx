@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { fetchIncident } from '../api';
 import HintPopup from './HintPopup';
-import { PRIMARY_CAUSE_HINTS } from '../constants/hints';
+import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS } from '../constants/hints';
 
 const COLLAPSE_LABELS = {
   asymmetric_small: 'Asymmetric collapse (<30%)',
@@ -316,12 +316,12 @@ function IncidentView() {
               <div className="flex flex-wrap gap-2">
                 {incident.hardware_failure && <Badge label="Hardware failure occurred" />}
                 {incident.bad_hardware_preflight && <Badge label="Issue could be found on preflight" />}
-                {incident.factor_engine_failure && <Badge label="Engine failure" />}
-                {incident.factor_trimmers_failure && <Badge label="Trimmers failure" />}
-                {incident.factor_structural_failure && <Badge label="Structural failure (frame / carabiners / etc.)" />}
-                {incident.factor_fire && <Badge label="Fire" />}
-                {incident.factor_throttle_system_issues && <Badge label="Throttle system issues (cable / button / etc.)" />}
-                {incident.factor_paraglider_failure && <Badge label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" />}
+                {incident.factor_engine_failure && <Badge label="Engine failure" hint={CONTRIBUTING_FACTOR_HINTS.factor_engine_failure} />}
+                {incident.factor_trimmers_failure && <Badge label="Trimmers failure" hint={CONTRIBUTING_FACTOR_HINTS.factor_trimmers_failure} />}
+                {incident.factor_structural_failure && <Badge label="Structural failure (frame / carabiners / etc.)" hint={CONTRIBUTING_FACTOR_HINTS.factor_structural_failure} />}
+                {incident.factor_fire && <Badge label="Fire" hint={CONTRIBUTING_FACTOR_HINTS.factor_fire} />}
+                {incident.factor_throttle_system_issues && <Badge label="Throttle system issues (cable / button / etc.)" hint={CONTRIBUTING_FACTOR_HINTS.factor_throttle_system_issues} />}
+                {incident.factor_paraglider_failure && <Badge label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" hint={CONTRIBUTING_FACTOR_HINTS.factor_paraglider_failure} />}
               </div>
             </Section>
           )}
@@ -352,21 +352,21 @@ function IncidentView() {
                 {incident.factor_mid_air_collision && <Field label="Mid-air Collision" value={MID_AIR_COLLISION_LABELS[incident.factor_mid_air_collision] || incident.factor_mid_air_collision} />}
               </div>
               <div className="flex flex-wrap gap-2">
-                {incident.factor_low_altitude && <Badge label="Low flight altitude" />}
-                {incident.factor_maneuvers && <Badge label="Performed maneuvers" />}
-                {incident.factor_thermal_weather && <Badge label="Thermally active weather" />}
-                {incident.factor_rain && <Badge label="Rain" />}
-                {incident.factor_rotor_turbulence && <Badge label="Entered rotor turbulence" />}
-                {incident.factor_wake_turbulence && <Badge label="Wake turbulence" />}
-                {incident.factor_reflex_profile && <Badge label="Reflex profile wing" />}
-                {incident.factor_helmet_missing && <Badge label="Helmet missing" />}
-                {incident.factor_tree_collision && <Badge label="Tree collision/landing" />}
-                {incident.factor_water_landing && <Badge label="Water landing" />}
-                {incident.factor_ground_starting && <Badge label="Ground starting" />}
-                {incident.factor_powerline_collision && <Badge label="Powerline collision" />}
-                {incident.factor_turbulent_conditions && <Badge label="Turbulent conditions" />}
-                {incident.factor_spiral_maneuver && <Badge label="Spiral maneuver" />}
-                {incident.factor_ground_object_collision && <Badge label="Ground object collision" />}
+                {incident.factor_low_altitude && <Badge label="Low flight altitude" hint={CONTRIBUTING_FACTOR_HINTS.factor_low_altitude} />}
+                {incident.factor_maneuvers && <Badge label="Performed maneuvers" hint={CONTRIBUTING_FACTOR_HINTS.factor_maneuvers} />}
+                {incident.factor_thermal_weather && <Badge label="Thermally active weather" hint={CONTRIBUTING_FACTOR_HINTS.factor_thermal_weather} />}
+                {incident.factor_rain && <Badge label="Rain" hint={CONTRIBUTING_FACTOR_HINTS.factor_rain} />}
+                {incident.factor_rotor_turbulence && <Badge label="Entered rotor turbulence" hint={CONTRIBUTING_FACTOR_HINTS.factor_rotor_turbulence} />}
+                {incident.factor_wake_turbulence && <Badge label="Wake turbulence" hint={CONTRIBUTING_FACTOR_HINTS.factor_wake_turbulence} />}
+                {incident.factor_reflex_profile && <Badge label="Reflex profile wing" hint={CONTRIBUTING_FACTOR_HINTS.factor_reflex_profile} />}
+                {incident.factor_helmet_missing && <Badge label="Helmet missing" hint={CONTRIBUTING_FACTOR_HINTS.factor_helmet_missing} />}
+                {incident.factor_tree_collision && <Badge label="Tree collision/landing" hint={CONTRIBUTING_FACTOR_HINTS.factor_tree_collision} />}
+                {incident.factor_water_landing && <Badge label="Water landing" hint={CONTRIBUTING_FACTOR_HINTS.factor_water_landing} />}
+                {incident.factor_ground_starting && <Badge label="Ground starting" hint={CONTRIBUTING_FACTOR_HINTS.factor_ground_starting} />}
+                {incident.factor_powerline_collision && <Badge label="Powerline collision" hint={CONTRIBUTING_FACTOR_HINTS.factor_powerline_collision} />}
+                {incident.factor_turbulent_conditions && <Badge label="Turbulent conditions" hint={CONTRIBUTING_FACTOR_HINTS.factor_turbulent_conditions} />}
+                {incident.factor_spiral_maneuver && <Badge label="Spiral maneuver" hint={CONTRIBUTING_FACTOR_HINTS.factor_spiral_maneuver} />}
+                {incident.factor_ground_object_collision && <Badge label="Ground object collision" hint={CONTRIBUTING_FACTOR_HINTS.factor_ground_object_collision} />}
               </div>
             </Section>
           )}
@@ -375,14 +375,14 @@ function IncidentView() {
           {(incident.factor_released_brake_toggle || incident.factor_wrongly_adjusted_trims || incident.factor_accidental_motor_kill || incident.factor_wrong_throttle_management || incident.factor_accidental_reserve_deployment || incident.factor_oscillations_out_of_control || incident.factor_student_pilot || incident.factor_medical_issues) && (
             <Section title="Pilot-Related Factors">
               <div className="flex flex-wrap gap-2">
-                {incident.factor_released_brake_toggle && <Badge label="Released / lost the brake toggle" />}
-                {incident.factor_wrongly_adjusted_trims && <Badge label="Wrongly adjusted trims" />}
-                {incident.factor_accidental_motor_kill && <Badge label="Accidental motor kill" />}
-                {incident.factor_wrong_throttle_management && <Badge label="Wrong throttle management" />}
-                {incident.factor_accidental_reserve_deployment && <Badge label="Accidental reserve deployment" />}
-                {incident.factor_oscillations_out_of_control && <Badge label="Oscillations out of control" />}
-                {incident.factor_student_pilot && <Badge label="Student pilot" />}
-                {incident.factor_medical_issues && <Badge label="Had medical issues" />}
+                {incident.factor_released_brake_toggle && <Badge label="Released / lost the brake toggle" hint={CONTRIBUTING_FACTOR_HINTS.factor_released_brake_toggle} />}
+                {incident.factor_wrongly_adjusted_trims && <Badge label="Wrongly adjusted trims" hint={CONTRIBUTING_FACTOR_HINTS.factor_wrongly_adjusted_trims} />}
+                {incident.factor_accidental_motor_kill && <Badge label="Accidental motor kill" hint={CONTRIBUTING_FACTOR_HINTS.factor_accidental_motor_kill} />}
+                {incident.factor_wrong_throttle_management && <Badge label="Wrong throttle management" hint={CONTRIBUTING_FACTOR_HINTS.factor_wrong_throttle_management} />}
+                {incident.factor_accidental_reserve_deployment && <Badge label="Accidental reserve deployment" hint={CONTRIBUTING_FACTOR_HINTS.factor_accidental_reserve_deployment} />}
+                {incident.factor_oscillations_out_of_control && <Badge label="Oscillations out of control" hint={CONTRIBUTING_FACTOR_HINTS.factor_oscillations_out_of_control} />}
+                {incident.factor_student_pilot && <Badge label="Student pilot" hint={CONTRIBUTING_FACTOR_HINTS.factor_student_pilot} />}
+                {incident.factor_medical_issues && <Badge label="Had medical issues" hint={CONTRIBUTING_FACTOR_HINTS.factor_medical_issues} />}
               </div>
             </Section>
           )}
@@ -459,10 +459,11 @@ function HighlightedFieldWithHint({ label, value, hint }) {
   );
 }
 
-function Badge({ label }) {
+function Badge({ label, hint }) {
   return (
-    <span className="px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-slate-300">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-slate-300">
       {label}
+      {hint && <HintPopup hint={hint} />}
     </span>
   );
 }

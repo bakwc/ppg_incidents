@@ -10,7 +10,7 @@ import {
   getHardwareFailureFilterPacks,
   buildFilterUrl 
 } from './dashboardUtils';
-import { PRIMARY_CAUSE_HINTS } from '../../constants/hints';
+import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS } from '../../constants/hints';
 
 export default function CausesAnalysisDashboard({ 
   severityFilter, 
@@ -110,13 +110,27 @@ export default function CausesAnalysisDashboard({
     });
   }
   
+  const contributingFactorHintMap = {
+    'Wrong Pilot Input': 'Pilot error that triggered or worsened the incident through incorrect control inputs.',
+    'Hardware Failure': PRIMARY_CAUSE_HINTS.hardware_failure,
+    'Turbulent Conditions': CONTRIBUTING_FACTOR_HINTS.factor_turbulent_conditions,
+    'Powerline Collision': CONTRIBUTING_FACTOR_HINTS.factor_powerline_collision,
+    'Low Acro': 'Performing maneuvers at insufficient altitude for recovery. Combines low altitude and maneuvers.',
+    'Performed Maneuvers': CONTRIBUTING_FACTOR_HINTS.factor_maneuvers,
+    'Water Landing': CONTRIBUTING_FACTOR_HINTS.factor_water_landing,
+    'Wing Collapse': 'Wing experienced a collapse during flight, ranging from small asymmetric to full collapse.',
+    'Spiral': CONTRIBUTING_FACTOR_HINTS.factor_spiral_maneuver,
+    'Accelerator Engaged': 'Speed bar was partially or fully engaged, increasing wing speed and loading.'
+  };
+
   const barChartData = barFilterPacks
     .filter(p => p.name !== 'Total')
     .map(p => ({
       name: p.name,
       value: barStats[p.name] || 0,
       percent: barTotal > 0 ? ((barStats[p.name] || 0) / barTotal) * 100 : 0,
-      filterPack: p
+      filterPack: p,
+      hint: contributingFactorHintMap[p.name]
     }))
     .sort((a, b) => b.percent - a.percent);
 
@@ -332,6 +346,19 @@ export default function CausesAnalysisDashboard({
                   border: '1px solid #334155',
                   borderRadius: '8px',
                   color: '#f1f5f9'
+                }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload[0]) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl max-w-xs">
+                        <div className="font-semibold text-slate-100 mb-1">{data.name}</div>
+                        <div className="text-orange-400 font-bold text-lg mb-2">{data.percent.toFixed(1)}%</div>
+                        {data.hint && <div className="text-xs text-slate-400 leading-relaxed">{data.hint}</div>}
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
               <Bar dataKey="percent" fill="#f97316" radius={[4, 4, 0, 0]} onClick={handleBarClick} style={{ cursor: 'pointer' }} isAnimationActive={false}>
