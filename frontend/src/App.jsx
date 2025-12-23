@@ -17,9 +17,12 @@ function ScrollToTop() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Track page view for Umami SPA navigation
     if (typeof window.umami !== 'undefined') {
+      // Track page view
       window.umami.track(props => ({ ...props, url: location.pathname + location.search }));
+      // Track navigation event
+      const pageName = location.pathname === '/' ? 'home' : location.pathname.slice(1).split('/')[0];
+      window.umami.track('page-' + pageName, { path: location.pathname });
     }
   }, [location]);
 
