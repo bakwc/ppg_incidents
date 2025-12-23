@@ -73,12 +73,14 @@ export default function Navigation() {
             <Link
               to="/unverified"
               className="px-4 py-2 bg-slate-800/70 hover:bg-slate-700 border border-amber-500/50 rounded-lg font-medium text-amber-400 transition-all text-sm whitespace-nowrap"
+              data-umami-event="nav-unverified"
             >
               📝 Unverified
             </Link>
             <Link
               to="/create"
               className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5 text-sm whitespace-nowrap"
+              data-umami-event="nav-report-incident"
             >
               Report Incident
             </Link>
@@ -90,6 +92,7 @@ export default function Navigation() {
                 <button
                   onClick={logout}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-all text-sm whitespace-nowrap"
+                  data-umami-event="logout"
                 >
                   Logout
                 </button>
@@ -98,6 +101,7 @@ export default function Navigation() {
               <Link
                 to="/login"
                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-all text-sm whitespace-nowrap"
+                data-umami-event="nav-login"
               >
                 Login
               </Link>

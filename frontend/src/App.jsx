@@ -17,6 +17,10 @@ function ScrollToTop() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Track page view for Umami
+    if (typeof window.umami !== 'undefined') {
+      window.umami.track();
+    }
   }, [pathname]);
 
   return null;

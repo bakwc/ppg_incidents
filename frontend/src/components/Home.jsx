@@ -323,6 +323,7 @@ export default function Home() {
           <Link 
             to="/dashboards" 
             className="inline-block px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
+            data-umami-event="home-view-dashboards"
           >
             View Full Statistics & Dashboards →
           </Link>
@@ -388,6 +389,7 @@ export default function Home() {
                 <Link 
                   to="/incidents?has_video=true" 
                   className="inline-block px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-slate-200 transition-all"
+                  data-umami-event="home-browse-videos"
                 >
                   Browse All Videos →
                 </Link>
@@ -435,6 +437,7 @@ export default function Home() {
                 <Link 
                   to="/incidents" 
                   className="inline-block px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-slate-200 transition-all"
+                  data-umami-event="home-browse-incidents"
                 >
                   Browse All Incidents →
                 </Link>
@@ -456,12 +459,14 @@ export default function Home() {
             <Link 
               to="/create" 
               className="px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
+              data-umami-event="home-report-incident"
             >
               Report an Incident
             </Link>
             <Link 
               to="/about" 
               className="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-slate-200 transition-all"
+              data-umami-event="home-learn-more"
             >
               Learn More About This Project
             </Link>

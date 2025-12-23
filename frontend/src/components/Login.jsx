@@ -71,6 +71,7 @@ export default function Login() {
               <button
                 type="submit"
                 className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-0.5"
+                data-umami-event="login-submit"
               >
                 Sign In
               </button>

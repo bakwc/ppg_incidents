@@ -703,6 +703,7 @@ function IncidentForm() {
                   type="submit"
                   disabled={chatLoading || !inputMessage.trim()}
                   className="px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-medium text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed h-fit"
+                  data-umami-event="form-ai-chat-send"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -1070,6 +1071,7 @@ function IncidentForm() {
                     onClick={handleDelete}
                     disabled={deleting}
                     className="px-6 py-3 bg-red-600/80 hover:bg-red-600 border border-red-500/50 rounded-xl text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    data-umami-event="form-delete"
                   >
                     {deleting ? (
                       <>
@@ -1091,6 +1093,7 @@ function IncidentForm() {
                   onClick={handleCheckDuplicates}
                   disabled={duplicateLoading}
                   className="px-6 py-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-xl text-slate-300 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  data-umami-event="form-check-duplicates"
                 >
                   {duplicateLoading ? (
                     <>
@@ -1112,6 +1115,7 @@ function IncidentForm() {
                     onClick={(e) => handleSubmit(e, false)}
                     disabled={saving}
                     className="px-6 py-3 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-xl font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-umami-event="form-save-draft"
                   >
                     {saving ? 'Saving...' : 'Save Draft'}
                   </button>
@@ -1121,6 +1125,7 @@ function IncidentForm() {
                   onClick={handleSubmitForReview}
                   disabled={saving || !hasChanges}
                   className="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl font-semibold text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-umami-event="form-submit-for-review"
                 >
                   {saving ? 'Saving...' : 'Submit for Review'}
                 </button>
@@ -1130,6 +1135,7 @@ function IncidentForm() {
                     onClick={(e) => handleSubmit(e, true)}
                     disabled={saving}
                     className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-umami-event="form-publish"
                   >
                     {saving ? 'Saving...' : 'Publish'}
                   </button>
