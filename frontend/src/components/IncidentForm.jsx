@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident, fetchIncidentDrafts } from '../api';
 import { useAuth } from '../AuthContext';
 import HintPopup from './HintPopup';
-import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS } from '../constants/hints';
+import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS, CAUSE_CONFIDENCE_HINTS, SEVERITY_HINTS, POTENTIALLY_FATAL_HINT } from '../constants/hints';
 
 const FLIGHT_PHASES = [
   { value: '', label: 'Select...' },
@@ -777,15 +777,29 @@ function IncidentForm() {
                     options={PRIMARY_CAUSES} 
                     highlighted={highlightedFields.has('primary_cause')}
                   />
-                  <Select label="Cause Confidence" name="cause_confidence" value={formData.cause_confidence} onChange={handleChange} options={CAUSE_CONFIDENCE} highlighted={highlightedFields.has('cause_confidence')} />
+                  <SelectWithCauseConfidenceHints 
+                    label="Cause Confidence" 
+                    name="cause_confidence" 
+                    value={formData.cause_confidence} 
+                    onChange={handleChange} 
+                    options={CAUSE_CONFIDENCE} 
+                    highlighted={highlightedFields.has('cause_confidence')}
+                  />
                 </div>
                 <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} highlighted={highlightedFields.has('description')} />
                 <Textarea label="Causes Description" name="causes_description" value={formData.causes_description} onChange={handleChange} rows={3} highlighted={highlightedFields.has('causes_description')} />
                 <div className="grid grid-cols-2 gap-4">
-                  <Select label="Severity" name="severity" value={formData.severity} onChange={handleChange} options={SEVERITIES} highlighted={highlightedFields.has('severity')} />
+                  <SelectWithSeverityHints 
+                    label="Severity" 
+                    name="severity" 
+                    value={formData.severity} 
+                    onChange={handleChange} 
+                    options={SEVERITIES} 
+                    highlighted={highlightedFields.has('severity')}
+                  />
                   <Select label="Reserve Use" name="reserve_use" value={formData.reserve_use} onChange={handleChange} options={RESERVE_USE} highlighted={highlightedFields.has('reserve_use')} />
                 </div>
-                <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} highlighted={highlightedFields.has('potentially_fatal')} />
+                <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} highlighted={highlightedFields.has('potentially_fatal')} hint={POTENTIALLY_FATAL_HINT} />
                 <div className="grid grid-cols-2 gap-4">
                   <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." highlighted={highlightedFields.has('surface_type')} />
                   <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} highlighted={highlightedFields.has('pilot_actions')} />
@@ -1225,6 +1239,74 @@ function SelectWithAllHints({ label, name, value, onChange, options, highlighted
         <div key={opt.value}>
           <div className="font-semibold text-slate-200 mb-1">{opt.label}</div>
           <div className="text-slate-400">{PRIMARY_CAUSE_HINTS[opt.value]}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        <HintPopup hint={allHints} />
+      </label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithCauseConfidenceHints({ label, name, value, onChange, options, highlighted }) {
+  const allHints = (
+    <div className="space-y-2 max-h-96 overflow-y-auto">
+      {options.filter(opt => opt.value && CAUSE_CONFIDENCE_HINTS[opt.value]).map(opt => (
+        <div key={opt.value}>
+          <div className="font-semibold text-slate-200 mb-1">{opt.label}</div>
+          <div className="text-slate-400">{CAUSE_CONFIDENCE_HINTS[opt.value]}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        <HintPopup hint={allHints} />
+      </label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithSeverityHints({ label, name, value, onChange, options, highlighted }) {
+  const allHints = (
+    <div className="space-y-2 max-h-96 overflow-y-auto">
+      {options.filter(opt => opt.value && SEVERITY_HINTS[opt.value]).map(opt => (
+        <div key={opt.value}>
+          <div className="font-semibold text-slate-200 mb-1">{opt.label}</div>
+          <div className="text-slate-400">{SEVERITY_HINTS[opt.value]}</div>
         </div>
       ))}
     </div>

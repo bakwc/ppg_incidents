@@ -12,6 +12,21 @@ export const PRIMARY_CAUSE_HINTS = {
   rain_fog_snow: "Flight in or into precipitation or low visibility conditions. Can affect wing performance, weight, and pilot visibility."
 };
 
+export const CAUSE_CONFIDENCE_HINTS = {
+  maximum: "Exactly determined what happened. All facts are clear and verified.",
+  high: "Very likely identified what happened. Strong evidence supports the conclusion.",
+  low: "Not exactly known but plausible assumptions. Some uncertainty remains.",
+  minimal: "Nothing is clear. Multiple possible explanations or very limited information."
+};
+
+export const SEVERITY_HINTS = {
+  fatal: "Resulted in death of the pilot. The most severe outcome.",
+  serious: "Pilot sustained significant injuries requiring medical attention, hospitalization, or long recovery time.",
+  minor: "Pilot walked away unharmed or with only minor injuries like bruises or scratches."
+};
+
+export const POTENTIALLY_FATAL_HINT = "Could have resulted in death if circumstances were slightly different - such as occurring at lower altitude, unrecoverable collapse, reserve not open, hitting a harder surface, or pilot being less fortunate.";
+
 export const CONTRIBUTING_FACTOR_HINTS = {
   factor_low_altitude: "Flying at insufficient height for recovery or reserve deployment. Reduces reaction time in emergencies.",
   factor_maneuvers: "Performing intentional flight maneuvers like spirals, wingovers, or acrobatic moves that increase risk.",

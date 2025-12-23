@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { fetchIncident } from '../api';
 import HintPopup from './HintPopup';
-import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS } from '../constants/hints';
+import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS, CAUSE_CONFIDENCE_HINTS, SEVERITY_HINTS, POTENTIALLY_FATAL_HINT } from '../constants/hints';
 
 const COLLAPSE_LABELS = {
   asymmetric_small: 'Asymmetric collapse (<30%)',
@@ -195,13 +195,15 @@ function IncidentView() {
         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 mb-6">
           <div className="flex flex-wrap items-center gap-3 mb-4">
             {incident.severity && (
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${severityColors[incident.severity]}`}>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold border ${severityColors[incident.severity]}`}>
                 {incident.severity === 'fatal' ? '⚠️ ' : ''}{SEVERITY_LABELS[incident.severity] || incident.severity}
+                <HintPopup hint={SEVERITY_HINTS[incident.severity]} />
               </span>
             )}
             {incident.potentially_fatal && incident.severity !== 'fatal' && (
-              <span className="px-3 py-1 rounded-full text-sm font-semibold border bg-red-500/10 text-red-400 border-red-500/30">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold border bg-red-500/10 text-red-400 border-red-500/30">
                 ⚠️ Potentially Fatal
+                <HintPopup hint={POTENTIALLY_FATAL_HINT} />
               </span>
             )}
             {incident.flight_phase && (
@@ -254,7 +256,13 @@ function IncidentView() {
                     hint={PRIMARY_CAUSE_HINTS[incident.primary_cause]}
                   />
                 )}
-                {incident.cause_confidence && <HighlightedField label="Cause Confidence" value={CAUSE_CONFIDENCE_LABELS[incident.cause_confidence] || incident.cause_confidence} />}
+                {incident.cause_confidence && (
+                  <HighlightedFieldWithHint 
+                    label="Cause Confidence" 
+                    value={CAUSE_CONFIDENCE_LABELS[incident.cause_confidence] || incident.cause_confidence}
+                    hint={CAUSE_CONFIDENCE_HINTS[incident.cause_confidence]}
+                  />
+                )}
               </div>
               {incident.description && <Field label="Description" value={incident.description} multiline />}
               {incident.causes_description && <Field label="Causes" value={incident.causes_description} multiline />}
