@@ -35,9 +35,21 @@ def run_tests():
     sys.exit(result.returncode)
 
 
+def create_from_url():
+    """Create incident from URL using LLM"""
+    env = os.environ.copy()
+    env["SECRET_KEY"] = "dev-secret-key-not-for-production-use"
+    env["DEBUG"] = "True"
+    
+    cmd = ["poetry", "run", "python", "manage.py", "create_from_url"] + sys.argv[2:]
+    print(f"🔗 Creating incident from URL: {' '.join(cmd)}")
+    result = subprocess.run(cmd, env=env)
+    sys.exit(result.returncode)
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python run.py [backend|frontend|test]")
+        print("Usage: python run.py [backend|frontend|test|create_from_url]")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -48,9 +60,11 @@ def main():
         launch_frontend()
     elif command == "test":
         run_tests()
+    elif command == "create_from_url":
+        create_from_url()
     else:
         print(f"Unknown command: {command}")
-        print("Available commands: backend, frontend, test")
+        print("Available commands: backend, frontend, test, create_from_url")
         sys.exit(1)
 
 
