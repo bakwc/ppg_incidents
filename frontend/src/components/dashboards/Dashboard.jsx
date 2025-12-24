@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { fetchDashboardStats } from '../../api';
 import { getBaseFilter, getPieFilterPacks } from './dashboardUtils';
@@ -12,12 +12,20 @@ export default function Dashboard() {
   const location = useLocation();
   const [severityFilter, setSeverityFilter] = useState('potentially_fatal');
   const [yearFilter, setYearFilter] = useState('all_time');
+  const [customYearFrom, setCustomYearFrom] = useState('');
+  const [customYearTo, setCustomYearTo] = useState('');
   const [confidenceFilter, setConfidenceFilter] = useState('high');
   const [totalIncidents, setTotalIncidents] = useState(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [activeSection, setActiveSection] = useState('primary-causes');
+
+  const effectiveYearFilter = useMemo(() => {
+    return yearFilter === 'custom' 
+      ? { from: customYearFrom, to: customYearTo }
+      : yearFilter;
+  }, [yearFilter, customYearFrom, customYearTo]);
 
   useEffect(() => {
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -29,12 +37,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadTotal = async () => {
-      const pieFilterPacks = getPieFilterPacks(severityFilter, yearFilter, confidenceFilter);
+      const pieFilterPacks = getPieFilterPacks(severityFilter, effectiveYearFilter, confidenceFilter);
       const pieData = await fetchDashboardStats(pieFilterPacks);
       setTotalIncidents(pieData['Total'] || 0);
     };
     loadTotal();
-  }, [severityFilter, yearFilter, confidenceFilter]);
+  }, [severityFilter, effectiveYearFilter, confidenceFilter]);
 
   const menuStructure = [
     {
@@ -186,17 +194,41 @@ export default function Dashboard() {
                     <option value="all">All</option>
                   </select>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <label className="text-sm text-slate-400">Period:</label>
                   <select
                     value={yearFilter}
                     onChange={(e) => setYearFilter(e.target.value)}
                     className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/25"
                   >
-                    <option value="all_time">All time</option>
-                    <option value="last_10_years">Last 10 years</option>
+                    <option value="all_time">All</option>
                     <option value="last_5_years">Last 5 years</option>
+                    <option value="last_10_years">Last 10 years</option>
+                    <option value="custom">Custom</option>
                   </select>
+                  {yearFilter === 'custom' && (
+                    <>
+                      <input
+                        type="number"
+                        placeholder="From"
+                        value={customYearFrom}
+                        onChange={(e) => setCustomYearFrom(e.target.value)}
+                        className="w-24 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/25"
+                        min="2007"
+                        max={new Date().getFullYear()}
+                      />
+                      <span className="text-slate-400">-</span>
+                      <input
+                        type="number"
+                        placeholder="To"
+                        value={customYearTo}
+                        onChange={(e) => setCustomYearTo(e.target.value)}
+                        className="w-24 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/25"
+                        min="2007"
+                        max={new Date().getFullYear()}
+                      />
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-400">Confidence:</label>
@@ -222,7 +254,12 @@ export default function Dashboard() {
                     {' '}
                     {severityFilter === 'potentially_fatal' ? 'potentially fatal incidents' : severityFilter === 'fatal' ? 'fatal incidents' : 'incidents'}
                     {' '}
-                    {yearFilter === 'all_time' ? '' : yearFilter === 'last_10_years' ? 'from the last 10 years ' : 'from the last 5 years '}
+                    {yearFilter === 'all_time' ? '' : 
+                     yearFilter === 'last_10_years' ? 'from the last 10 years ' : 
+                     yearFilter === 'last_5_years' ? 'from the last 5 years ' :
+                     yearFilter === 'custom' && customYearFrom && customYearTo ? `from ${customYearFrom} to ${customYearTo} ` :
+                     yearFilter === 'custom' && customYearFrom ? `from ${customYearFrom} ` :
+                     yearFilter === 'custom' && customYearTo ? `to ${customYearTo} ` : ''}
                     {confidenceFilter === 'high' && 'with high cause confidence'}
                   </div>
                   <div className="mb-6 md:mb-8 text-base md:text-lg text-slate-300">
@@ -236,7 +273,7 @@ export default function Dashboard() {
                 <Route path="/causes-analysis" element={
                   <CausesAnalysisDashboard
                     severityFilter={severityFilter}
-                    yearFilter={yearFilter}
+                    yearFilter={effectiveYearFilter}
                     confidenceFilter={confidenceFilter}
                     isMobile={isMobile}
                     isTouchDevice={isTouchDevice}
@@ -250,7 +287,7 @@ export default function Dashboard() {
                 <Route path="/flight-conditions" element={
                   <FlightConditionsDashboard
                     severityFilter={severityFilter}
-                    yearFilter={yearFilter}
+                    yearFilter={effectiveYearFilter}
                     confidenceFilter={confidenceFilter}
                     isMobile={isMobile}
                     isTouchDevice={isTouchDevice}
@@ -264,7 +301,7 @@ export default function Dashboard() {
                 <Route path="/safety-equipment" element={
                   <SafetyEquipmentDashboard
                     severityFilter={severityFilter}
-                    yearFilter={yearFilter}
+                    yearFilter={effectiveYearFilter}
                     confidenceFilter={confidenceFilter}
                     isMobile={isMobile}
                     isTouchDevice={isTouchDevice}
@@ -278,7 +315,7 @@ export default function Dashboard() {
                 <Route path="/trends-distribution" element={
                   <TrendsDistributionDashboard
                     severityFilter={severityFilter}
-                    yearFilter={yearFilter}
+                    yearFilter={effectiveYearFilter}
                     confidenceFilter={confidenceFilter}
                     isMobile={isMobile}
                     isTouchDevice={isTouchDevice}

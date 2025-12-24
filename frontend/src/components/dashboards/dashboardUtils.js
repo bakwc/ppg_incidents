@@ -13,7 +13,14 @@ export const getBaseFilter = (severityFilter, yearFilter, confidenceFilter) => {
     baseFilter.severity = 'fatal';
   }
   
-  if (yearFilter === 'last_10_years') {
+  if (typeof yearFilter === 'object' && yearFilter !== null) {
+    if (yearFilter.from) {
+      baseFilter.year_min = parseInt(yearFilter.from);
+    }
+    if (yearFilter.to) {
+      baseFilter.year_max = parseInt(yearFilter.to);
+    }
+  } else if (yearFilter === 'last_10_years') {
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 10;
     baseFilter.year_min = startYear;
