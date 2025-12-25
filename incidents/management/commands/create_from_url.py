@@ -1,3 +1,4 @@
+import json
 import re
 import ssl
 import urllib.request
@@ -22,25 +23,56 @@ BHPA_FORMAL_LIST_PATTERN = re.compile(r"^https?://(?:www\.)?bhpa\.co\.uk/safety/
 class Command(BaseCommand):
     help = "Create an incident from a URL using LLM"
 
+    def check_duplicates(self, url):
+        api_url = f"https://ppg-incidents.org/api/incidents?text_search={urllib.request.quote(url)}"
+        
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        request = urllib.request.Request(
+            api_url,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        
+        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            return result.get("results", [])
+
+    def upload_incident(self, incident_data):
+        api_url = "https://ppg-incidents.org/api/incident/save"
+        data = json.dumps({"incident_data": incident_data}).encode("utf-8")
+        
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        request = urllib.request.Request(
+            api_url,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        
+        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            return result.get("incident", {}).get("uuid")
+
     def add_arguments(self, parser):
         parser.add_argument("url", type=str, help="URL to incident report")
         parser.add_argument("--model", type=str, default="claude-sonnet-4-5-20250929", help="Model to use")
         parser.add_argument("--force", action="store_true", help="Skip duplicate check")
+        parser.add_argument("--upload", action="store_true", help="Upload to public API instead of local DB")
 
     def handle(self, *args, **options):
         url = options["url"]
         model = options["model"]
+        upload = options["upload"]
 
         if USPPA_LIST_PATTERN.match(url):
-            self.handle_usppa_list(url, model, options["force"])
+            self.handle_usppa_list(url, model, options["force"], upload)
         elif BHPA_FORMAL_LIST_PATTERN.match(url):
-            self.handle_bhpa_formal_list(url, model, options["force"])
+            self.handle_bhpa_formal_list(url, model, options["force"], upload)
         elif BHPA_LIST_PATTERN.match(url):
-            self.handle_bhpa_list(url, model, options["force"])
+            self.handle_bhpa_list(url, model, options["force"], upload)
         else:
-            self.process_single_url(url, model, options["force"])
+            self.process_single_url(url, model, options["force"], upload=upload)
 
-    def handle_usppa_list(self, url, model, force):
+    def handle_usppa_list(self, url, model, force, upload):
         self.stdout.write(f"Detected USPPA incidents list page: {url}")
         self.stdout.write("Fetching incident links...")
 
@@ -59,9 +91,9 @@ class Command(BaseCommand):
 
         for i, incident_url in enumerate(incident_urls, 1):
             self.stdout.write(f"\n[{i}/{len(incident_urls)}] {incident_url}")
-            self.process_single_url(incident_url, model, force, auto_skip=True)
+            self.process_single_url(incident_url, model, force, auto_skip=True, upload=upload, check_url=incident_url)
 
-    def handle_bhpa_formal_list(self, url, model, force):
+    def handle_bhpa_formal_list(self, url, model, force, upload):
         self.stdout.write(f"Detected BHPA formal investigations page: {url}")
         self.stdout.write("Fetching and parsing incidents...")
 
@@ -81,26 +113,38 @@ class Command(BaseCommand):
 
             incident_date = bhpa_incident.get_date_iso()
 
-            duplicates = Incident.all_objects.filter(
-                date=incident_date,
-                country="United Kingdom"
-            )
-            if duplicates.exists():
-                existing = duplicates.first()
-                if existing.source_links and existing.report_raw:
-                    self.stdout.write(self.style.WARNING(f"Duplicate found with source and report (date={incident_date})"))
+            if upload:
+                duplicates = self.check_duplicates(bhpa_incident.pdf_url)
+                if duplicates and not force:
+                    self.stdout.write(self.style.WARNING(f"Duplicate found by PDF URL"))
+                    for dup in duplicates:
+                        incident_uuid = dup.get("uuid")
+                        self.stdout.write(f"  https://ppg-incidents.org/view/{incident_uuid}")
                     self.stdout.write("Skipped.")
                     continue
+            else:
+                duplicates = Incident.all_objects.filter(
+                    date=incident_date,
+                    country="United Kingdom"
+                )
+                if duplicates.exists():
+                    existing = duplicates.first()
+                    if existing.source_links and existing.report_raw:
+                        self.stdout.write(self.style.WARNING(f"Duplicate found with source and report (date={incident_date})"))
+                        self.stdout.write(f"  http://localhost:5173/view/{existing.uuid}")
+                        self.stdout.write("Skipped.")
+                        continue
 
-                self.stdout.write(self.style.WARNING(f"Duplicate found but missing source/report, updating..."))
-                self.stdout.write(f"Downloading PDF: {bhpa_incident.pdf_url}")
-                pdf_content = get_webpage_content(bhpa_incident.pdf_url)
+                    self.stdout.write(self.style.WARNING(f"Duplicate found but missing source/report, updating..."))
+                    self.stdout.write(f"  http://localhost:5173/view/{existing.uuid}")
+                    self.stdout.write(f"Downloading PDF: {bhpa_incident.pdf_url}")
+                    pdf_content = get_webpage_content(bhpa_incident.pdf_url)
 
-                existing.source_links = bhpa_incident.pdf_url
-                existing.report_raw = pdf_content
-                existing.save()
-                self.stdout.write(self.style.SUCCESS(f"Updated incident: {existing.uuid}"))
-                continue
+                    existing.source_links = bhpa_incident.pdf_url
+                    existing.report_raw = pdf_content
+                    existing.save()
+                    self.stdout.write(self.style.SUCCESS(f"Updated incident: {existing.uuid}"))
+                    continue
 
             self.stdout.write(f"Downloading PDF: {bhpa_incident.pdf_url}")
             pdf_content = get_webpage_content(bhpa_incident.pdf_url)
@@ -120,16 +164,21 @@ class Command(BaseCommand):
             incident_data["verified"] = False
             incident_data["source_links"] = bhpa_incident.pdf_url
             incident_data["report_raw"] = pdf_content
-            serializer = IncidentSerializer(data=incident_data)
-            serializer.is_valid(raise_exception=True)
-            incident = serializer.save()
+            
+            if upload:
+                incident_uuid = self.upload_incident(incident_data)
+                self.stdout.write(self.style.SUCCESS(f"Uploaded incident: {incident_uuid}"))
+            else:
+                serializer = IncidentSerializer(data=incident_data)
+                serializer.is_valid(raise_exception=True)
+                incident = serializer.save()
 
-            embedding = ai_communicator.get_embedding(incident.to_text())
-            upsert_embedding(incident.id, embedding)
+                embedding = ai_communicator.get_embedding(incident.to_text())
+                upsert_embedding(incident.id, embedding)
 
-            self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
+                self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
 
-    def handle_bhpa_list(self, url, model, force):
+    def handle_bhpa_list(self, url, model, force, upload):
         self.stdout.write(f"Detected BHPA incidents list page: {url}")
         self.stdout.write("Fetching and parsing incidents...")
 
@@ -150,13 +199,15 @@ class Command(BaseCommand):
             incident_date = bhpa_incident.get_date_iso()
             normalized_country = bhpa_incident.get_normalized_country()
 
-            if not force:
+            if not force and not upload:
                 duplicates = Incident.all_objects.filter(
                     date=incident_date,
                     country=normalized_country
                 )
                 if duplicates.exists():
                     self.stdout.write(self.style.WARNING(f"Duplicate found (date={incident_date}, country={normalized_country})"))
+                    for dup in duplicates:
+                        self.stdout.write(f"  http://localhost:5173/view/{dup.uuid}")
                     self.stdout.write("Skipped.")
                     continue
 
@@ -173,28 +224,52 @@ class Command(BaseCommand):
             self.stdout.write(f"\nExtracted data: {incident_data}")
 
             incident_data["verified"] = False
-            serializer = IncidentSerializer(data=incident_data)
-            serializer.is_valid(raise_exception=True)
-            incident = serializer.save()
+            
+            if upload:
+                incident_uuid = self.upload_incident(incident_data)
+                self.stdout.write(self.style.SUCCESS(f"Uploaded incident: {incident_uuid}"))
+            else:
+                serializer = IncidentSerializer(data=incident_data)
+                serializer.is_valid(raise_exception=True)
+                incident = serializer.save()
 
-            embedding = ai_communicator.get_embedding(incident.to_text())
-            upsert_embedding(incident.id, embedding)
+                embedding = ai_communicator.get_embedding(incident.to_text())
+                upsert_embedding(incident.id, embedding)
 
-            self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
+                self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
 
-    def process_single_url(self, url, model, force, auto_skip=False):
-        duplicates = Incident.all_objects.filter(
-            Q(source_links__icontains=url) | Q(media_links__icontains=url)
-        )
-        if duplicates.exists() and not force:
-            self.stdout.write(self.style.WARNING(f"URL already used in {duplicates.count()} incident(s)"))
-            if auto_skip:
-                self.stdout.write("Skipped.")
-                return
-            confirm = input("Continue anyway? [y/N]: ")
-            if confirm.lower() != "y":
-                self.stdout.write("Skipped.")
-                return
+    def process_single_url(self, url, model, force, auto_skip=False, upload=False, check_url=None):
+        check_url = check_url or url
+        
+        if upload:
+            duplicates = self.check_duplicates(check_url)
+            if duplicates and not force:
+                self.stdout.write(self.style.WARNING(f"URL already used in {len(duplicates)} incident(s)"))
+                for dup in duplicates:
+                    incident_uuid = dup.get("uuid")
+                    self.stdout.write(f"  https://ppg-incidents.org/view/{incident_uuid}")
+                if auto_skip:
+                    self.stdout.write("Skipped.")
+                    return
+                confirm = input("Continue anyway? [y/N]: ")
+                if confirm.lower() != "y":
+                    self.stdout.write("Skipped.")
+                    return
+        else:
+            duplicates = Incident.all_objects.filter(
+                Q(source_links__icontains=check_url) | Q(media_links__icontains=check_url)
+            )
+            if duplicates.exists() and not force:
+                self.stdout.write(self.style.WARNING(f"URL already used in {duplicates.count()} incident(s)"))
+                for dup in duplicates:
+                    self.stdout.write(f"  http://localhost:5173/view/{dup.uuid}")
+                if auto_skip:
+                    self.stdout.write("Skipped.")
+                    return
+                confirm = input("Continue anyway? [y/N]: ")
+                if confirm.lower() != "y":
+                    self.stdout.write("Skipped.")
+                    return
 
         self.stdout.write(f"Processing URL: {url}")
 
@@ -209,12 +284,17 @@ class Command(BaseCommand):
         self.stdout.write(f"\nExtracted data: {incident_data}")
 
         incident_data["verified"] = False
-        serializer = IncidentSerializer(data=incident_data)
-        serializer.is_valid(raise_exception=True)
-        incident = serializer.save()
+        
+        if upload:
+            incident_uuid = self.upload_incident(incident_data)
+            self.stdout.write(self.style.SUCCESS(f"Uploaded incident: {incident_uuid}"))
+        else:
+            serializer = IncidentSerializer(data=incident_data)
+            serializer.is_valid(raise_exception=True)
+            incident = serializer.save()
 
-        embedding = ai_communicator.get_embedding(incident.to_text())
-        upsert_embedding(incident.id, embedding)
+            embedding = ai_communicator.get_embedding(incident.to_text())
+            upsert_embedding(incident.id, embedding)
 
-        self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
+            self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
 
