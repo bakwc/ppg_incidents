@@ -24,10 +24,22 @@
 
 - For choice fields: add to `choice_fields` dict in `to_internal_value()` (line 23-33)
 
-### 4. Migration
+### 4. Views (`incidents/views.py`)
+
+**For Factor (Boolean):**
+- Add to `BOOLEAN_FILTER_FIELDS` list (line 88-121) - **CRITICAL FOR FILTERING TO WORK**
+
+**For Factor (Choice):**
+- Add to `CHOICE_FILTER_FIELDS` list (line 124-135)
+
+### 5. Migration
 
 - Run: `poetry run python manage.py makemigrations`
 - Run: `poetry run python manage.py migrate`
+
+### 6. Regenerate Search Indices
+
+- Run: `poetry run python manage.py generate_fts_index` - Updates full-text search index
 
 ## Frontend Changes
 
