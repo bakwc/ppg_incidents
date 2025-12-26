@@ -37,6 +37,10 @@ At least one API key must be set.
 ./run.py test
 ```
 
+## Development Guides
+
+- [Adding New Primary Causes or Factors](ADDING_CAUSES_FACTORS.md)
+
 ## Management Commands
 
 ### create_from_url
