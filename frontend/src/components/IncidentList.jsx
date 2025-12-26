@@ -136,6 +136,8 @@ const BOOLEAN_FILTERS = [
   { key: 'factor_rain', label: 'Rain' },
   { key: 'factor_rotor_turbulence', label: 'Rotor turbulence' },
   { key: 'factor_wake_turbulence', label: 'Wake turbulence' },
+  { key: 'factor_wind_shear', label: 'Wind shear' },
+  { key: 'factor_gust_front', label: 'Gust front' },
   { key: 'factor_turbulent_conditions', label: 'Turbulent conditions' },
   { key: 'factor_reflex_profile', label: 'Reflex profile' },
   { key: 'factor_tree_collision', label: 'Tree collision' },

@@ -149,6 +149,8 @@ function IncidentForm() {
     factor_rain: false,
     factor_rotor_turbulence: false,
     factor_wake_turbulence: false,
+    factor_wind_shear: false,
+    factor_gust_front: false,
     factor_trimmer_position: '',
     factor_reflex_profile: false,
     factor_helmet_missing: false,
@@ -919,6 +921,8 @@ function IncidentForm() {
                   <Checkbox label="Rain" name="factor_rain" checked={formData.factor_rain} onChange={handleChange} highlighted={highlightedFields.has('factor_rain')} hint={CONTRIBUTING_FACTOR_HINTS.factor_rain} />
                   <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_rotor_turbulence')} hint={CONTRIBUTING_FACTOR_HINTS.factor_rotor_turbulence} />
                   <Checkbox label="Wake turbulence" name="factor_wake_turbulence" checked={formData.factor_wake_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_wake_turbulence')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wake_turbulence} />
+                  <Checkbox label="Wind shear" name="factor_wind_shear" checked={formData.factor_wind_shear} onChange={handleChange} highlighted={highlightedFields.has('factor_wind_shear')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wind_shear} />
+                  <Checkbox label="Gust front" name="factor_gust_front" checked={formData.factor_gust_front} onChange={handleChange} highlighted={highlightedFields.has('factor_gust_front')} hint={CONTRIBUTING_FACTOR_HINTS.factor_gust_front} />
                   <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} highlighted={highlightedFields.has('factor_reflex_profile')} hint={CONTRIBUTING_FACTOR_HINTS.factor_reflex_profile} />
                   <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} highlighted={highlightedFields.has('factor_helmet_missing')} hint={CONTRIBUTING_FACTOR_HINTS.factor_helmet_missing} />
                   <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_tree_collision')} hint={CONTRIBUTING_FACTOR_HINTS.factor_tree_collision} />

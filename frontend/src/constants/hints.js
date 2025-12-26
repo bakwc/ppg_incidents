@@ -36,6 +36,8 @@ export const CONTRIBUTING_FACTOR_HINTS = {
   factor_rain: "Flying in or encountering rain, which adds weight to the wing and can affect performance.",
   factor_rotor_turbulence: "Entering turbulent air behind obstacles like hills, buildings, or ridges where wind creates chaotic flow.",
   factor_wake_turbulence: "Turbulent air created by another aircraft passing nearby or ahead.",
+  factor_wind_shear: "Sudden change in wind speed or direction over a short distance, causing abrupt wing loading changes.",
+  factor_gust_front: "Leading edge of thunderstorm outflow with sudden, strong wind changes and possible downdrafts.",
   factor_reflex_profile: "Wing with reflex profile design, which affects handling characteristics and collapse resistance.",
   factor_helmet_missing: "Not wearing a helmet during flight, removing critical head protection.",
   factor_tree_collision: "Impact with or landing in trees, which can cause injury and equipment damage.",

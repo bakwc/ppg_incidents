@@ -53,6 +53,8 @@ The incident has the following fields:
 - factor_rain: Boolean - rain during flight
 - factor_rotor_turbulence: Boolean - entered rotor turbulence
 - factor_wake_turbulence: Boolean - entered wake turbulence from another aircraft or himself
+- factor_wind_shear: Boolean - encountered wind shear (sudden change in wind speed or direction)
+- factor_gust_front: Boolean - encountered gust front (leading edge of thunderstorm outflow with sudden wind changes)
 - factor_trimmer_position: One of: "closed", "partially_open", "fully_open"
 - factor_reflex_profile: Boolean - presence of reflex profile
 - factor_helmet_missing: Boolean - helmet was not worn

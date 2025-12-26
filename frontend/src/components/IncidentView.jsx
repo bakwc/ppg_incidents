@@ -354,7 +354,7 @@ function IncidentView() {
           )}
 
           {/* Contributing Factors */}
-          {(incident.factor_trimmer_position || incident.factor_accelerator || incident.factor_mid_air_collision || incident.factor_low_altitude || incident.factor_maneuvers || incident.factor_thermal_weather || incident.factor_rain || incident.factor_rotor_turbulence || incident.factor_wake_turbulence || incident.factor_reflex_profile || incident.factor_helmet_missing || incident.factor_tree_collision || incident.factor_water_landing || incident.factor_ground_starting || incident.factor_powerline_collision || incident.factor_turbulent_conditions || incident.factor_spiral_maneuver || incident.factor_ground_object_collision) && (
+          {(incident.factor_trimmer_position || incident.factor_accelerator || incident.factor_mid_air_collision || incident.factor_low_altitude || incident.factor_maneuvers || incident.factor_thermal_weather || incident.factor_rain || incident.factor_rotor_turbulence || incident.factor_wake_turbulence || incident.factor_wind_shear || incident.factor_gust_front || incident.factor_reflex_profile || incident.factor_helmet_missing || incident.factor_tree_collision || incident.factor_water_landing || incident.factor_ground_starting || incident.factor_powerline_collision || incident.factor_turbulent_conditions || incident.factor_spiral_maneuver || incident.factor_ground_object_collision) && (
             <Section title="Contributing Factors">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 {incident.factor_trimmer_position && <Field label="Trimmer Position" value={TRIMMER_LABELS[incident.factor_trimmer_position] || incident.factor_trimmer_position} />}
@@ -368,6 +368,8 @@ function IncidentView() {
                 {incident.factor_rain && <Badge label="Rain" hint={CONTRIBUTING_FACTOR_HINTS.factor_rain} />}
                 {incident.factor_rotor_turbulence && <Badge label="Entered rotor turbulence" hint={CONTRIBUTING_FACTOR_HINTS.factor_rotor_turbulence} />}
                 {incident.factor_wake_turbulence && <Badge label="Wake turbulence" hint={CONTRIBUTING_FACTOR_HINTS.factor_wake_turbulence} />}
+                {incident.factor_wind_shear && <Badge label="Wind shear" hint={CONTRIBUTING_FACTOR_HINTS.factor_wind_shear} />}
+                {incident.factor_gust_front && <Badge label="Gust front" hint={CONTRIBUTING_FACTOR_HINTS.factor_gust_front} />}
                 {incident.factor_reflex_profile && <Badge label="Reflex profile wing" hint={CONTRIBUTING_FACTOR_HINTS.factor_reflex_profile} />}
                 {incident.factor_helmet_missing && <Badge label="Helmet missing" hint={CONTRIBUTING_FACTOR_HINTS.factor_helmet_missing} />}
                 {incident.factor_tree_collision && <Badge label="Tree collision/landing" hint={CONTRIBUTING_FACTOR_HINTS.factor_tree_collision} />}

@@ -163,6 +163,8 @@ class Incident(models.Model):
     factor_rain = models.BooleanField(null=True, blank=True, verbose_name="Rain")
     factor_rotor_turbulence = models.BooleanField(null=True, blank=True, verbose_name="Entered rotor turbulence")
     factor_wake_turbulence = models.BooleanField(null=True, blank=True, verbose_name="Wake turbulence")
+    factor_wind_shear = models.BooleanField(null=True, blank=True, verbose_name="Wind shear")
+    factor_gust_front = models.BooleanField(null=True, blank=True, verbose_name="Gust front")
     factor_trimmer_position = models.CharField(max_length=20, choices=TrimmerPosition.choices, null=True, blank=True, verbose_name="Trimmer position")
     factor_reflex_profile = models.BooleanField(null=True, blank=True, verbose_name="Presence of reflex profile")
     factor_helmet_missing = models.BooleanField(null=True, blank=True, verbose_name="Helmet missing")
@@ -321,6 +323,10 @@ class Incident(models.Model):
             factors.append("rotor turbulence")
         if self.factor_wake_turbulence:
             factors.append("wake turbulence")
+        if self.factor_wind_shear:
+            factors.append("wind shear")
+        if self.factor_gust_front:
+            factors.append("gust front")
         if self.factor_trimmer_position:
             factors.append(f"trimmer {self.get_factor_trimmer_position_display()}")
         if self.factor_reflex_profile:
