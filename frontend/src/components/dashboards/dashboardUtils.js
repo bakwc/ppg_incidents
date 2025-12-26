@@ -370,14 +370,19 @@ export const getTurbulenceFilterPacks = (severityFilter, yearFilter, confidenceF
     exclude: {}
   },
   {
-    name: 'Wind',
-    include: { ...baseFilter, factor_turbulent_conditions: true, wind_speed_ms_min: 3 },
-    exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true }
+    name: 'Wind Shear',
+    include: { ...baseFilter, factor_turbulent_conditions: true, factor_wind_shear: true },
+    exclude: {}
   },
   {
-    name: 'Other',
+    name: 'Gust Front',
+    include: { ...baseFilter, factor_turbulent_conditions: true, factor_gust_front: true },
+    exclude: {}
+  },
+  {
+    name: 'Unknown',
     include: { ...baseFilter, factor_turbulent_conditions: true },
-    exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true, wind_speed_ms_min: 3 }
+    exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true, factor_wind_shear: true, factor_gust_front: true }
   }
 ];
 };
