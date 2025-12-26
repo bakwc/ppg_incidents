@@ -92,9 +92,19 @@ export const getPieFilterPacks = (severityFilter, yearFilter, confidenceFilter) 
     exclude: {}
   },
   {
+    name: 'Torque Twist',
+    include: { ...baseFilter, primary_cause: 'torque_twist' },
+    exclude: {}
+  },
+  {
+    name: 'Ground Handling',
+    include: { ...baseFilter, primary_cause: 'ground_handling' },
+    exclude: {}
+  },
+  {
     name: 'Others / Unknown',
     include: { ...baseFilter },
-    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting,ground_object_collision,preflight_error,rain_fog_snow' }
+    exclude: { primary_cause: 'wrong_control_input,hardware_failure,turbulence,powerline_collision,midair_collision,water_landing,lines_brakes_issues,ground_starting,ground_object_collision,preflight_error,rain_fog_snow,torque_twist,ground_handling' }
   }
 ];
 };
@@ -579,7 +589,7 @@ export const getPrimaryCauseTrendFilterPacks = (severityFilter, confidenceFilter
         {
           cause: 'Other',
           include: { ...baseFilterMaker(currentYear - 4, currentYear) },
-          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision,torque_twist,ground_handling' }
         }
       ]
     },
@@ -614,7 +624,7 @@ export const getPrimaryCauseTrendFilterPacks = (severityFilter, confidenceFilter
         {
           cause: 'Other',
           include: { ...baseFilterMaker(currentYear - 9, currentYear - 5) },
-          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision,torque_twist,ground_handling' }
         }
       ]
     },
@@ -649,7 +659,7 @@ export const getPrimaryCauseTrendFilterPacks = (severityFilter, confidenceFilter
         {
           cause: 'Other',
           include: { ...baseFilterMaker(currentYear - 14, currentYear - 10) },
-          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision,torque_twist,ground_handling' }
         }
       ]
     },
@@ -684,7 +694,7 @@ export const getPrimaryCauseTrendFilterPacks = (severityFilter, confidenceFilter
         {
           cause: 'Other',
           include: { ...baseFilterMaker(currentYear - 19, currentYear - 15) },
-          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision' }
+          exclude: { primary_cause: 'wrong_control_input,turbulence,hardware_failure,ground_starting,powerline_collision,torque_twist,ground_handling' }
         }
       ]
     }

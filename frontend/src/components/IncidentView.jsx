@@ -89,6 +89,8 @@ const PRIMARY_CAUSE_LABELS = {
   ground_starting: 'Ground Starting',
   ground_object_collision: 'Ground Object Collision / Near Miss',
   rain_fog_snow: 'Rain / Fog / Snow / Mist',
+  torque_twist: 'Torque Twist',
+  ground_handling: 'Ground Handling',
 };
 
 const severityColors = {

@@ -9,7 +9,9 @@ export const PRIMARY_CAUSE_HINTS = {
   preflight_error: "Issue that should have been caught during preflight check. Includes assembly errors, forgotten steps, or missed damage.",
   ground_starting: "Starting the paramotor's engine while the unit is on the ground, before strapping it onto the back.",
   ground_object_collision: "Impact with trees, buildings, vehicles, or other ground obstacles. Often during approach or emergency landing.",
-  rain_fog_snow: "Flight in or into precipitation or low visibility conditions. Can affect wing performance, weight, and pilot visibility."
+  rain_fog_snow: "Flight in or into precipitation or low visibility conditions. Can affect wing performance, weight, and pilot visibility.",
+  torque_twist: "Motor torque causes the lines to twist, leading to loss of control. The rotational force from the propeller can twist the suspension lines.",
+  ground_handling: "Incidents during ground handling operations. Includes tripping while running, falling, crashing wing into propeller on ground, or other ground-level mishaps."
 };
 
 export const CAUSE_CONFIDENCE_HINTS = {

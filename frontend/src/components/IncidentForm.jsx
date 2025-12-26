@@ -100,6 +100,8 @@ const PRIMARY_CAUSES = [
   { value: 'ground_starting', label: 'Ground Starting' },
   { value: 'ground_object_collision', label: 'Ground Object Collision / Near Miss' },
   { value: 'rain_fog_snow', label: 'Rain / Fog / Snow / Mist' },
+  { value: 'torque_twist', label: 'Torque Twist' },
+  { value: 'ground_handling', label: 'Ground Handling' },
 ];
 
 function IncidentForm() {

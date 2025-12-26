@@ -85,7 +85,9 @@ export default function CausesAnalysisDashboard({
     'Ground Starting': 'ground_starting',
     'Ground Object Collision': 'ground_object_collision',
     'Preflight Error': 'preflight_error',
-    'Rain / Fog / Snow / Mist': 'rain_fog_snow'
+    'Rain / Fog / Snow / Mist': 'rain_fog_snow',
+    'Torque Twist': 'torque_twist',
+    'Ground Handling': 'ground_handling'
   };
 
   const pieChartData = pieFilterPacks
