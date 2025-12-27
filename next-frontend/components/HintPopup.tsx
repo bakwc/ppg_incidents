@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface HintPopupProps {
-  hint?: string;
+  hint?: string | React.ReactNode;
   className?: string;
 }
 

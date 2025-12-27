@@ -429,7 +429,7 @@ function Section({ title, children }) {
   );
 }
 
-function Field({ label, value, multiline }) {
+function Field({ label, value, multiline = false }: { label: string; value: any; multiline?: boolean }) {
   return (
     <div>
       <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
@@ -463,7 +463,7 @@ function HighlightedFieldWithHint({ label, value, hint }) {
   );
 }
 
-function Badge({ label, hint }) {
+function Badge({ label, hint }: { label: string; hint?: string | React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-slate-300">
       {label}

@@ -275,7 +275,7 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
   });
 
   const buildFilters = () => {
-    const result = {};
+    const result: Record<string, string> = {};
     activeFilters.forEach(f => {
       const key = f.exclude ? `exclude_${f.key}` : f.key;
       const val = f.value || 'true';
