@@ -45,28 +45,28 @@
 
 ### 1. Constants
 
-**Form Options (`frontend/src/components/IncidentForm.jsx`):**
-- Primary cause: `PRIMARY_CAUSES` array (line 90-103)
+**Form Options (`next-frontend/components/IncidentForm.tsx`):**
+- Primary cause: `PRIMARY_CAUSES` array (line 94-109)
 - Factor choice: add new const array (like `TRIMMER_POSITIONS`, `ACCELERATOR_POSITIONS`)
 
-**Labels (`frontend/src/components/IncidentView.jsx`):**
-- Primary cause: `PRIMARY_CAUSE_LABELS` (line 80-92)
+**Labels (`next-frontend/components/IncidentView.tsx`):**
+- Primary cause: `PRIMARY_CAUSE_LABELS` (line 83-97)
 - Factor choice: add new const object (like `TRIMMER_LABELS`, `ACCELERATOR_LABELS`)
 
-**Hints (`frontend/src/constants/hints.js`):**
-- Primary cause: `PRIMARY_CAUSE_HINTS` (line 1-13)
-- Factor: `CONTRIBUTING_FACTOR_HINTS` (line 30-60)
+**Hints (`next-frontend/constants/hints.js`):**
+- Primary cause: `PRIMARY_CAUSE_HINTS` (line 1-15)
+- Factor: `CONTRIBUTING_FACTOR_HINTS` (line 32-64)
 
-### 2. Form State (`frontend/src/components/IncidentForm.jsx`)
+### 2. Form State (`next-frontend/components/IncidentForm.tsx`)
 
-- Add to initial `formData` state (line 114-184)
+- Add to initial `formData` state (line 120-192)
   - Boolean: `factor_name: false`
   - Choice: `factor_name: ''`
 
-### 3. Dashboard Analytics (`frontend/src/components/dashboards/dashboardUtils.js`)
+### 3. Dashboard Analytics (`next-frontend/components/dashboards/`)
 
 **For Primary Cause:**
-- Add to `getPieFilterPacks()` (line 38-98)
+- Add to `getPieFilterPacks()` in `dashboardUtils.js` (line 38-98)
 - Add to exclusion list in "Other" category (line 97)
 - Add to `getTimeBasedPieFilterPacks()` for trends (line 544-689)
 - Update `causeKeyMap` in `CausesAnalysisDashboard.jsx` (line 77-89)
@@ -78,7 +78,7 @@
   - `getHardwareFailureFilterPacks()` (line 225-269)
 - Update hint map in `CausesAnalysisDashboard.jsx` if used (line 113-124)
 
-### 4. Incident List Filters (`frontend/src/components/IncidentList.jsx`)
+### 4. Incident List Filters (`next-frontend/components/IncidentList.tsx`)
 
 **For Primary Cause:**
 - Add to `SELECT_FILTERS` array in `primary_cause` section (line 109-124)
@@ -92,67 +92,46 @@
   - Pilot-related: `PILOT_RELATED_FILTERS` (line 148-157)
   - Hardware: `HARDWARE_FAILURE_FILTERS` (line 159-166)
 
-### 5. Form Rendering (`frontend/src/components/IncidentForm.jsx`)
+### 5. Form Rendering (`next-frontend/components/IncidentForm.tsx`)
 
-Add input in appropriate section (line 600+):
+Add input in appropriate section (line 850+):
 
 **Boolean Factor:**
-```jsx
-<label className="flex items-center gap-2">
-  <input
-    type="checkbox"
-    name="factor_name"
-    checked={formData.factor_name}
-    onChange={handleChange}
-    className="checkbox-custom"
-  />
-  <span>Display Name</span>
-  <HintPopup hint={CONTRIBUTING_FACTOR_HINTS.factor_name} />
-</label>
+```tsx
+<Checkbox 
+  label="Display Name" 
+  name="factor_name" 
+  checked={formData.factor_name} 
+  onChange={handleChange} 
+  highlighted={highlightedFields.has('factor_name')} 
+  hint={CONTRIBUTING_FACTOR_HINTS.factor_name} 
+/>
 ```
 
 **Choice Factor:**
-```jsx
-<div>
-  <label className="label-custom">
-    Display Name
-    <HintPopup hint={CONTRIBUTING_FACTOR_HINTS.factor_name} />
-  </label>
-  <select
-    name="factor_name"
-    value={formData.factor_name}
-    onChange={handleChange}
-    className="input-custom"
-  >
-    {FACTOR_NAME_OPTIONS.map(opt => (
-      <option key={opt.value} value={opt.value}>{opt.label}</option>
-    ))}
-  </select>
-</div>
+```tsx
+<Select 
+  label="Display Name" 
+  name="factor_name" 
+  value={formData.factor_name} 
+  onChange={handleChange} 
+  options={FACTOR_NAME_OPTIONS} 
+  highlighted={highlightedFields.has('factor_name')} 
+/>
 ```
 
-### 6. Incident View (`frontend/src/components/IncidentView.jsx`)
+### 6. Incident View (`next-frontend/components/IncidentView.tsx`)
 
-Add display logic in factors section (line 290+):
+Add display logic in factors section (line 349+ for Contributing Factors, line 379+ for Pilot-Related Factors):
 
 **Boolean:**
-```jsx
-{incident.factor_name && (
-  <span className="inline-flex items-center gap-1.5">
-    Display Name
-    <HintPopup hint={CONTRIBUTING_FACTOR_HINTS.factor_name} />
-  </span>
-)}
+```tsx
+{incident.factor_name && <Badge label="Display Name" hint={CONTRIBUTING_FACTOR_HINTS.factor_name} />}
 ```
 
 **Choice:**
-```jsx
-{incident.factor_name && (
-  <span className="inline-flex items-center gap-1.5">
-    Display Name: {FACTOR_NAME_LABELS[incident.factor_name]}
-    <HintPopup hint={CONTRIBUTING_FACTOR_HINTS.factor_name} />
-  </span>
-)}
+```tsx
+{incident.factor_name && <Badge label={`Display Name: ${FACTOR_NAME_LABELS[incident.factor_name]}`} hint={CONTRIBUTING_FACTOR_HINTS.factor_name} />}
 ```
 
 ## Testing
