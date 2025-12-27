@@ -122,13 +122,17 @@ class AiCommunicator:
         api_key = os.getenv('OPENAI_API_KEY')
         api_key_deepseek = os.getenv('DEEPSEEK_API_KEY')
         api_key_anthropic = os.getenv('ANTHROPIC_API_KEY')
+        openai_base_url = os.getenv('OPENAI_API_BASE_URL')
         self.client = None
         self.client_deepseek = None
         self.client_anthropic = None
         if not api_key and not api_key_deepseek and not api_key_anthropic:
             raise Exception('OPENAI_API_KEY or DEEPSEEK_API_KEY or ANTHROPIC_API_KEY not defined')
         if api_key:
-            self.client = OpenAI(api_key=api_key)
+            if openai_base_url:
+                self.client = OpenAI(api_key=api_key, base_url=openai_base_url)
+            else:
+                self.client = OpenAI(api_key=api_key)
         if api_key_deepseek:
             self.client_deepseek = OpenAI(api_key=api_key_deepseek, base_url="https://api.deepseek.com")
         if api_key_anthropic:
