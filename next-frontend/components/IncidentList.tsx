@@ -2,8 +2,8 @@
 // @ts-nocheck
 import Link from 'next/link';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation'
 import { fetchIncidents, fetchCountries, exportIncidentsCSV } from '@/lib/api';
 import { getCountryFlag } from '@/lib/countryUtils';
 
@@ -236,18 +236,21 @@ function getYouTubeVideoId(incident) {
   return null;
 }
 
-function IncidentList() {
+function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCountries = [] }) {
   const searchParams = useSearchParams();
-  const [incidents, setIncidents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const router = useRouter();
+  const isFirstMount = useRef(true);
+  const isFirstFilterChange = useRef(true);
+  const [incidents, setIncidents] = useState(initialIncidents.results || []);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('text_search') || '');
+  const [searchInput, setSearchInput] = useState(searchParams.get('text_search') || '');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [filterMode, setFilterMode] = useState('include'); // 'include' or 'exclude'
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [countries, setCountries] = useState([]);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10));
+  const [totalCount, setTotalCount] = useState(initialIncidents.count || 0);
+  const [totalPages, setTotalPages] = useState(Math.ceil((initialIncidents.count || 0) / 15));
+  const [countries, setCountries] = useState(initialCountries || []);
   const [yearFrom, setYearFrom] = useState('');
   const [monthFrom, setMonthFrom] = useState('');
   const [yearTo, setYearTo] = useState('');
@@ -292,20 +295,37 @@ function IncidentList() {
   };
 
   useEffect(() => {
-    fetchCountries().then(setCountries);
+    if (initialCountries.length === 0) {
+      fetchCountries().then(setCountries);
+    }
   }, []);
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    
     setLoading(true);
     fetchIncidents(searchQuery || null, buildFilters(), currentPage).then(data => {
-      setIncidents(data.results);
-      setTotalCount(data.count);
-      setTotalPages(Math.ceil(data.count / 15));
+      setIncidents(data.results || []);
+      setTotalCount(data.count || 0);
+      setTotalPages(Math.ceil((data.count || 0) / 15));
+      setLoading(false);
+    }).catch(error => {
+      console.error('Failed to fetch incidents:', error);
+      setIncidents([]);
+      setTotalCount(0);
+      setTotalPages(1);
       setLoading(false);
     });
   }, [searchQuery, activeFilters, currentPage, yearFrom, monthFrom, yearTo, monthTo]);
 
   useEffect(() => {
+    if (isFirstFilterChange.current) {
+      isFirstFilterChange.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [searchQuery, activeFilters, yearFrom, monthFrom, yearTo, monthTo]);
 
@@ -331,6 +351,52 @@ function IncidentList() {
 
   const clearAllFilters = () => {
     setActiveFilters([]);
+  };
+
+  const buildPageUrl = (pageNum: number) => {
+    const params = new URLSearchParams();
+    
+    if (searchQuery) {
+      params.set('text_search', searchQuery);
+    }
+    
+    if (pageNum > 1) {
+      params.set('page', pageNum.toString());
+    }
+    
+    activeFilters.forEach(filter => {
+      const key = filter.exclude ? `exclude_${filter.key}` : filter.key;
+      const currentValue = params.get(key);
+      const newValue = filter.value === null ? 'true' : filter.value;
+      
+      if (currentValue) {
+        params.set(key, `${currentValue},${newValue}`);
+      } else {
+        params.set(key, newValue);
+      }
+    });
+    
+    if (yearFrom) {
+      params.set('year_from', yearFrom);
+    }
+    if (monthFrom) {
+      params.set('month_from', monthFrom);
+    }
+    if (yearTo) {
+      params.set('year_to', yearTo);
+    }
+    if (monthTo) {
+      params.set('month_to', monthTo);
+    }
+    
+    const queryString = params.toString();
+    return queryString ? `/incidents?${queryString}` : '/incidents';
+  };
+
+  const handlePageChange = (pageNum: number, e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setCurrentPage(pageNum);
+    router.push(buildPageUrl(pageNum));
   };
 
   const handleSearch = (e: any) => {
@@ -894,20 +960,33 @@ function IncidentList() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-1.5 md:gap-2 mt-8">
-                <button
-                  onClick={() => setCurrentPage(1)}
-                  disabled={currentPage === 1}
-                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
-                >
-                  ««
-                </button>
-                <button
-                  onClick={() => setCurrentPage(p => p - 1)}
-                  disabled={currentPage === 1}
-                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
-                >
-                  «
-                </button>
+                {currentPage === 1 ? (
+                  <span className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 opacity-40 cursor-not-allowed text-sm md:text-base">
+                    ««
+                  </span>
+                ) : (
+                  <Link
+                    href={buildPageUrl(1)}
+                    onClick={(e) => handlePageChange(1, e)}
+                    className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 transition-all text-sm md:text-base"
+                  >
+                    ««
+                  </Link>
+                )}
+                
+                {currentPage === 1 ? (
+                  <span className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 opacity-40 cursor-not-allowed text-sm md:text-base">
+                    «
+                  </span>
+                ) : (
+                  <Link
+                    href={buildPageUrl(currentPage - 1)}
+                    onClick={(e) => handlePageChange(currentPage - 1, e)}
+                    className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 transition-all text-sm md:text-base"
+                  >
+                    «
+                  </Link>
+                )}
                 
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
@@ -921,9 +1000,10 @@ function IncidentList() {
                     pageNum = currentPage - 2 + i;
                   }
                   return (
-                    <button
+                    <Link
                       key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
+                      href={buildPageUrl(pageNum)}
+                      onClick={(e) => handlePageChange(pageNum, e)}
                       className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-all text-sm md:text-base ${
                         currentPage === pageNum
                           ? 'bg-orange-500 text-white'
@@ -931,24 +1011,37 @@ function IncidentList() {
                       }`}
                     >
                       {pageNum}
-                    </button>
+                    </Link>
                   );
                 })}
                 
-                <button
-                  onClick={() => setCurrentPage(p => p + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
-                >
-                  »
-                </button>
-                <button
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm md:text-base"
-                >
-                  »»
-                </button>
+                {currentPage === totalPages ? (
+                  <span className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 opacity-40 cursor-not-allowed text-sm md:text-base">
+                    »
+                  </span>
+                ) : (
+                  <Link
+                    href={buildPageUrl(currentPage + 1)}
+                    onClick={(e) => handlePageChange(currentPage + 1, e)}
+                    className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 transition-all text-sm md:text-base"
+                  >
+                    »
+                  </Link>
+                )}
+                
+                {currentPage === totalPages ? (
+                  <span className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 opacity-40 cursor-not-allowed text-sm md:text-base">
+                    »»
+                  </span>
+                ) : (
+                  <Link
+                    href={buildPageUrl(totalPages)}
+                    onClick={(e) => handlePageChange(totalPages, e)}
+                    className="px-2 md:px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-400 hover:bg-slate-700 transition-all text-sm md:text-base"
+                  >
+                    »»
+                  </Link>
+                )}
               </div>
             )}
           </>
