@@ -1,0 +1,1433 @@
+'use client';
+// @ts-nocheck
+import Link from 'next/link';
+
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { fetchIncident, createIncident, updateIncident, chatWithAI, checkDuplicate, deleteIncident, fetchIncidentDrafts } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import HintPopup from './HintPopup';
+import { PRIMARY_CAUSE_HINTS, CONTRIBUTING_FACTOR_HINTS, CAUSE_CONFIDENCE_HINTS, SEVERITY_HINTS, POTENTIALLY_FATAL_HINT } from '@/constants/hints';
+
+const FLIGHT_PHASES = [
+  { value: '', label: 'Select...' },
+  { value: 'ground', label: 'Ground' },
+  { value: 'takeoff', label: 'Takeoff' },
+  { value: 'landing', label: 'Landing' },
+  { value: 'flight', label: 'Flight' },
+];
+
+const SEVERITIES = [
+  { value: '', label: 'Select...' },
+  { value: 'fatal', label: 'Fatal' },
+  { value: 'serious', label: 'Serious' },
+  { value: 'minor', label: 'Minor' },
+];
+
+const RESERVE_USE = [
+  { value: '', label: 'Select...' },
+  { value: 'not_installed', label: 'Not installed' },
+  { value: 'not_deployed', label: 'Not deployed' },
+  { value: 'no_time', label: 'Did not have time to open' },
+  { value: 'tangled', label: 'Became tangled' },
+  { value: 'partially_opened', label: 'Partially opened' },
+  { value: 'fully_opened', label: 'Fully opened' },
+];
+
+const CAUSE_CONFIDENCE = [
+  { value: '', label: 'Select...' },
+  { value: 'maximum', label: 'Maximum — exactly determined' },
+  { value: 'high', label: 'High — very likely identified' },
+  { value: 'low', label: 'Low — plausible assumptions' },
+  { value: 'minimal', label: 'Minimal — nothing is clear' },
+];
+
+const COLLAPSE_TYPES = [
+  { value: 'asymmetric_small', label: 'Asymmetric collapse (<30%)' },
+  { value: 'asymmetric_medium', label: 'Asymmetric collapse (30-50%)' },
+  { value: 'asymmetric_large', label: 'Asymmetric collapse (>50%)' },
+  { value: 'frontal', label: 'Frontal collapse' },
+  { value: 'full_stall', label: 'Full stall' },
+  { value: 'spin', label: 'Spin' },
+  { value: 'line_twist', label: 'Line twist' },
+  { value: 'cravatte', label: 'Cravatte' },
+  { value: 'unknown', label: 'Unknown collapse' },
+];
+
+const PARAMOTOR_TYPES = [
+  { value: '', label: 'Select...' },
+  { value: 'footlaunch', label: 'Footlaunch' },
+  { value: 'trike', label: 'Trike' },
+];
+
+const TRIMMER_POSITIONS = [
+  { value: '', label: 'Select...' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'partially_open', label: 'Partially open' },
+  { value: 'fully_open', label: 'Fully open' },
+];
+
+const ACCELERATOR_POSITIONS = [
+  { value: '', label: 'Select...' },
+  { value: 'not_used', label: 'Not used' },
+  { value: 'released', label: 'Released' },
+  { value: 'partially_engaged', label: 'Partially engaged' },
+  { value: 'fully_engaged', label: 'Fully engaged' },
+];
+
+const PILOT_ACTIONS = [
+  { value: '', label: 'Select...' },
+  { value: 'wrong_input_triggered', label: 'Wrong input triggered incident' },
+  { value: 'mostly_wrong', label: 'Mostly wrong inputs while reacting' },
+  { value: 'mixed', label: 'Some correct and some wrong inputs' },
+  { value: 'mostly_correct', label: 'Mostly correct inputs while reacting' },
+];
+
+const MID_AIR_COLLISION = [
+  { value: '', label: 'Select...' },
+  { value: 'fly_nearby', label: 'Fly nearby' },
+  { value: 'got_in_wake_turbulence', label: 'Got in wake turbulence' },
+  { value: 'almost_collided', label: 'Almost collided' },
+  { value: 'collided', label: 'Collided' },
+];
+
+const PRIMARY_CAUSES = [
+  { value: '', label: 'Select...' },
+  { value: 'turbulence', label: 'Turbulence' },
+  { value: 'wrong_control_input', label: 'Wrong control input' },
+  { value: 'hardware_failure', label: 'Hardware failure' },
+  { value: 'powerline_collision', label: 'Powerline collision / Near Miss' },
+  { value: 'midair_collision', label: 'Midair collision / Near Miss' },
+  { value: 'lines_brakes_issues', label: 'Lines & Brakes Knots / Twists / Obstructions' },
+  { value: 'water_landing', label: 'Water landing' },
+  { value: 'preflight_error', label: 'Preflight Error' },
+  { value: 'ground_starting', label: 'Ground Starting' },
+  { value: 'ground_object_collision', label: 'Ground Object Collision / Near Miss' },
+  { value: 'rain_fog_snow', label: 'Rain / Fog / Snow / Mist' },
+  { value: 'torque_twist', label: 'Torque Twist' },
+  { value: 'ground_handling', label: 'Ground Handling' },
+];
+
+function IncidentForm() {
+  const params = useParams(); const uuid = Array.isArray(params.uuid) ? params.uuid[0] : params.uuid;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isAdmin } = useAuth();
+  const isEditing = Boolean(uuid);
+
+  const [loading, setLoading] = useState(isEditing);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    summary: '',
+    date: '',
+    time: '',
+    country: '',
+    city_or_site: '',
+    paramotor_type: '',
+    paramotor_frame: '',
+    paramotor_engine: '',
+    wing_manufacturer: '',
+    wing_model: '',
+    wing_size: '',
+    pilot_name: '',
+    pilot_details: '',
+    flight_altitude: '',
+    flight_phase: '',
+    severity: '',
+    potentially_fatal: false,
+    description: '',
+    causes_description: '',
+    primary_cause: '',
+    reserve_use: '',
+    surface_type: '',
+    cause_confidence: '',
+    pilot_actions: '',
+    injury_details: '',
+    hardware_failure: false,
+    bad_hardware_preflight: false,
+    factor_low_altitude: false,
+    factor_maneuvers: false,
+    factor_accelerator: '',
+    factor_thermal_weather: false,
+    factor_rain: false,
+    factor_rotor_turbulence: false,
+    factor_wake_turbulence: false,
+    factor_wind_shear: false,
+    factor_gust_front: false,
+    factor_trimmer_position: '',
+    factor_reflex_profile: false,
+    factor_helmet_missing: false,
+    factor_tree_collision: false,
+    factor_water_landing: false,
+    factor_ground_starting: false,
+    factor_powerline_collision: false,
+    factor_turbulent_conditions: false,
+    factor_spiral_maneuver: false,
+    factor_mid_air_collision: '',
+    factor_ground_object_collision: false,
+    factor_released_brake_toggle: false,
+    factor_wrongly_adjusted_trims: false,
+    factor_accidental_motor_kill: false,
+    factor_wrong_throttle_management: false,
+    factor_accidental_reserve_deployment: false,
+    factor_oscillations_out_of_control: false,
+    factor_student_pilot: false,
+    factor_medical_issues: false,
+    factor_engine_failure: false,
+    factor_trimmers_failure: false,
+    factor_structural_failure: false,
+    factor_fire: false,
+    factor_throttle_system_issues: false,
+    factor_paraglider_failure: false,
+    source_links: '',
+    media_links: '',
+    report_raw: '',
+    wind_speed: '',
+    wind_speed_ms: '',
+    meteorological_conditions: '',
+    thermal_conditions: '',
+    collapse_types: [],
+    verified: false,
+  });
+
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [highlightedFields, setHighlightedFields] = useState(new Set());
+  const [duplicateResult, setDuplicateResult] = useState(null);
+  const [duplicateLoading, setDuplicateLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [drafts, setDrafts] = useState([]);
+  const [selectedDraft, setSelectedDraft] = useState('');
+  const [originalData, setOriginalData] = useState(null);
+  const chatEndRef = useRef<any>(null);
+
+  const hasChanges = (() => {
+    if (isEditing && originalData) {
+      for (const key of Object.keys(originalData)) {
+        const origValue = originalData[key as keyof typeof originalData];
+        const currentValue = formData[key as keyof typeof formData];
+        const valuesEqual = Array.isArray(origValue) && Array.isArray(currentValue)
+          ? JSON.stringify(origValue) === JSON.stringify(currentValue)
+          : origValue === currentValue;
+        if (!valuesEqual) return true;
+      }
+      return false;
+    }
+    for (const [key, value] of Object.entries(formData)) {
+      if (key === 'verified') continue;
+      if (Array.isArray(value) && value.length > 0) return true;
+      if (typeof value === 'boolean' && value) return true;
+      if (typeof value === 'string' && value !== '') return true;
+    }
+    return false;
+  })();
+
+  useEffect(() => {
+    if (uuid) {
+      fetchIncident(uuid).then(data => {
+        if (data.original_uuid) {
+          router.replace(`/edit/${data.original_uuid}?draft=${uuid}`);
+          return;
+        }
+        const normalizedData = {
+          ...data,
+          date: data.date || '',
+          time: data.time || '',
+          flight_altitude: data.flight_altitude || '',
+          collapse_types: data.collapse_types || [],
+        };
+        setFormData(normalizedData);
+        setOriginalData(normalizedData);
+        setLoading(false);
+      });
+      fetchIncidentDrafts(uuid).then(data => {
+        setDrafts(data);
+        const draftParam = searchParams.get('draft');
+        if (draftParam && data.some((d: any) => d.uuid === draftParam)) {
+          const draft = data.find((d: any) => d.uuid === draftParam);
+          const normalizedDraft = {
+            ...draft,
+            date: draft.date || '',
+            time: draft.time || '',
+            flight_altitude: draft.flight_altitude || '',
+            collapse_types: draft.collapse_types || [],
+          };
+          const changedFields = new Set();
+          fetchIncident(uuid).then(orig => {
+            const normalizedOrig = {
+              ...orig,
+              date: orig.date || '',
+              time: orig.time || '',
+              flight_altitude: orig.flight_altitude || '',
+              collapse_types: orig.collapse_types || [],
+            };
+            for (const key of Object.keys(normalizedOrig)) {
+              const origValue = normalizedOrig[key];
+              const draftValue = normalizedDraft[key];
+              const valuesEqual = Array.isArray(origValue) && Array.isArray(draftValue)
+                ? JSON.stringify(origValue) === JSON.stringify(draftValue)
+                : origValue === draftValue;
+              if (!valuesEqual) {
+                changedFields.add(key);
+              }
+            }
+            setFormData(normalizedDraft);
+            setHighlightedFields(changedFields);
+            setSelectedDraft(draftParam);
+          });
+        }
+      });
+    }
+  }, [uuid]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const addCollapseType = (collapseType: any) => {
+    if (!collapseType) return;
+    setFormData(prev => ({
+      ...prev,
+      collapse_types: [...(prev.collapse_types || []), collapseType],
+    }));
+  };
+
+  const removeCollapseType = (index: any) => {
+    setFormData(prev => ({
+      ...prev,
+      collapse_types: prev.collapse_types.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSubmit = async (e, verified) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+    setHighlightedFields(new Set());
+
+    let dataToSave: any = { ...formData, verified };
+    if (verified) {
+      dataToSave.original_uuid = null;
+    }
+    if (dataToSave.flight_altitude === '') {
+      dataToSave.flight_altitude = null;
+    }
+    if (dataToSave.date === '') {
+      dataToSave.date = null;
+    }
+    if (dataToSave.time === '') {
+      dataToSave.time = null;
+    }
+    // Convert empty choice fields to null
+    const choiceFields = [
+      'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
+      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type',
+      'factor_mid_air_collision', 'primary_cause'
+    ];
+    for (const field of choiceFields) {
+      if (dataToSave[field] === '') {
+        dataToSave[field] = null;
+      }
+    }
+
+    try {
+      if (isEditing) {
+        await updateIncident(uuid, dataToSave);
+        setFormData(prev => ({ ...prev, verified }));
+        setSaveSuccess(true);
+      } else {
+        const result = await createIncident(dataToSave);
+        router.push(`/edit/${result.incident.uuid}`);
+      }
+    } catch (error) {
+      setSaveError(error.message);
+    }
+    setSaving(false);
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || chatLoading) return;
+
+    setHighlightedFields(new Set());
+    
+    const userMessage = { role: 'user', content: inputMessage };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInputMessage('');
+    setChatLoading(true);
+
+    const result = await chatWithAI(newMessages, formData);
+    
+    // Use the full message history returned from backend (includes tool calls)
+    if (result.messages) {
+      setMessages(result.messages);
+    } else {
+      // Fallback if messages not returned
+      const assistantMessage = { role: 'assistant', content: result.response };
+      setMessages([...newMessages, assistantMessage]);
+    }
+
+    if (result.incident_data) {
+      const changedFields = new Set();
+      
+      for (const [key, value] of Object.entries(result.incident_data)) {
+        if (value !== null && value !== undefined) {
+          const oldValue = formData[key as keyof typeof formData];
+          const valuesEqual = Array.isArray(value) && Array.isArray(oldValue)
+            ? JSON.stringify(value) === JSON.stringify(oldValue)
+            : value === oldValue;
+          
+          if (!valuesEqual) {
+            changedFields.add(key);
+          }
+        }
+      }
+
+      if (changedFields.size > 0) {
+        setFormData(prev => {
+          const updated = { ...prev };
+          for (const key of (changedFields as any)) {
+            (updated as any)[key] = (result.incident_data as any)[key];
+          }
+          return updated;
+        });
+        
+        setHighlightedFields(changedFields);
+      }
+    }
+
+    setChatLoading(false);
+  };
+
+  const handleCheckDuplicates = async () => {
+    setDuplicateLoading(true);
+    setDuplicateResult(null);
+    const result = await checkDuplicate(formData, isEditing ? uuid : null);
+    setDuplicateResult(result);
+    setDuplicateLoading(false);
+  };
+
+  const handleDraftSelect = (draftUuid) => {
+    setSelectedDraft(draftUuid);
+    if (!draftUuid) {
+      setFormData(originalData);
+      setHighlightedFields(new Set());
+      return;
+    }
+    const draft = drafts.find((d: any) => d.uuid === draftUuid);
+    const normalizedDraft = {
+      ...draft,
+      date: draft.date || '',
+      time: draft.time || '',
+      flight_altitude: draft.flight_altitude || '',
+      collapse_types: draft.collapse_types || [],
+    };
+    const changedFields = new Set();
+    for (const key of Object.keys(originalData)) {
+      const origValue = originalData[key as keyof typeof originalData];
+      const draftValue = normalizedDraft[key];
+      const valuesEqual = Array.isArray(origValue) && Array.isArray(draftValue)
+        ? JSON.stringify(origValue) === JSON.stringify(draftValue)
+        : origValue === draftValue;
+      if (!valuesEqual) {
+        changedFields.add(key);
+      }
+    }
+    setFormData(normalizedDraft);
+    setHighlightedFields(changedFields);
+  };
+
+  const handleApproveDraft = async () => {
+    setSaving(true);
+    setSaveError(null);
+    let dataToSave: any = { ...formData, verified: originalData.verified, original_uuid: null };
+    if (dataToSave.flight_altitude === '') dataToSave.flight_altitude = null;
+    if (dataToSave.date === '') dataToSave.date = null;
+    if (dataToSave.time === '') dataToSave.time = null;
+    const choiceFields = [
+      'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
+      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type',
+      'factor_mid_air_collision', 'primary_cause'
+    ];
+    for (const field of choiceFields) {
+      if (dataToSave[field] === '') dataToSave[field] = null;
+    }
+    await updateIncident(uuid, dataToSave);
+    await deleteIncident(selectedDraft);
+    setDrafts(drafts.filter((d: any) => d.uuid !== selectedDraft));
+    setSelectedDraft('');
+    setOriginalData(formData);
+    setHighlightedFields(new Set());
+    setSaveSuccess(true);
+    setSaving(false);
+  };
+
+  const handleDeclineDraft = async () => {
+    await deleteIncident(selectedDraft);
+    setDrafts(drafts.filter((d: any) => d.uuid !== selectedDraft));
+    setSelectedDraft('');
+    setFormData(originalData);
+    setHighlightedFields(new Set());
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this incident?')) return;
+    setDeleting(true);
+    await deleteIncident(uuid);
+    router.push('/');
+  };
+
+  const handleSubmitForReview = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+    setHighlightedFields(new Set());
+
+    let dataToSave: any = { ...formData, verified: false };
+    if (dataToSave.flight_altitude === '') {
+      dataToSave.flight_altitude = null;
+    }
+    if (dataToSave.date === '') {
+      dataToSave.date = null;
+    }
+    if (dataToSave.time === '') {
+      dataToSave.time = null;
+    }
+    const choiceFields = [
+      'factor_accelerator', 'factor_trimmer_position', 'pilot_actions',
+      'flight_phase', 'severity', 'reserve_use', 'cause_confidence', 'paramotor_type',
+      'factor_mid_air_collision', 'primary_cause'
+    ];
+    for (const field of choiceFields) {
+      if (dataToSave[field] === '') {
+        dataToSave[field] = null;
+      }
+    }
+
+    if (isEditing) {
+      dataToSave.original_uuid = uuid;
+    }
+
+    const result = await createIncident(dataToSave);
+    router.push(`/edit/${result.incident.uuid}`);
+    setSaving(false);
+  };
+
+  const getVerdictInfo = (confidence) => {
+    switch (confidence) {
+      case 'High':
+        return { text: 'Duplicate', color: 'text-red-400', bg: 'bg-red-500/20 border-red-500/30' };
+      case 'Medium':
+        return { text: 'Probably Duplicate', color: 'text-amber-400', bg: 'bg-amber-500/20 border-amber-500/30' };
+      case 'Low':
+        return { text: 'Probably not a duplicate', color: 'text-emerald-400', bg: 'bg-emerald-500/20 border-emerald-500/30' };
+      default:
+        return { text: 'Unknown', color: 'text-slate-400', bg: 'bg-slate-500/20 border-slate-500/30' };
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen py-8 px-4">
+      <div className="max-w-[1800px] mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link
+            href="/"
+            className="p-2 rounded-xl bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </Link>
+          <h1 className="font-display text-3xl text-gradient">
+            {isEditing ? 'Edit Incident' : 'New Incident'}
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Chat Panel - Left */}
+          <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl flex flex-col h-[calc(100vh-180px)]">
+            <div className="px-5 py-4 border-b border-slate-700/50">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                AI Assistant
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">Describe the incident and I'll help fill the form</p>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-4">🤖</div>
+                  <p className="text-slate-400 text-sm">
+                    Start by describing the incident.<br />
+                    I'll extract the details for you.
+                  </p>
+                </div>
+              )}
+              {messages.map((msg, idx) => {
+                // Handle tool_result messages (from Anthropic format)
+                if (msg.role === 'user' && Array.isArray(msg.content) && msg.content[0]?.type === 'tool_result') {
+                  return msg.content.map((toolResult, tIdx) => (
+                    <ToolResultMessage key={`${idx}-${tIdx}`} content={toolResult.content} />
+                  ));
+                }
+                // Handle assistant messages with tool_use (from Anthropic format)
+                if (msg.role === 'assistant' && Array.isArray(msg.content)) {
+                  return msg.content.map((block, bIdx) => {
+                    if (block.type === 'tool_use') {
+                      return <ToolUseMessage key={`${idx}-${bIdx}`} name={block.name} input={block.input} />;
+                    }
+                    if (block.type === 'text') {
+                      let displayText = block.text;
+                      let jsonText = block.text;
+                      // Strip markdown code block markers if present
+                      if (jsonText.includes('```json')) {
+                        jsonText = jsonText.split('```json')[1].split('```')[0].trim();
+                      } else if (jsonText.includes('```')) {
+                        jsonText = jsonText.split('```')[1].split('```')[0].trim();
+                      }
+                      try {
+                        const parsed = JSON.parse(jsonText);
+                        if (parsed.response) {
+                          displayText = parsed.response;
+                        }
+                      } catch {
+                        // Not JSON, use as-is
+                      }
+                      return (
+                        <div key={`${idx}-${bIdx}`} className="flex justify-start">
+                          <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-slate-700/50 text-slate-200 rounded-bl-md">
+                            <p className="text-sm whitespace-pre-wrap">{displayText}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  });
+                }
+                // Handle tool messages (from OpenAI format)
+                if (msg.role === 'tool') {
+                  return <ToolResultMessage key={idx} content={msg.content} />;
+                }
+                // Handle assistant with tool_calls (from OpenAI format)
+                if (msg.role === 'assistant' && msg.tool_calls) {
+                  return msg.tool_calls.map((tc, tIdx) => (
+                    <ToolUseMessage key={`${idx}-${tIdx}`} name={tc.function.name} input={JSON.parse(tc.function.arguments)} />
+                  ));
+                }
+                // Regular user/assistant messages
+                let displayContent = msg.content;
+                // For assistant messages, try to extract just the "response" field from JSON
+                if (msg.role === 'assistant' && typeof msg.content === 'string') {
+                  let jsonText = msg.content;
+                  // Strip markdown code block markers if present
+                  if (jsonText.includes('```json')) {
+                    jsonText = jsonText.split('```json')[1].split('```')[0].trim();
+                  } else if (jsonText.includes('```')) {
+                    jsonText = jsonText.split('```')[1].split('```')[0].trim();
+                  }
+                  try {
+                    const parsed = JSON.parse(jsonText);
+                    if (parsed.response) {
+                      displayContent = parsed.response;
+                    }
+                  } catch {
+                    // Not JSON, use as-is
+                  }
+                }
+                return (
+                  <div
+                    key={idx}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+                        msg.role === 'user'
+                          ? 'bg-orange-500/20 text-orange-100 rounded-br-md'
+                          : 'bg-slate-700/50 text-slate-200 rounded-bl-md'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{displayContent}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              {chatLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-slate-700/50 px-4 py-3 rounded-2xl rounded-bl-md">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input */}
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/50">
+              <div className="flex gap-3 items-end">
+                <textarea
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(e);
+                    }
+                  }}
+                  placeholder="Describe what happened... (Shift+Enter for new line)"
+                  rows={3}
+                  className="flex-1 px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition-all resize-none"
+                />
+                <button
+                  type="submit"
+                  disabled={chatLoading || !inputMessage.trim()}
+                  className="px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-medium text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed h-fit"
+                  data-umami-event="form-ai-chat-send"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Form Panel - Right */}
+          <div className="h-[calc(100vh-180px)] overflow-y-auto pr-2">
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+              {/* Status Badge */}
+              {isEditing && (
+                <div className={`px-4 py-3 rounded-xl border flex items-center gap-3 ${
+                  formData.verified 
+                    ? 'bg-emerald-500/20 border-emerald-500/50' 
+                    : 'bg-amber-500/20 border-amber-500/50'
+                }`}>
+                  <div className={`w-3 h-3 rounded-full ${formData.verified ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className={`font-semibold ${formData.verified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {formData.verified ? 'Published' : 'Draft'}
+                  </span>
+                  <span className="text-slate-500 text-sm">
+                    {formData.verified ? '(verified)' : '(unverified)'}
+                  </span>
+                </div>
+              )}
+
+              {/* Drafts Selector */}
+              {isEditing && drafts.length > 0 && (
+                <div className="px-4 py-3 rounded-xl border border-violet-500/50 bg-violet-500/10">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="text-violet-300 text-sm font-medium">{drafts.length} draft{drafts.length > 1 ? 's' : ''} available</span>
+                    <select
+                      value={selectedDraft}
+                      onChange={(e) => handleDraftSelect(e.target.value)}
+                      className="flex-1 px-3 py-1.5 bg-slate-900/50 border border-violet-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-violet-500 transition-all cursor-pointer"
+                    >
+                      <option value="">Original document</option>
+                      {drafts.map(draft => (
+                        <option key={draft.uuid} value={draft.uuid}>
+                          {draft.created_at ? new Date(draft.created_at).toLocaleString() : draft.uuid.slice(0, 8)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Basic Info */}
+              <Section title="Basic Information">
+                <Input label="Title" name="title" value={formData.title} onChange={handleChange} highlighted={highlightedFields.has('title')} />
+                <Textarea label="Summary" name="summary" value={formData.summary} onChange={handleChange} rows={2} highlighted={highlightedFields.has('summary')} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Date" name="date" type="date" value={formData.date} onChange={handleChange} highlighted={highlightedFields.has('date')} />
+                  <Input label="Time" name="time" type="time" value={formData.time} onChange={handleChange} highlighted={highlightedFields.has('time')} />
+                </div>
+              </Section>
+
+              {/* Incident Details */}
+              <Section title="Incident Details">
+                <div className="grid grid-cols-2 gap-4">
+                  <SelectWithAllHints 
+                    label="Primary Cause" 
+                    name="primary_cause" 
+                    value={formData.primary_cause} 
+                    onChange={handleChange} 
+                    options={PRIMARY_CAUSES} 
+                    highlighted={highlightedFields.has('primary_cause')}
+                  />
+                  <SelectWithCauseConfidenceHints 
+                    label="Cause Confidence" 
+                    name="cause_confidence" 
+                    value={formData.cause_confidence} 
+                    onChange={handleChange} 
+                    options={CAUSE_CONFIDENCE} 
+                    highlighted={highlightedFields.has('cause_confidence')}
+                  />
+                </div>
+                <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} highlighted={highlightedFields.has('description')} />
+                <Textarea label="Causes Description" name="causes_description" value={formData.causes_description} onChange={handleChange} rows={3} highlighted={highlightedFields.has('causes_description')} />
+                <div className="grid grid-cols-2 gap-4">
+                  <SelectWithSeverityHints 
+                    label="Severity" 
+                    name="severity" 
+                    value={formData.severity} 
+                    onChange={handleChange} 
+                    options={SEVERITIES} 
+                    highlighted={highlightedFields.has('severity')}
+                  />
+                  <Select label="Reserve Use" name="reserve_use" value={formData.reserve_use} onChange={handleChange} options={RESERVE_USE} highlighted={highlightedFields.has('reserve_use')} />
+                </div>
+                <Checkbox label="Potentially fatal" name="potentially_fatal" checked={formData.potentially_fatal} onChange={handleChange} highlighted={highlightedFields.has('potentially_fatal')} hint={POTENTIALLY_FATAL_HINT} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Surface Type" name="surface_type" value={formData.surface_type} onChange={handleChange} placeholder="water / forest / rocks..." highlighted={highlightedFields.has('surface_type')} />
+                  <Select label="Pilot Actions" name="pilot_actions" value={formData.pilot_actions} onChange={handleChange} options={PILOT_ACTIONS} highlighted={highlightedFields.has('pilot_actions')} />
+                </div>
+                <Textarea label="Injury Details" name="injury_details" value={formData.injury_details} onChange={handleChange} rows={2} highlighted={highlightedFields.has('injury_details')} />
+              </Section>
+
+              {/* Location */}
+              <Section title="Location">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Country" name="country" value={formData.country} onChange={handleChange} highlighted={highlightedFields.has('country')} />
+                  <Input label="City / Site" name="city_or_site" value={formData.city_or_site} onChange={handleChange} highlighted={highlightedFields.has('city_or_site')} />
+                </div>
+              </Section>
+
+              {/* Equipment */}
+              <Section title="Equipment">
+                <div className="grid grid-cols-3 gap-4">
+                  <Select label="Paramotor Type" name="paramotor_type" value={formData.paramotor_type} onChange={handleChange} options={PARAMOTOR_TYPES} highlighted={highlightedFields.has('paramotor_type')} />
+                  <Input label="Paramotor Frame" name="paramotor_frame" value={formData.paramotor_frame} onChange={handleChange} highlighted={highlightedFields.has('paramotor_frame')} />
+                  <Input label="Paramotor Engine" name="paramotor_engine" value={formData.paramotor_engine} onChange={handleChange} highlighted={highlightedFields.has('paramotor_engine')} />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <Input label="Wing Manufacturer" name="wing_manufacturer" value={formData.wing_manufacturer} onChange={handleChange} highlighted={highlightedFields.has('wing_manufacturer')} />
+                  <Input label="Wing Model" name="wing_model" value={formData.wing_model} onChange={handleChange} highlighted={highlightedFields.has('wing_model')} />
+                  <Input label="Wing Size" name="wing_size" value={formData.wing_size} onChange={handleChange} highlighted={highlightedFields.has('wing_size')} />
+                </div>
+              </Section>
+
+              {/* Pilot & Flight */}
+              <Section title="Pilot & Flight">
+                <Input label="Pilot Name" name="pilot_name" value={formData.pilot_name} onChange={handleChange} highlighted={highlightedFields.has('pilot_name')} />
+                <Input label="Pilot Details" name="pilot_details" value={formData.pilot_details} onChange={handleChange} highlighted={highlightedFields.has('pilot_details')} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Flight Altitude (m)" name="flight_altitude" type="number" value={formData.flight_altitude} onChange={handleChange} highlighted={highlightedFields.has('flight_altitude')} />
+                  <Select label="Flight Phase" name="flight_phase" value={formData.flight_phase} onChange={handleChange} options={FLIGHT_PHASES} highlighted={highlightedFields.has('flight_phase')} />
+                </div>
+              </Section>
+
+              {/* Hardware */}
+              <Section title="Hardware">
+                <div className="grid grid-cols-2 gap-3">
+                  <Checkbox label="Hardware failure occurred" name="hardware_failure" checked={formData.hardware_failure} onChange={handleChange} highlighted={highlightedFields.has('hardware_failure')} />
+                  <Checkbox label="Issue could be found on preflight" name="bad_hardware_preflight" checked={formData.bad_hardware_preflight} onChange={handleChange} highlighted={highlightedFields.has('bad_hardware_preflight')} />
+                  <Checkbox label="Engine failure" name="factor_engine_failure" checked={formData.factor_engine_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_engine_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_engine_failure} />
+                  <Checkbox label="Trimmers failure" name="factor_trimmers_failure" checked={formData.factor_trimmers_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_trimmers_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_trimmers_failure} />
+                  <Checkbox label="Structural failure (frame / carabiners / etc.)" name="factor_structural_failure" checked={formData.factor_structural_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_structural_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_structural_failure} />
+                  <Checkbox label="Fire" name="factor_fire" checked={formData.factor_fire} onChange={handleChange} highlighted={highlightedFields.has('factor_fire')} hint={CONTRIBUTING_FACTOR_HINTS.factor_fire} />
+                  <Checkbox label="Throttle system issues (cable / button / etc.)" name="factor_throttle_system_issues" checked={formData.factor_throttle_system_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_throttle_system_issues')} hint={CONTRIBUTING_FACTOR_HINTS.factor_throttle_system_issues} />
+                  <Checkbox label="Paraglider (wing) failure (material / porosity issues / torn / etc.)" name="factor_paraglider_failure" checked={formData.factor_paraglider_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_paraglider_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_paraglider_failure} />
+                </div>
+              </Section>
+
+              {/* Collapse Sequence */}
+              <Section title="Collapse Sequence" highlighted={highlightedFields.has('collapse_types')}>
+                <div>
+                  <label className={`block text-xs font-medium mb-2 ${highlightedFields.has('collapse_types') ? 'text-emerald-400' : 'text-slate-400'}`}>Add collapse type to sequence</label>
+                  <select
+                    onChange={(e) => {
+                      addCollapseType(e.target.value);
+                      e.target.value = '';
+                    }}
+                    className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlightedFields.has('collapse_types') ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+                  >
+                    <option value="" className="bg-slate-900">Select to add...</option>
+                    {COLLAPSE_TYPES.map(opt => (
+                      <option key={opt.value} value={opt.value} className="bg-slate-900">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {formData.collapse_types && formData.collapse_types.length > 0 && (
+                  <div className="space-y-2">
+                    <label className={`block text-xs font-medium ${highlightedFields.has('collapse_types') ? 'text-emerald-400' : 'text-slate-400'}`}>Sequence (in order)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.collapse_types.map((type, idx) => {
+                        const label = COLLAPSE_TYPES.find(t => t.value === type)?.label || type;
+                        return (
+                          <div
+                            key={idx}
+                            className={`flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 border rounded-lg ${highlightedFields.has('collapse_types') ? 'border-emerald-500' : 'border-slate-600/50'}`}
+                          >
+                            <span className="text-xs text-orange-400 font-medium">{idx + 1}.</span>
+                            <span className="text-sm text-slate-200">{label}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeCollapseType(idx)}
+                              className="text-slate-500 hover:text-red-400 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Section>
+
+              {/* Contributing Factors */}
+              <Section title="Contributing Factors">
+                <div className="grid grid-cols-3 gap-4">
+                  <Select label="Trimmer Position" name="factor_trimmer_position" value={formData.factor_trimmer_position} onChange={handleChange} options={TRIMMER_POSITIONS} highlighted={highlightedFields.has('factor_trimmer_position')} />
+                  <Select label="Accelerator Position" name="factor_accelerator" value={formData.factor_accelerator} onChange={handleChange} options={ACCELERATOR_POSITIONS} highlighted={highlightedFields.has('factor_accelerator')} />
+                  <Select label="Mid-air Collision" name="factor_mid_air_collision" value={formData.factor_mid_air_collision} onChange={handleChange} options={MID_AIR_COLLISION} highlighted={highlightedFields.has('factor_mid_air_collision')} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Checkbox label="Low flight altitude" name="factor_low_altitude" checked={formData.factor_low_altitude} onChange={handleChange} highlighted={highlightedFields.has('factor_low_altitude')} hint={CONTRIBUTING_FACTOR_HINTS.factor_low_altitude} />
+                  <Checkbox label="Performed maneuvers" name="factor_maneuvers" checked={formData.factor_maneuvers} onChange={handleChange} highlighted={highlightedFields.has('factor_maneuvers')} hint={CONTRIBUTING_FACTOR_HINTS.factor_maneuvers} />
+                  <Checkbox label="Thermally active weather" name="factor_thermal_weather" checked={formData.factor_thermal_weather} onChange={handleChange} highlighted={highlightedFields.has('factor_thermal_weather')} hint={CONTRIBUTING_FACTOR_HINTS.factor_thermal_weather} />
+                  <Checkbox label="Rain" name="factor_rain" checked={formData.factor_rain} onChange={handleChange} highlighted={highlightedFields.has('factor_rain')} hint={CONTRIBUTING_FACTOR_HINTS.factor_rain} />
+                  <Checkbox label="Entered rotor turbulence" name="factor_rotor_turbulence" checked={formData.factor_rotor_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_rotor_turbulence')} hint={CONTRIBUTING_FACTOR_HINTS.factor_rotor_turbulence} />
+                  <Checkbox label="Wake turbulence" name="factor_wake_turbulence" checked={formData.factor_wake_turbulence} onChange={handleChange} highlighted={highlightedFields.has('factor_wake_turbulence')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wake_turbulence} />
+                  <Checkbox label="Wind shear" name="factor_wind_shear" checked={formData.factor_wind_shear} onChange={handleChange} highlighted={highlightedFields.has('factor_wind_shear')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wind_shear} />
+                  <Checkbox label="Gust front" name="factor_gust_front" checked={formData.factor_gust_front} onChange={handleChange} highlighted={highlightedFields.has('factor_gust_front')} hint={CONTRIBUTING_FACTOR_HINTS.factor_gust_front} />
+                  <Checkbox label="Reflex profile wing" name="factor_reflex_profile" checked={formData.factor_reflex_profile} onChange={handleChange} highlighted={highlightedFields.has('factor_reflex_profile')} hint={CONTRIBUTING_FACTOR_HINTS.factor_reflex_profile} />
+                  <Checkbox label="Helmet missing" name="factor_helmet_missing" checked={formData.factor_helmet_missing} onChange={handleChange} highlighted={highlightedFields.has('factor_helmet_missing')} hint={CONTRIBUTING_FACTOR_HINTS.factor_helmet_missing} />
+                  <Checkbox label="Tree collision/landing" name="factor_tree_collision" checked={formData.factor_tree_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_tree_collision')} hint={CONTRIBUTING_FACTOR_HINTS.factor_tree_collision} />
+                  <Checkbox label="Water landing" name="factor_water_landing" checked={formData.factor_water_landing} onChange={handleChange} highlighted={highlightedFields.has('factor_water_landing')} hint={CONTRIBUTING_FACTOR_HINTS.factor_water_landing} />
+                  <Checkbox label="Ground starting" name="factor_ground_starting" checked={formData.factor_ground_starting} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_starting')} hint={CONTRIBUTING_FACTOR_HINTS.factor_ground_starting} />
+                  <Checkbox label="Powerline collision" name="factor_powerline_collision" checked={formData.factor_powerline_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_powerline_collision')} hint={CONTRIBUTING_FACTOR_HINTS.factor_powerline_collision} />
+                  <Checkbox label="Turbulent conditions" name="factor_turbulent_conditions" checked={formData.factor_turbulent_conditions} onChange={handleChange} highlighted={highlightedFields.has('factor_turbulent_conditions')} hint={CONTRIBUTING_FACTOR_HINTS.factor_turbulent_conditions} />
+                  <Checkbox label="Spiral maneuver" name="factor_spiral_maneuver" checked={formData.factor_spiral_maneuver} onChange={handleChange} highlighted={highlightedFields.has('factor_spiral_maneuver')} hint={CONTRIBUTING_FACTOR_HINTS.factor_spiral_maneuver} />
+                  <Checkbox label="Ground object collision" name="factor_ground_object_collision" checked={formData.factor_ground_object_collision} onChange={handleChange} highlighted={highlightedFields.has('factor_ground_object_collision')} hint={CONTRIBUTING_FACTOR_HINTS.factor_ground_object_collision} />
+                </div>
+              </Section>
+
+              {/* Pilot-Related Factors */}
+              <Section title="Pilot-Related Factors">
+                <div className="grid grid-cols-2 gap-3">
+                  <Checkbox label="Released / lost the brake toggle" name="factor_released_brake_toggle" checked={formData.factor_released_brake_toggle} onChange={handleChange} highlighted={highlightedFields.has('factor_released_brake_toggle')} hint={CONTRIBUTING_FACTOR_HINTS.factor_released_brake_toggle} />
+                  <Checkbox label="Wrongly adjusted trims" name="factor_wrongly_adjusted_trims" checked={formData.factor_wrongly_adjusted_trims} onChange={handleChange} highlighted={highlightedFields.has('factor_wrongly_adjusted_trims')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wrongly_adjusted_trims} />
+                  <Checkbox label="Accidental motor kill" name="factor_accidental_motor_kill" checked={formData.factor_accidental_motor_kill} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_motor_kill')} hint={CONTRIBUTING_FACTOR_HINTS.factor_accidental_motor_kill} />
+                  <Checkbox label="Wrong throttle management" name="factor_wrong_throttle_management" checked={formData.factor_wrong_throttle_management} onChange={handleChange} highlighted={highlightedFields.has('factor_wrong_throttle_management')} hint={CONTRIBUTING_FACTOR_HINTS.factor_wrong_throttle_management} />
+                  <Checkbox label="Accidental reserve deployment" name="factor_accidental_reserve_deployment" checked={formData.factor_accidental_reserve_deployment} onChange={handleChange} highlighted={highlightedFields.has('factor_accidental_reserve_deployment')} hint={CONTRIBUTING_FACTOR_HINTS.factor_accidental_reserve_deployment} />
+                  <Checkbox label="Oscillations out of control" name="factor_oscillations_out_of_control" checked={formData.factor_oscillations_out_of_control} onChange={handleChange} highlighted={highlightedFields.has('factor_oscillations_out_of_control')} hint={CONTRIBUTING_FACTOR_HINTS.factor_oscillations_out_of_control} />
+                  <Checkbox label="Student pilot" name="factor_student_pilot" checked={formData.factor_student_pilot} onChange={handleChange} highlighted={highlightedFields.has('factor_student_pilot')} hint={CONTRIBUTING_FACTOR_HINTS.factor_student_pilot} />
+                  <Checkbox label="Had medical issues" name="factor_medical_issues" checked={formData.factor_medical_issues} onChange={handleChange} highlighted={highlightedFields.has('factor_medical_issues')} hint={CONTRIBUTING_FACTOR_HINTS.factor_medical_issues} />
+                </div>
+              </Section>
+
+              {/* Weather */}
+              <Section title="Weather Conditions">
+                <Input label="Wind Speed Description" name="wind_speed" value={formData.wind_speed} onChange={handleChange} placeholder="e.g., 10-15 km/h, gusts to 25" highlighted={highlightedFields.has('wind_speed')} />
+                <Input label="Wind Speed (m/s)" name="wind_speed_ms" type="number" value={formData.wind_speed_ms} onChange={handleChange} highlighted={highlightedFields.has('wind_speed_ms')} />
+                <Textarea label="Meteorological Conditions" name="meteorological_conditions" value={formData.meteorological_conditions} onChange={handleChange} rows={2} highlighted={highlightedFields.has('meteorological_conditions')} />
+                <Textarea label="Thermal Conditions" name="thermal_conditions" value={formData.thermal_conditions} onChange={handleChange} rows={2} highlighted={highlightedFields.has('thermal_conditions')} />
+              </Section>
+
+              {/* Links */}
+              <Section title="Links & Media">
+                <Textarea label="Source Links (one per line)" name="source_links" value={formData.source_links} onChange={handleChange} rows={3} highlighted={highlightedFields.has('source_links')} />
+                <Textarea label="Media Links (one per line)" name="media_links" value={formData.media_links} onChange={handleChange} rows={3} highlighted={highlightedFields.has('media_links')} />
+                <Textarea label="Raw Report / Analysis" name="report_raw" value={formData.report_raw} onChange={handleChange} rows={6} highlighted={highlightedFields.has('report_raw')} />
+              </Section>
+
+              {/* Duplicate Check Results */}
+              {duplicateResult && (
+                <div className={`p-4 border rounded-xl ${getVerdictInfo(duplicateResult.confidence).bg}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-lg font-semibold ${getVerdictInfo(duplicateResult.confidence).color}`}>
+                      {getVerdictInfo(duplicateResult.confidence).text}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDuplicateResult(null)}
+                      className="text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  {duplicateResult.incidents && duplicateResult.incidents.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-400 mb-2">Similar incidents found:</p>
+                      {duplicateResult.incidents.map((incident: any) => (
+                        <Link
+                          key={incident.uuid}
+                          href={`/edit/${incident.uuid}`}
+                          className="block p-3 bg-slate-900/50 rounded-lg hover:bg-slate-800/50 transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-white font-medium">{incident.title || 'Untitled'}</span>
+                            {incident.date && (
+                              <span className="text-slate-500 text-sm">{incident.date}</span>
+                            )}
+                          </div>
+                          {(incident.country || incident.city_or_site) && (
+                            <p className="text-slate-500 text-sm mt-1">
+                              {[incident.city_or_site, incident.country].filter(Boolean).join(', ')}
+                            </p>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-slate-400 text-sm">No similar incidents found.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Save Status */}
+              {saveError && (
+                <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-xl">
+                  <div className="flex items-center gap-2 text-red-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-medium">Failed to save:</span>
+                    <span>{saveError}</span>
+                  </div>
+                </div>
+              )}
+              {saveSuccess && (
+                <div className="p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-xl">
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Saved successfully</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Draft Review Actions */}
+              {isAdmin && selectedDraft && (
+                <div className="flex justify-end gap-4 pt-4 pb-8">
+                  <button
+                    type="button"
+                    onClick={handleDeclineDraft}
+                    className="px-6 py-3 bg-red-600/80 hover:bg-red-600 border border-red-500/50 rounded-xl text-white font-medium transition-all flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Decline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleApproveDraft}
+                    disabled={saving}
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {saving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Approving...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Approve
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Submit */}
+              {!selectedDraft && <div className="flex justify-end gap-4 pt-4 pb-8">
+                {isAdmin && isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="px-6 py-3 bg-red-600/80 hover:bg-red-600 border border-red-500/50 rounded-xl text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    data-umami-event="form-delete"
+                  >
+                    {deleting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete
+                      </>
+                    )}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleCheckDuplicates}
+                  disabled={duplicateLoading}
+                  className="px-6 py-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-xl text-slate-300 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  data-umami-event="form-check-duplicates"
+                >
+                  {duplicateLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Check Duplicates
+                    </>
+                  )}
+                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit(e, false)}
+                    disabled={saving}
+                    className="px-6 py-3 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-xl font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-umami-event="form-save-draft"
+                  >
+                    {saving ? 'Saving...' : 'Save Draft'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSubmitForReview}
+                  disabled={saving || !hasChanges}
+                  className="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl font-semibold text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-umami-event="form-submit-for-review"
+                >
+                  {saving ? 'Saving...' : 'Submit for Review'}
+                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit(e, true)}
+                    disabled={saving}
+                    className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-umami-event="form-publish"
+                  >
+                    {saving ? 'Saving...' : 'Publish'}
+                  </button>
+                )}
+              </div>}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, children, highlighted = false }: any) {
+  return (
+    <div className={`bg-slate-800/30 backdrop-blur-sm border rounded-2xl p-5 transition-all ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-700/50'}`}>
+      <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+        <span className={`w-1 h-4 rounded-full ${highlighted ? 'bg-gradient-to-b from-emerald-400 to-emerald-600' : 'bg-gradient-to-b from-orange-500 to-amber-500'}`} />
+        {title}
+      </h2>
+      <div className="space-y-3">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Input({ label, name, type = 'text', value, onChange, placeholder = '', highlighted = false }: any) {
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</label>
+      <input
+        type={type}
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      />
+    </div>
+  );
+}
+
+function Textarea({ label, name, value, onChange, rows = 3, placeholder = '', highlighted = false }: any) {
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</label>
+      <textarea
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        rows={rows}
+        placeholder={placeholder}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all resize-none ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      />
+    </div>
+  );
+}
+
+function Select({ label, name, value, onChange, options, highlighted = false }: any) {
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithHint({ label, name, value, onChange, options, highlighted = false, hint }: any) {
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        {hint && <HintPopup hint={hint} />}
+      </label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithAllHints({ label, name, value, onChange, options, highlighted = false }: any) {
+  const allHints = (
+    <div className="space-y-2 max-h-96 overflow-y-auto">
+      {options.filter(opt => opt.value && PRIMARY_CAUSE_HINTS[opt.value]).map(opt => (
+        <div key={opt.value}>
+          <div className="font-semibold text-slate-200 mb-1">{opt.label}</div>
+          <div className="text-slate-400">{PRIMARY_CAUSE_HINTS[opt.value]}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        <HintPopup hint={allHints} />
+      </label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithCauseConfidenceHints({ label, name, value, onChange, options, highlighted = false }: any) {
+  const allHints = (
+    <div className="space-y-2 max-h-96 overflow-y-auto">
+      {options.filter(opt => opt.value && CAUSE_CONFIDENCE_HINTS[opt.value]).map(opt => (
+        <div key={opt.value}>
+          <div className="font-semibold text-slate-200 mb-1">{opt.label}</div>
+          <div className="text-slate-400">{CAUSE_CONFIDENCE_HINTS[opt.value]}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        <HintPopup hint={allHints} />
+      </label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SelectWithSeverityHints({ label, name, value, onChange, options, highlighted = false }: any) {
+  const allHints = (
+    <div className="space-y-2 max-h-96 overflow-y-auto">
+      {options.filter(opt => opt.value && SEVERITY_HINTS[opt.value]).map(opt => (
+        <div key={opt.value}>
+          <div className="font-semibold text-slate-200 mb-1">{opt.label}</div>
+          <div className="text-slate-400">{SEVERITY_HINTS[opt.value]}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <label className={`block text-xs font-medium mb-1 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        <HintPopup hint={allHints} />
+      </label>
+      <select
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className={`w-full px-3 py-2 bg-slate-900/50 border rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all appearance-none cursor-pointer ${highlighted ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-600/50'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function Checkbox({ label, name, checked, onChange, highlighted = false, hint }: any) {
+  return (
+    <label className={`flex items-center gap-2.5 cursor-pointer group px-2 py-1 rounded-lg transition-all ${highlighted ? 'bg-emerald-500/20 ring-1 ring-emerald-500/50' : ''}`}>
+      <div className="relative">
+        <input
+          type="checkbox"
+          name={name}
+          checked={checked || false}
+          onChange={onChange}
+          className="peer sr-only"
+        />
+        <div className={`w-4 h-4 bg-slate-900/50 border rounded peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-all ${highlighted ? 'border-emerald-500' : 'border-slate-600/50'}`} />
+        <svg
+          className="absolute top-0.5 left-0.5 w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <span className={`text-xs group-hover:text-slate-300 transition-colors flex items-center gap-1.5 ${highlighted ? 'text-emerald-400' : 'text-slate-400'}`}>
+        {label}
+        {hint && <HintPopup hint={hint} />}
+      </span>
+    </label>
+  );
+}
+
+function ToolUseMessage({ name, input }) {
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[85%] px-3 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-200">
+        <div className="flex items-center gap-2 text-xs">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          <span className="font-medium">Fetching:</span>
+          <span className="text-blue-300 truncate max-w-[200px]">{input?.url || JSON.stringify(input)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToolResultMessage({ content }) {
+  const [expanded, setExpanded] = useState(false);
+  // Handle content that might be an array of content blocks (Anthropic format)
+  let textContent = content;
+  if (Array.isArray(content)) {
+    textContent = content.map(block => block.text || JSON.stringify(block)).join('\n');
+  } else if (typeof content === 'object' && content !== null) {
+    textContent = content.text || JSON.stringify(content);
+  }
+  const isLong = textContent && textContent.length > 300;
+  const displayContent = isLong && !expanded ? textContent.slice(0, 300) + '...' : textContent;
+  
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[85%] px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">
+        <div className="flex items-center gap-2 text-xs mb-1">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-medium">Downloaded content</span>
+        </div>
+        <pre className="text-xs text-slate-400 whitespace-pre-wrap max-h-48 overflow-y-auto">{displayContent}</pre>
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-xs text-emerald-400 hover:text-emerald-300 mt-1"
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default IncidentForm;
