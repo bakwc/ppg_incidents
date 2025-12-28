@@ -1,6 +1,9 @@
 import { fetchDashboardStats, fetchIncidents, fetchYearStats, fetchCountries, fetchDateRange } from '@/lib/api';
 import HomeClient from '@/components/HomeClient';
 
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const baseFilter = { potentially_fatal: true, cause_confidence: 'maximum,high' };
   

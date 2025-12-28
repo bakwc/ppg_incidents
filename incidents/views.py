@@ -253,7 +253,10 @@ def apply_filters(queryset, filters, exclude=False):
                     queryset = queryset.filter(collapse_types__icontains="unknown")
         elif field == "has_video":
             if value is True or (isinstance(value, str) and value.lower() == "true"):
-                q = Q(media_links__icontains="youtube") | Q(source_links__icontains="youtube")
+                q = (
+                    Q(media_links__icontains="youtube") | Q(source_links__icontains="youtube") |
+                    Q(media_links__icontains="youtu.be") | Q(source_links__icontains="youtu.be")
+                )
                 if exclude:
                     queryset = queryset.exclude(q)
                 else:
