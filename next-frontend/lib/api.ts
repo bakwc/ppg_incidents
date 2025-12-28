@@ -108,7 +108,7 @@ export async function fetchIncidents(searchQuery: string | null = null, filters:
 }
 
 export async function fetchIncident(uuid: string) {
-  const response = await fetch(`${API_BASE}/incident/${uuid}`);
+  const response = await fetch(`${API_BASE}/incident/${uuid}`, { cache: 'no-store' });
   return response.json();
 }
 
@@ -194,7 +194,7 @@ export async function fetchYearStats(include: any, exclude: any) {
 }
 
 export async function fetchIncidentDrafts(uuid: string) {
-  const response = await fetch(`${API_BASE}/incident/${uuid}/drafts`);
+  const response = await fetch(`${API_BASE}/incident/${uuid}/drafts`, { cache: 'no-store' });
   return response.json();
 }
 
