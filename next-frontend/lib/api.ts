@@ -163,6 +163,7 @@ export async function fetchDashboardStats(filterPacks: any[]) {
   const response = await apiCall('/dashboard_stats', {
     method: 'POST',
     body: JSON.stringify({ filter_packs: filterPacks }),
+    cache: 'no-store',
   });
   return response.json();
 }
@@ -189,6 +190,7 @@ export async function fetchYearStats(include: any, exclude: any) {
   const response = await apiCall('/year_stats', {
     method: 'POST',
     body: JSON.stringify({ include, exclude }),
+    cache: 'no-store',
   });
   return response.json();
 }
