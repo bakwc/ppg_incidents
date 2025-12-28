@@ -103,7 +103,7 @@ export async function fetchIncidents(searchQuery: string | null = null, filters:
       params.set(key, value);
     }
   });
-  const response = await fetch(`${API_BASE}/incidents?${params}`);
+  const response = await fetch(`${API_BASE}/incidents?${params}`, { cache: 'no-store' });
   return response.json();
 }
 
@@ -168,12 +168,12 @@ export async function fetchDashboardStats(filterPacks: any[]) {
 }
 
 export async function fetchUnverifiedIncidents() {
-  const response = await fetch(`${API_BASE}/incidents/unverified`);
+  const response = await fetch(`${API_BASE}/incidents/unverified`, { cache: 'no-store' });
   return response.json();
 }
 
 export async function fetchCountries() {
-  const response = await fetch(`${API_BASE}/countries`);
+  const response = await fetch(`${API_BASE}/countries`, { cache: 'no-store' });
   return response.json();
 }
 
@@ -221,7 +221,7 @@ export async function exportIncidentsCSV(searchQuery: string | null = null, filt
 }
 
 export async function fetchDateRange() {
-  const response = await fetch(`${API_BASE}/date_range`);
+  const response = await fetch(`${API_BASE}/date_range`, { cache: 'no-store' });
   return response.json();
 }
 
