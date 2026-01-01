@@ -8,13 +8,13 @@ class Command(BaseCommand):
     help = "Fill report_raw field from source_links"
 
     def handle(self, *args, **options):
-        incidents = Incident.objects.filter(
+        incidents = Incident.all_objects.filter(
             source_links__isnull=False
         ).exclude(
             source_links=""
         ).filter(
             report_raw__isnull=True
-        ) | Incident.objects.filter(
+        ) | Incident.all_objects.filter(
             source_links__isnull=False
         ).exclude(
             source_links=""

@@ -47,9 +47,21 @@ def create_from_url():
     sys.exit(result.returncode)
 
 
+def fill_report_raw():
+    """Fill report_raw field from source_links"""
+    env = os.environ.copy()
+    env["SECRET_KEY"] = "dev-secret-key-not-for-production-use"
+    env["DEBUG"] = "True"
+    
+    cmd = ["poetry", "run", "python", "manage.py", "fill_report_raw"] + sys.argv[2:]
+    print(f"📝 Filling report_raw from source_links: {' '.join(cmd)}")
+    result = subprocess.run(cmd, env=env)
+    sys.exit(result.returncode)
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python run.py [backend|frontend|test|create_from_url]")
+        print("Usage: python run.py [backend|frontend|test|create_from_url|fill_report_raw]")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -62,9 +74,11 @@ def main():
         run_tests()
     elif command == "create_from_url":
         create_from_url()
+    elif command == "fill_report_raw":
+        fill_report_raw()
     else:
         print(f"Unknown command: {command}")
-        print("Available commands: backend, frontend, test, create_from_url")
+        print("Available commands: backend, frontend, test, create_from_url, fill_report_raw")
         sys.exit(1)
 
 

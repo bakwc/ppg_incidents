@@ -299,6 +299,9 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Processing URL: {url}")
 
+        self.stdout.write(f"Downloading webpage content...")
+        raw_content = get_webpage_content(url)
+
         messages = [{"role": "user", "content": url}]
         incident_data = {}
 
@@ -310,6 +313,7 @@ class Command(BaseCommand):
         self.stdout.write(f"\nExtracted data: {incident_data}")
 
         incident_data["verified"] = False
+        incident_data["report_raw"] = raw_content
         
         if upload:
             incident_uuid = self.upload_incident(incident_data, model, messages)

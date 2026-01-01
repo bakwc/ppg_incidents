@@ -7,6 +7,7 @@ from logging import getLogger
 
 import certifi
 import yt_dlp
+from cachetools import TTLCache, cached
 from readabilipy import simple_json_from_html_string
 from youtube_transcript_api import YouTubeTranscriptApi
 
@@ -19,6 +20,8 @@ CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 YOUTUBE_URL_PATTERN = re.compile(
     r'(?:https?://)?(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]{11})'
 )
+
+webpage_cache = TTLCache(maxsize=100, ttl=600)
 
 
 def get_youtube_metadata(video_id: str) -> dict:
@@ -51,6 +54,7 @@ def get_youtube_transcript(video_id: str) -> str | None:
     return None
 
 
+@cached(webpage_cache)
 def get_webpage_content(url: str) -> str:
     """Download and clean webpage HTML content or extract text from PDF."""
     if not url:
