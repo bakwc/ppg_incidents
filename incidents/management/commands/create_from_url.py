@@ -36,7 +36,7 @@ class Command(BaseCommand):
             result = json.loads(response.read().decode("utf-8"))
             return result.get("results", [])
 
-    def upload_incident(self, incident_data):
+    def upload_incident(self, incident_data, model=None, messages=None):
         api_url = "https://ppg-incidents.org/api/incident/save"
         data = json.dumps({"incident_data": incident_data}).encode("utf-8")
         
@@ -48,9 +48,35 @@ class Command(BaseCommand):
             method="POST"
         )
         
-        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            return result.get("incident", {}).get("uuid")
+        try:
+            with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+                result = json.loads(response.read().decode("utf-8"))
+                return result.get("incident", {}).get("uuid")
+        except urllib.error.HTTPError as e:
+            error_response_body = e.read().decode("utf-8")
+            self.stdout.write(self.style.ERROR(f"HTTP Error {e.code}: {e.reason}"))
+            self.stdout.write(f"Error response: {error_response_body}")
+            
+            if model and messages is not None:
+                self.stdout.write("Sending error back to AI for correction...")
+                
+                error_message = f"Upload failed with error: {error_response_body}. Please fix the incident_data with valid values."
+                retry_messages = messages + [{"role": "assistant", "content": json.dumps({"incident_data": incident_data})}, {"role": "user", "content": error_message}]
+                
+                result = ai_communicator.incident_chat(retry_messages, incident_data, model=model)
+                corrected_data = result.get("incident_data", {})
+                
+                self.stdout.write(f"AI correction response: {result.get('response')}")
+                self.stdout.write(f"Corrected data: {corrected_data}")
+                
+                # Merge corrected fields with original data
+                merged_data = incident_data.copy()
+                merged_data.update(corrected_data)
+                merged_data["verified"] = False
+                
+                return self.upload_incident(merged_data, model, messages)
+            else:
+                raise
 
     def add_arguments(self, parser):
         parser.add_argument("url", type=str, help="URL to incident report")
@@ -166,7 +192,7 @@ class Command(BaseCommand):
             incident_data["report_raw"] = pdf_content
             
             if upload:
-                incident_uuid = self.upload_incident(incident_data)
+                incident_uuid = self.upload_incident(incident_data, model, messages)
                 self.stdout.write(self.style.SUCCESS(f"Uploaded incident: {incident_uuid}"))
             else:
                 serializer = IncidentSerializer(data=incident_data)
@@ -226,7 +252,7 @@ class Command(BaseCommand):
             incident_data["verified"] = False
             
             if upload:
-                incident_uuid = self.upload_incident(incident_data)
+                incident_uuid = self.upload_incident(incident_data, model, messages)
                 self.stdout.write(self.style.SUCCESS(f"Uploaded incident: {incident_uuid}"))
             else:
                 serializer = IncidentSerializer(data=incident_data)
@@ -286,7 +312,7 @@ class Command(BaseCommand):
         incident_data["verified"] = False
         
         if upload:
-            incident_uuid = self.upload_incident(incident_data)
+            incident_uuid = self.upload_incident(incident_data, model, messages)
             self.stdout.write(self.style.SUCCESS(f"Uploaded incident: {incident_uuid}"))
         else:
             serializer = IncidentSerializer(data=incident_data)
