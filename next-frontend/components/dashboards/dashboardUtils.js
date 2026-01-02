@@ -380,9 +380,14 @@ export const getTurbulenceFilterPacks = (severityFilter, yearFilter, confidenceF
     exclude: {}
   },
   {
+    name: 'Wake Turbulence',
+    include: { ...baseFilter, factor_turbulent_conditions: true, factor_wake_turbulence: true },
+    exclude: {}
+  },
+  {
     name: 'Unknown',
     include: { ...baseFilter, factor_turbulent_conditions: true },
-    exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true, factor_wind_shear: true, factor_gust_front: true }
+    exclude: { factor_rotor_turbulence: true, factor_thermal_weather: true, factor_wind_shear: true, factor_gust_front: true, factor_wake_turbulence: true }
   }
 ];
 };
