@@ -17,7 +17,7 @@ def launch_backend():
 def launch_frontend():
     """Launch frontend in dev mode"""
     print("🚀 Launching frontend in dev mode...")
-    os.chdir("frontend")
+    os.chdir("next-frontend")
     subprocess.run(["npm", "run", "dev"])
 
 

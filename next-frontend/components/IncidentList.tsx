@@ -255,6 +255,7 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
   const [monthFrom, setMonthFrom] = useState('');
   const [yearTo, setYearTo] = useState('');
   const [monthTo, setMonthTo] = useState('');
+  const [sortOrder, setSortOrder] = useState(searchParams.get('order_by') || '-date');
   const [activeFilters, setActiveFilters] = useState(() => {
     const filters = [];
     for (const [key, value] of searchParams.entries()) {
@@ -291,6 +292,9 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
     if (yearTo && monthTo) {
       result.date_to = `${yearTo}-${monthTo}`;
     }
+    if (sortOrder) {
+      result.order_by = sortOrder;
+    }
     return result;
   };
 
@@ -307,7 +311,7 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
     }
     
     setLoading(true);
-    fetchIncidents(searchQuery || null, buildFilters(), currentPage).then(data => {
+    fetchIncidents(searchQuery || null, buildFilters(), currentPage, sortOrder).then(data => {
       setIncidents(data.results || []);
       setTotalCount(data.count || 0);
       setTotalPages(Math.ceil((data.count || 0) / 15));
@@ -319,7 +323,7 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
       setTotalPages(1);
       setLoading(false);
     });
-  }, [searchQuery, activeFilters, currentPage, yearFrom, monthFrom, yearTo, monthTo]);
+  }, [searchQuery, activeFilters, currentPage, yearFrom, monthFrom, yearTo, monthTo, sortOrder]);
 
   useEffect(() => {
     if (isFirstFilterChange.current) {
@@ -327,7 +331,7 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
       return;
     }
     setCurrentPage(1);
-  }, [searchQuery, activeFilters, yearFrom, monthFrom, yearTo, monthTo]);
+  }, [searchQuery, activeFilters, yearFrom, monthFrom, yearTo, monthTo, sortOrder]);
 
   const isFilterActive = (key, value = null) => {
     return activeFilters.some(f => f.key === key && f.value === value && f.exclude === (filterMode === 'exclude'));
@@ -362,6 +366,10 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
     
     if (pageNum > 1) {
       params.set('page', pageNum.toString());
+    }
+    
+    if (sortOrder) {
+      params.set('order_by', sortOrder);
     }
     
     activeFilters.forEach(filter => {
@@ -540,16 +548,40 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
               <span className="text-sm">−</span>
               <span>Exclude</span>
             </button>
-            <button
-              type="button"
-              onClick={handleExportCSV}
-              className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-xl transition-all text-sm md:text-base bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800 ml-auto"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>Export CSV</span>
-            </button>
+            <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-400 hidden sm:block">Sort by:</span>
+                <div className="relative">
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="px-3 md:px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all text-sm md:text-base appearance-none cursor-pointer pr-10"
+                  >
+                    <option value="-date">Incident Date (Newest First)</option>
+                    <option value="date">Incident Date (Oldest First)</option>
+                    <option value="-created_at">Reported Date (Newest First)</option>
+                    <option value="created_at">Reported Date (Oldest First)</option>
+                    <option value="-severity">Severity (Fatal → Minor)</option>
+                    <option value="severity">Severity (Minor → Fatal)</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-xl transition-all text-sm md:text-base bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Export CSV</span>
+              </button>
+            </div>
           </div>
 
           {filtersExpanded && (

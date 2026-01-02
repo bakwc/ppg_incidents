@@ -293,7 +293,27 @@ class IncidentListView(generics.ListAPIView):
             queryset = Incident.objects.all()
             order_by = self.request.query_params.get("order_by")
             if order_by and order_by in ALLOWED_ORDER_BY_FIELDS_WITH_DESC:
-                queryset = queryset.order_by(order_by)
+                # Custom ordering for severity to respect severity levels
+                if order_by == "severity":
+                    queryset = queryset.order_by(
+                        Case(
+                            When(severity="minor", then=1),
+                            When(severity="serious", then=2),
+                            When(severity="fatal", then=3),
+                            default=4,  # Put null/unknown severity at the end
+                        )
+                    )
+                elif order_by == "-severity":
+                    queryset = queryset.order_by(
+                        Case(
+                            When(severity="fatal", then=1),
+                            When(severity="serious", then=2),
+                            When(severity="minor", then=3),
+                            default=4,  # Put null/unknown severity at the end
+                        )
+                    )
+                else:
+                    queryset = queryset.order_by(order_by)
 
         # Collect include filters from query params
         include_filters = {}

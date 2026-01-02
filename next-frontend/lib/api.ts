@@ -92,12 +92,15 @@ export async function getCurrentUser() {
   return null;
 }
 
-export async function fetchIncidents(searchQuery: string | null = null, filters: Record<string, any> = {}, page: number = 1) {
+export async function fetchIncidents(searchQuery: string | null = null, filters: Record<string, any> = {}, page: number = 1, orderBy: string | null = null) {
   const params = new URLSearchParams();
   if (searchQuery) {
     params.set('text_search', searchQuery);
   }
   params.set('page', page.toString());
+  if (orderBy) {
+    params.set('order_by', orderBy);
+  }
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== '') {
       params.set(key, value);
