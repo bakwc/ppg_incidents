@@ -555,7 +555,8 @@ function IncidentList({ initialIncidents = { results: [], count: 0 }, initialCou
                   <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
-                    className="px-3 md:px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-800 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/25 transition-all text-sm md:text-base appearance-none cursor-pointer pr-10"
+                    disabled={loading}
+                    className="px-3 md:px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 disabled:opacity-50 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/25 text-sm md:text-base appearance-none cursor-pointer pr-10 disabled:cursor-not-allowed"
                   >
                     <option value="-date">Incident Date (Newest First)</option>
                     <option value="date">Incident Date (Oldest First)</option>
