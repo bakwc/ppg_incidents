@@ -108,6 +108,9 @@ def get_webpage_content(url: str, allow_local: bool = False) -> str:
             result_parts.append(f"\nError fetching YouTube transcript: {e}")
         
         return '\n'.join(result_parts)
+
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
     
     ssl_context = ssl.create_default_context(cafile=certifi.where())
     request = urllib.request.Request(url, headers={"User-Agent": CHROME_USER_AGENT})
