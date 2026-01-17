@@ -175,6 +175,7 @@ function IncidentForm() {
     factor_student_pilot: false,
     factor_medical_issues: false,
     factor_engine_failure: false,
+    factor_out_of_fuel: false,
     factor_trimmers_failure: false,
     factor_structural_failure: false,
     factor_fire: false,
@@ -854,6 +855,7 @@ function IncidentForm() {
                   <Checkbox label="Hardware failure occurred" name="hardware_failure" checked={formData.hardware_failure} onChange={handleChange} highlighted={highlightedFields.has('hardware_failure')} />
                   <Checkbox label="Issue could be found on preflight" name="bad_hardware_preflight" checked={formData.bad_hardware_preflight} onChange={handleChange} highlighted={highlightedFields.has('bad_hardware_preflight')} />
                   <Checkbox label="Engine failure" name="factor_engine_failure" checked={formData.factor_engine_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_engine_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_engine_failure} />
+                  <Checkbox label="Out of fuel" name="factor_out_of_fuel" checked={formData.factor_out_of_fuel} onChange={handleChange} highlighted={highlightedFields.has('factor_out_of_fuel')} hint={CONTRIBUTING_FACTOR_HINTS.factor_out_of_fuel} />
                   <Checkbox label="Trimmers failure" name="factor_trimmers_failure" checked={formData.factor_trimmers_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_trimmers_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_trimmers_failure} />
                   <Checkbox label="Structural failure (frame / carabiners / etc.)" name="factor_structural_failure" checked={formData.factor_structural_failure} onChange={handleChange} highlighted={highlightedFields.has('factor_structural_failure')} hint={CONTRIBUTING_FACTOR_HINTS.factor_structural_failure} />
                   <Checkbox label="Fire" name="factor_fire" checked={formData.factor_fire} onChange={handleChange} highlighted={highlightedFields.has('factor_fire')} hint={CONTRIBUTING_FACTOR_HINTS.factor_fire} />

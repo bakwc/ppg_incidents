@@ -313,12 +313,13 @@ function IncidentView({ incident: initialIncident }) {
           )}
 
           {/* Hardware */}
-          {(incident.hardware_failure || incident.bad_hardware_preflight || incident.factor_engine_failure || incident.factor_trimmers_failure || incident.factor_structural_failure || incident.factor_fire || incident.factor_throttle_system_issues || incident.factor_paraglider_failure) && (
+          {(incident.hardware_failure || incident.bad_hardware_preflight || incident.factor_engine_failure || incident.factor_out_of_fuel || incident.factor_trimmers_failure || incident.factor_structural_failure || incident.factor_fire || incident.factor_throttle_system_issues || incident.factor_paraglider_failure) && (
             <Section title="Hardware">
               <div className="flex flex-wrap gap-2">
                 {incident.hardware_failure && <Badge label="Hardware failure occurred" />}
                 {incident.bad_hardware_preflight && <Badge label="Issue could be found on preflight" />}
                 {incident.factor_engine_failure && <Badge label="Engine failure" hint={CONTRIBUTING_FACTOR_HINTS.factor_engine_failure} />}
+                {incident.factor_out_of_fuel && <Badge label="Out of fuel" hint={CONTRIBUTING_FACTOR_HINTS.factor_out_of_fuel} />}
                 {incident.factor_trimmers_failure && <Badge label="Trimmers failure" hint={CONTRIBUTING_FACTOR_HINTS.factor_trimmers_failure} />}
                 {incident.factor_structural_failure && <Badge label="Structural failure (frame / carabiners / etc.)" hint={CONTRIBUTING_FACTOR_HINTS.factor_structural_failure} />}
                 {incident.factor_fire && <Badge label="Fire" hint={CONTRIBUTING_FACTOR_HINTS.factor_fire} />}

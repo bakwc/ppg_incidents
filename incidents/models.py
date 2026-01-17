@@ -185,6 +185,7 @@ class Incident(models.Model):
     factor_student_pilot = models.BooleanField(null=True, blank=True, verbose_name="Student pilot")
     factor_medical_issues = models.BooleanField(null=True, blank=True, verbose_name="Had medical issues")
     factor_engine_failure = models.BooleanField(null=True, blank=True, verbose_name="Engine failure")
+    factor_out_of_fuel = models.BooleanField(null=True, blank=True, verbose_name="Out of fuel")
     factor_trimmers_failure = models.BooleanField(null=True, blank=True, verbose_name="Trimmers failure")
     factor_structural_failure = models.BooleanField(null=True, blank=True, verbose_name="Structural failure (frame / carabiners / etc.)")
     factor_fire = models.BooleanField(null=True, blank=True, verbose_name="Fire")
@@ -367,6 +368,8 @@ class Incident(models.Model):
             factors.append("medical issues")
         if self.factor_engine_failure:
             factors.append("engine failure")
+        if self.factor_out_of_fuel:
+            factors.append("out of fuel")
         if self.factor_trimmers_failure:
             factors.append("trimmers failure")
         if self.factor_structural_failure:

@@ -166,6 +166,7 @@ const PILOT_RELATED_FILTERS = [
 
 const HARDWARE_FAILURE_FILTERS = [
   { key: 'factor_engine_failure', label: 'Engine failure' },
+  { key: 'factor_out_of_fuel', label: 'Out of fuel' },
   { key: 'factor_trimmers_failure', label: 'Trimmers failure' },
   { key: 'factor_structural_failure', label: 'Structural failure' },
   { key: 'factor_fire', label: 'Fire' },

@@ -115,6 +115,7 @@ BOOLEAN_FILTER_FIELDS = [
     "factor_student_pilot",
     "factor_medical_issues",
     "factor_engine_failure",
+    "factor_out_of_fuel",
     "factor_trimmers_failure",
     "factor_structural_failure",
     "factor_fire",

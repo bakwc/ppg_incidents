@@ -56,6 +56,7 @@ export const CONTRIBUTING_FACTOR_HINTS = {
   factor_student_pilot: "Pilot in training or with limited experience.",
   factor_medical_issues: "Pilot experiencing health problems during flight, such as heart issues, seizure, or loss of consciousness.",
   factor_engine_failure: "Engine stops running during flight due to mechanical failure.",
+  factor_out_of_fuel: "Ran out of fuel during flight.",
   factor_trimmers_failure: "Trim system malfunction happened during flight.",
   factor_structural_failure: "Breakage of frame, carabiners, or other structural components.",
   factor_fire: "Fire occurring on the paramotor unit during flight.",

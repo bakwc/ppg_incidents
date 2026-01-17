@@ -75,6 +75,7 @@ The incident has the following fields:
 - factor_student_pilot: Boolean - student pilot
 - factor_medical_issues: Boolean - pilot had medical issues
 - factor_engine_failure: Boolean - engine failure
+- factor_out_of_fuel: Boolean - out of fuel
 - factor_trimmers_failure: Boolean - trimmers failure
 - factor_structural_failure: Boolean - structural failure (frame / carabiners / etc.)
 - factor_fire: Boolean - fire

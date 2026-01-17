@@ -247,6 +247,11 @@ export const getHardwareFailureFilterPacks = (severityFilter, yearFilter, confid
     exclude: {}
   },
   {
+    name: 'Out Of Fuel',
+    include: { ...baseFilter, primary_cause: 'hardware_failure', factor_out_of_fuel: true },
+    exclude: {}
+  },
+  {
     name: 'Trimmers Failure',
     include: { ...baseFilter, primary_cause: 'hardware_failure', factor_trimmers_failure: true },
     exclude: {}
