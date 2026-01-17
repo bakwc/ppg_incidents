@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import ssl
 import urllib.request
@@ -16,6 +17,7 @@ from ppg_incidents.vector_store import upsert_embedding
 
 USPPA_LIST_PATTERN = re.compile(r"^https?://usppa\.org/incidents/(\?.*)?$")
 USPPA_ENTRY_PATTERN = re.compile(r"https://usppa\.org/incidents/entry/\d+")
+USPPA_LOCAL_PATTERN = re.compile(r"^local_usppa:(.+)$")
 BHPA_LIST_PATTERN = re.compile(r"^https?://(?:www\.)?bhpa\.co\.uk/safety/incidents/")
 BHPA_FORMAL_LIST_PATTERN = re.compile(r"^https?://(?:www\.)?bhpa\.co\.uk/safety/investigations/")
 
@@ -24,6 +26,7 @@ class Command(BaseCommand):
     help = "Create an incident from a URL using LLM"
 
     def check_duplicates(self, url):
+        url = url.rstrip("/")
         api_url = f"https://ppg-incidents.org/api/incidents?text_search={urllib.request.quote(url)}"
         
         ssl_context = ssl.create_default_context(cafile=certifi.where())
@@ -89,7 +92,9 @@ class Command(BaseCommand):
         model = options["model"]
         upload = options["upload"]
 
-        if USPPA_LIST_PATTERN.match(url):
+        if USPPA_LOCAL_PATTERN.match(url):
+            self.handle_local_usppa(url, model, options["force"], upload)
+        elif USPPA_LIST_PATTERN.match(url):
             self.handle_usppa_list(url, model, options["force"], upload)
         elif BHPA_FORMAL_LIST_PATTERN.match(url):
             self.handle_bhpa_formal_list(url, model, options["force"], upload)
@@ -118,6 +123,92 @@ class Command(BaseCommand):
         for i, incident_url in enumerate(incident_urls, 1):
             self.stdout.write(f"\n[{i}/{len(incident_urls)}] {incident_url}")
             self.process_single_url(incident_url, model, force, auto_skip=True, upload=upload, check_url=incident_url)
+
+    def handle_local_usppa(self, url, model, force, upload):
+        match = USPPA_LOCAL_PATTERN.match(url)
+        if not match:
+            self.stdout.write(self.style.ERROR("Invalid local USPPA URL format"))
+            return
+
+        local_dir = match.group(1)
+        self.stdout.write(f"Processing local USPPA directory: {local_dir}")
+
+        if not os.path.isdir(local_dir):
+            self.stdout.write(self.style.ERROR(f"Directory not found: {local_dir}"))
+            return
+
+        html_files = sorted([f for f in os.listdir(local_dir) if f.endswith('.html')])
+        self.stdout.write(f"Found {len(html_files)} HTML files")
+
+        for i, filename in enumerate(html_files, 1):
+            self.stdout.write(f"\n[{i}/{len(html_files)}] {filename}")
+
+            filepath = os.path.join(local_dir, filename)
+
+            incident_id_match = re.search(r'_(\d+)\.html$', filename)
+            if not incident_id_match:
+                self.stdout.write(self.style.WARNING(f"Could not extract incident ID from filename, skipping"))
+                continue
+
+            incident_id = incident_id_match.group(1)
+            usppa_url = f"https://usppa.org/incidents/entry/{incident_id}/"
+
+            self.stdout.write(f"USPPA URL: {usppa_url}")
+
+            if upload:
+                duplicates = self.check_duplicates(usppa_url)
+                if duplicates and not force:
+                    self.stdout.write(self.style.WARNING(f"Duplicate found by USPPA URL"))
+                    for dup in duplicates:
+                        incident_uuid = dup.get("uuid")
+                        self.stdout.write(f"  https://ppg-incidents.org/view/{incident_uuid}")
+                    self.stdout.write("Skipped.")
+                    continue
+            else:
+                duplicates = Incident.all_objects.filter(
+                    Q(source_links__icontains=usppa_url) | Q(media_links__icontains=usppa_url)
+                )
+                if duplicates.exists() and not force:
+                    self.stdout.write(self.style.WARNING(f"Duplicate found by USPPA URL"))
+                    for dup in duplicates:
+                        self.stdout.write(f"  http://localhost:5173/view/{dup.uuid}")
+                    self.stdout.write("Skipped.")
+                    continue
+
+            self.stdout.write(f"Reading file: {filepath}")
+            plain_text = get_webpage_content(f"file://{filepath}", allow_local=True)
+
+            messages = [{"role": "user", "content": plain_text}]
+            incident_data = {}
+
+            result = ai_communicator.incident_chat(messages, incident_data, model=model)
+
+            incident_data.update(result.get("incident_data", {}))
+
+            self.stdout.write(f"\nAI response: {result.get('response')}")
+            self.stdout.write(f"\nExtracted data: {incident_data}")
+
+            incident_data["verified"] = False
+            incident_data["report_raw"] = plain_text
+
+            if incident_data.get("source_links"):
+                if usppa_url not in incident_data["source_links"]:
+                    incident_data["source_links"] = f"{incident_data['source_links']}\n{usppa_url}"
+            else:
+                incident_data["source_links"] = usppa_url
+
+            if upload:
+                incident_uuid = self.upload_incident(incident_data, model, messages)
+                self.stdout.write(self.style.SUCCESS(f"Uploaded incident: {incident_uuid}"))
+            else:
+                serializer = IncidentSerializer(data=incident_data)
+                serializer.is_valid(raise_exception=True)
+                incident = serializer.save()
+
+                embedding = ai_communicator.get_embedding(incident.to_text())
+                upsert_embedding(incident.id, embedding)
+
+                self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
 
     def handle_bhpa_formal_list(self, url, model, force, upload):
         self.stdout.write(f"Detected BHPA formal investigations page: {url}")

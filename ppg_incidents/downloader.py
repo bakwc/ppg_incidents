@@ -1,3 +1,4 @@
+import os
 import re
 import ssl
 import subprocess
@@ -55,11 +56,30 @@ def get_youtube_transcript(video_id: str) -> str | None:
 
 
 @cached(webpage_cache)
-def get_webpage_content(url: str) -> str:
-    """Download and clean webpage HTML content or extract text from PDF."""
+def get_webpage_content(url: str, allow_local: bool = False) -> str:
+    """Download and clean webpage HTML content or extract text from PDF or local HTML file."""
     if not url:
         return "Error: No URL provided"
-    
+
+    if allow_local and url.startswith("file://"):
+        filepath = url[7:]
+        if not os.path.exists(filepath):
+            return f"Error: File not found: {filepath}"
+
+        with open(filepath, 'r', encoding='utf-8') as f:
+            html = f.read()
+
+        try:
+            article = simple_json_from_html_string(html, use_readability=True)
+        except subprocess.CalledProcessError:
+            article = simple_json_from_html_string(html, use_readability=False)
+        plain_text = article["plain_text"]
+        if plain_text:
+            if isinstance(plain_text, list):
+                return plain_text[0]["text"]
+            return plain_text
+        return f"Could not extract readable content from {filepath}"
+
     youtube_match = YOUTUBE_URL_PATTERN.search(url)
     if youtube_match:
         video_id = youtube_match.group(1)
