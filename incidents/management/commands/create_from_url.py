@@ -2,6 +2,7 @@ import json
 import os
 import re
 import ssl
+import time
 import urllib.request
 
 import certifi
@@ -123,6 +124,8 @@ class Command(BaseCommand):
         for i, incident_url in enumerate(incident_urls, 1):
             self.stdout.write(f"\n[{i}/{len(incident_urls)}] {incident_url}")
             self.process_single_url(incident_url, model, force, auto_skip=True, upload=upload, check_url=incident_url)
+            self.stdout.write("Sleeping for 60 seconds before next request...")
+            time.sleep(60)
 
     def handle_local_usppa(self, url, model, force, upload):
         match = USPPA_LOCAL_PATTERN.match(url)
