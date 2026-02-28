@@ -69,3 +69,5 @@ logs/api_calls.*.jsonl.*
 logs/gunicorn-*.log
 logs/
 
+ignore_incidents.txt
+

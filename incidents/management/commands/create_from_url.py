@@ -22,9 +22,21 @@ USPPA_LOCAL_PATTERN = re.compile(r"^local_usppa:(.+)$")
 BHPA_LIST_PATTERN = re.compile(r"^https?://(?:www\.)?bhpa\.co\.uk/safety/incidents/")
 BHPA_FORMAL_LIST_PATTERN = re.compile(r"^https?://(?:www\.)?bhpa\.co\.uk/safety/investigations/")
 
+IGNORE_FILE = "ignore_incidents.txt"
+
 
 class Command(BaseCommand):
     help = "Create an incident from a URL using LLM"
+
+    def load_ignored_urls(self):
+        if not os.path.exists(IGNORE_FILE):
+            return set()
+        with open(IGNORE_FILE) as f:
+            return set(line.strip() for line in f if line.strip())
+
+    def is_ignored(self, url):
+        ignored = self.load_ignored_urls()
+        return url in ignored
 
     def check_duplicates(self, url):
         url = url.rstrip("/")
@@ -123,9 +135,9 @@ class Command(BaseCommand):
 
         for i, incident_url in enumerate(incident_urls, 1):
             self.stdout.write(f"\n[{i}/{len(incident_urls)}] {incident_url}")
-            self.process_single_url(incident_url, model, force, auto_skip=True, upload=upload, check_url=incident_url)
-            self.stdout.write("Sleeping for 60 seconds before next request...")
-            time.sleep(60)
+            if self.process_single_url(incident_url, model, force, auto_skip=True, upload=upload, check_url=incident_url):
+                self.stdout.write("Sleeping for 60 seconds before next request...")
+                time.sleep(60)
 
     def handle_local_usppa(self, url, model, force, upload):
         match = USPPA_LOCAL_PATTERN.match(url)
@@ -358,9 +370,13 @@ class Command(BaseCommand):
 
                 self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
 
-    def process_single_url(self, url, model, force, auto_skip=False, upload=False, check_url=None):
+    def process_single_url(self, url, model, force, auto_skip=False, upload=False, check_url=None) -> bool:
         check_url = check_url or url
-        
+
+        if self.is_ignored(check_url):
+            self.stdout.write(self.style.WARNING(f"URL is in {IGNORE_FILE}, skipping"))
+            return False
+
         if upload:
             duplicates = self.check_duplicates(check_url)
             if duplicates and not force:
@@ -370,11 +386,11 @@ class Command(BaseCommand):
                     self.stdout.write(f"  https://ppg-incidents.org/view/{incident_uuid}")
                 if auto_skip:
                     self.stdout.write("Skipped.")
-                    return
+                    return False
                 confirm = input("Continue anyway? [y/N]: ")
                 if confirm.lower() != "y":
                     self.stdout.write("Skipped.")
-                    return
+                    return False
         else:
             duplicates = Incident.all_objects.filter(
                 Q(source_links__icontains=check_url) | Q(media_links__icontains=check_url)
@@ -385,11 +401,11 @@ class Command(BaseCommand):
                     self.stdout.write(f"  http://localhost:5173/view/{dup.uuid}")
                 if auto_skip:
                     self.stdout.write("Skipped.")
-                    return
+                    return False
                 confirm = input("Continue anyway? [y/N]: ")
                 if confirm.lower() != "y":
                     self.stdout.write("Skipped.")
-                    return
+                    return False
 
         self.stdout.write(f"Processing URL: {url}")
 
@@ -421,4 +437,5 @@ class Command(BaseCommand):
             upsert_embedding(incident.id, embedding)
 
             self.stdout.write(self.style.SUCCESS(f"Created incident: {incident.uuid}"))
-
+        
+        return True
