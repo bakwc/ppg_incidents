@@ -18,6 +18,9 @@ export default function Navigation() {
     if (path === '/dashboard') {
       return pathname === '/dashboard' || pathname?.startsWith('/dashboard');
     }
+    if (path === '/articles') {
+      return pathname === '/articles' || pathname?.startsWith('/articles/');
+    }
     return pathname?.startsWith(path);
   };
   
@@ -59,6 +62,16 @@ export default function Navigation() {
                 }`}
               >
                 Incidents
+              </Link>
+              <Link
+                href="/articles" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                  isActive('/articles')
+                    ? 'bg-slate-800 text-amber-400' 
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
+                }`}
+              >
+                Articles
               </Link>
               <Link
                 href="/about" 
